@@ -3,4 +3,4 @@ project(Compiler)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(grammar_1005 main.cpp grammar.h lexical.h word.h output.h error.h)
+add_executable(Compiler main.cpp grammar.h lexical.h word.h output.h error.h)
