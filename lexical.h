@@ -180,7 +180,7 @@ public:
     string to_string() {
         string ret;
         for(Word word: words)
-            ret += word.getTypeCode() + " " + word.getValue() + "\n";
+            ret += word.getTypeCode() + " " + word.getValue() + " " + ::to_string(word.getLine()) + "\n";
         return ret.substr(0, ret.size()-1);
     }
 
