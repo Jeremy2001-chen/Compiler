@@ -16,6 +16,7 @@ private:
     string article{};
     vector<Word> words{};
     int index = 0;
+    int line = 1;
     static bool checkVar(char c) {
         return isdigit(c) || isalpha(c) || c == '_';
     }
@@ -23,8 +24,12 @@ private:
         return isblank(c) || c == '\n' || (int)c == 13;
     }
     bool getToken() {
-        while(index < article.size() && checkBlank(article[index]))
+        while(index < article.size() && checkBlank(article[index])) {
+            if (article[index] == '\n') {
+                line += 1;
+            }
             index ++;
+        }
         if (index >= article.size()) return false;
         if (index < article.size() - 1) {
             if(article[index] == '/' && article[index + 1] == '*') {
@@ -33,6 +38,8 @@ private:
                     if (article[index] == '*' && article[index + 1] == '/') {
                         index += 2;
                         return true;
+                    } else if (article[index] == '\n') {
+                        line += 1;
                     }
                     index += 1;
                 }
@@ -47,6 +54,7 @@ private:
                 while (index < article.size()) {
                     if (article[index] == '\n') {
                         index += 1;
+                        line += 1;
                         return true;
                     }
                     index += 1;
@@ -65,7 +73,7 @@ private:
                 do {
                     temp += article[index ++];
                 } while(index <= article.size() && article[index - 1] != '\"');
-                words.emplace_back("STRCON", temp);
+                words.emplace_back("STRCON", temp, line);
                 //fout << "STRCON " << temp << endl;
                 return true;
             }
@@ -75,7 +83,7 @@ private:
                 temp += article[index + 1];
                 auto it = typeTable.find(temp);
                 if (it != typeTable.end()) {
-                    words.emplace_back(string(it->second), string(it->first));
+                    words.emplace_back(string(it->second), string(it->first), line);
                     //fout << it -> second << " " << it -> first << endl;
                     index += 2;
                     return true;
@@ -85,7 +93,7 @@ private:
             temp += article[index];
             auto it = typeTable.find(temp);
             if (it != typeTable.end()) {
-                words.emplace_back(string(it->second), string(it->first));
+                words.emplace_back(string(it->second), string(it->first), line);
                 //fout << it -> second << " " << it -> first << endl;
                 index ++;
                 return true;
@@ -102,7 +110,7 @@ private:
         }
         auto it = typeTable.find(temp);
         if (it != typeTable.end()) {
-            words.emplace_back(string(it->second), string(it->first));
+            words.emplace_back(string(it->second), string(it->first), line);
             //fout << it -> second << " " << it -> first << endl;
             return true;
         }
