@@ -9,8 +9,8 @@ class Error{
 private:
     int error_line;
 public:
-    void display() = 0;
-    void debug() = 0;
+    virtual void display() = 0;
+    virtual void debug() = 0;
 };
 
 class IllegalCharacterError : public Error {
@@ -18,10 +18,10 @@ public:
     IllegalCharacterError(int line) {
         this.error_line = line;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "a" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the format string has illegal character!" << endl;
     }
 };
@@ -34,10 +34,10 @@ public:
         this.error_line = line;
         this.str = _str;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "b" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the name " << str << " define again!" << endl;
     }
 };
@@ -50,10 +50,10 @@ public:
         this.error_line = line;
         this.str = _str;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "c" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the name " << str << " has not defined!" << endl;
     }
 };
@@ -69,10 +69,10 @@ public:
         expectNum = _expectNum;
         realNum = _realNum;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "d" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
         funName << " expect " << expectNum <<
         " parameter, but you have " << realNum << " parameter!" << endl;
@@ -89,10 +89,10 @@ public:
         this->expectType = _expectType;
         this->realType = _readType;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "e" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
         funName << " expect " << expectType << " type parameter, but you have " <<
         realType << " parameter!" << endl;
@@ -107,10 +107,10 @@ public:
         this.error_line = line;
         this->funName = _funName;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "f" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
         funName << " has return statement!" << endl;
     }
@@ -124,10 +124,10 @@ public:
         this.error_line = line;
         this->funName = _funName;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "g" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
         funName << " no return statement!" << endl;
     }
@@ -141,10 +141,10 @@ public:
         this.error_line = line;
         this->varName = _varName;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "h" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , the const variable " <<
         varName << "can't change!" << endl;
     }
@@ -155,10 +155,10 @@ public:
     NoSemicolonError(int line) {
         this.error_line = line;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "i" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , need ';' at end!" << endl;
     }
 };
@@ -168,10 +168,10 @@ public:
     NoRightParenthesesError(int line) {
         this.error_line = line;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "j" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , need ')' at end!" << endl;
     }
 };
@@ -181,10 +181,10 @@ public:
     NoRightBracketsError(int line) {
         this.error_line = line;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "k" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , need ']' at end!" << endl;
     }
 };
@@ -198,10 +198,10 @@ public:
         expectNum = _expectNum;
         realNum = _realNum;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "l" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , printf need " << expectNum
         << " parameter but you have " << realNum << " parameter!" << endl;
     }
@@ -215,10 +215,10 @@ public:
         this.error_line = line;
         this->errorType = _errorType;
     }
-    void display() {
+    void display() override {
         cout << this.error_line << " " << "m" << endl;
     }
-    void debug() {
+    void debug() override {
         cout << "[Debug]Error! At line: " << this.error_line << " , " <<
         errorType << " should not appear outside the while block!" << endl;
     }
