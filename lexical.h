@@ -122,10 +122,10 @@ private:
             }
         }
         if (alphaAppear) {
-            words.emplace_back("IDENFR", temp);
+            words.emplace_back("IDENFR", temp, line);
             //fout << "IDENFR " << temp << endl;
         } else {
-            words.emplace_back("INTCON", temp);
+            words.emplace_back("INTCON", temp, line);
             //fout << "INTCON " << temp << endl;
         }
         return true;
