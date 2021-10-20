@@ -7,7 +7,7 @@
 
 #include "node.h"
 
-class Number : public Node {
+class Number: public Node {
 private:
     int value;
 public:
@@ -23,7 +23,7 @@ public:
     }
 };
 
-class Variable : public Node {
+class Variable: public Node {
 private:
     string name;
     int offset;
@@ -50,5 +50,37 @@ private:
     }
 };
 
-class
+class VariableDecl: public Node {
+private:
+    string name;
+    int offset;
+    vector<Node> value;
+public:
+    VariableDecl(string _name, int _offset, vector<Node> _value, bool _const) {
+        name = _name;
+        offset = _offset;
+        value = _value;
+        Const = _const;
+    }
+    void check() override {
+        cout << "Variable Declaration check correct!" << endl;
+    }
+    void traversal() override {
+        cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
+        for (auto node: value) {
+            node.traversal();
+        }
+    }
+};
+
+class ReadValue: public Node{
+public:
+    ReadValue() = default;
+    void check() override {
+        cout << "please read a integer!" << endl;
+    }
+    void traversal() override {
+
+    }
+};
 #endif //COMPILER_VALUE_H

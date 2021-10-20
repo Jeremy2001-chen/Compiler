@@ -10,9 +10,11 @@ class Error{
 protected:
     int error_line;
 public:
-    virtual void display() = 0;
-    virtual void debug() = 0;
+    virtual void display();
+    virtual void debug();
 };
+
+
 
 class IllegalCharacterError : public Error {
 public:
