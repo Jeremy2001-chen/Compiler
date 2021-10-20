@@ -19,6 +19,12 @@ public:
     string getSign() const {
         return sign;
     }
+    void setLch(const Node& Lch) {
+        lch = Lch;
+    }
+    void setRch(const Node& Rch) {
+        rch = Rch;
+    }
 };
 
 class MulExp: public BinaryExp{
@@ -144,7 +150,6 @@ public:
         cout << sign << endl;
         this.lch.traversal();
         this.rch.traversal();
-    }
     }
 };
 #endif //COMPILER_BINARY_EXP_H

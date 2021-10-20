@@ -6,12 +6,14 @@
 #define GRAMMAR_1005_OUTPUT_H
 
 #include <stack>
+#include "error.h"
 using namespace std;
 
 typedef pair<int, string> pis;
 class Output{
 private:
     vector<string> line;
+    vector<Error> errors;
     stack<pis> s;
 public:
     Output() = default;
@@ -19,7 +21,9 @@ public:
         line.push_back(_line);
         //cout << _line << endl;
     }
-
+    void addError(const Error& error) {
+        errors.push_back(error);
+    }
     void addLine(const string& _line, int index) {
         //cout << index << " " << _line << endl;
         s.push(make_pair(index, _line));

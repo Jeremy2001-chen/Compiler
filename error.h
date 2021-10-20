@@ -5,8 +5,9 @@
 #ifndef GRAMMAR_1005_ERROR_H
 #define GRAMMAR_1005_ERROR_H
 
+using namespace std;
 class Error{
-private:
+protected:
     int error_line;
 public:
     virtual void display() = 0;
@@ -16,13 +17,13 @@ public:
 class IllegalCharacterError : public Error {
 public:
     IllegalCharacterError(int line) {
-        this.error_line = line;
+        this->error_line = line;
     }
     void display() override {
-        cout << this.error_line << " " << "a" << endl;
+        cout << this->error_line << " " << "a" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the format string has illegal character!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , the format string has illegal character!" << endl;
     }
 };
 
@@ -31,14 +32,14 @@ private:
     string str;
 public:
     NameRedefineError(int line, string _str) {
-        this.error_line = line;
-        this.str = _str;
+        this->error_line = line;
+        this->str = _str;
     }
     void display() override {
-        cout << this.error_line << " " << "b" << endl;
+        cout << this->error_line << " " << "b" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the name " << str << " define again!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , the name " << str << " define again!" << endl;
     }
 };
 
@@ -47,14 +48,14 @@ private:
     string str;
 public:
     UndefineNameError(int line, string _str) {
-        this.error_line = line;
-        this.str = _str;
+        this->error_line = line;
+        this->str = _str;
     }
     void display() override {
-        cout << this.error_line << " " << "c" << endl;
+        cout << this->error_line << " " << "c" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the name " << str << " has not defined!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , the name " << str << " has not defined!" << endl;
     }
 };
 
@@ -64,16 +65,16 @@ private:
     int expectNum, realNum;
 public:
     NotMatchParameterNumError(int line, string _funName, int _expectNum, int _realNum) {
-        this.error_line = line;
+        this->error_line = line;
         this->funName = _funName;
         expectNum = _expectNum;
         realNum = _realNum;
     }
     void display() override {
-        cout << this.error_line << " " << "d" << endl;
+        cout << this->error_line << " " << "d" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
         funName << " expect " << expectNum <<
         " parameter, but you have " << realNum << " parameter!" << endl;
     }
@@ -85,15 +86,15 @@ private:
     string expectType, realType;
 public:
     NotMatchParameterTypeError(int line, string _funName, string _expectType, string _readType) {
-        this.error_line = line;
+        this->error_line = line;
         this->expectType = _expectType;
         this->realType = _readType;
     }
     void display() override {
-        cout << this.error_line << " " << "e" << endl;
+        cout << this->error_line << " " << "e" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
         funName << " expect " << expectType << " type parameter, but you have " <<
         realType << " parameter!" << endl;
     }
@@ -104,14 +105,14 @@ private:
     string funName;
 public:
     HasReturnError(int line, string _funName) {
-        this.error_line = line;
+        this->error_line = line;
         this->funName = _funName;
     }
     void display() override {
-        cout << this.error_line << " " << "f" << endl;
+        cout << this->error_line << " " << "f" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
         funName << " has return statement!" << endl;
     }
 };
@@ -121,14 +122,14 @@ private:
     string funName;
 public:
     NoReturnError(int line, string _funName) {
-        this.error_line = line;
+        this->error_line = line;
         this->funName = _funName;
     }
     void display() override {
-        cout << this.error_line << " " << "g" << endl;
+        cout << this->error_line << " " << "g" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the function " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
         funName << " no return statement!" << endl;
     }
 };
@@ -138,14 +139,14 @@ private:
     string varName;
 public:
     ConstVariableChangeError(int line, string _varName) {
-        this.error_line = line;
+        this->error_line = line;
         this->varName = _varName;
     }
     void display() override {
-        cout << this.error_line << " " << "h" << endl;
+        cout << this->error_line << " " << "h" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , the const variable " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , the const variable " <<
         varName << "can't change!" << endl;
     }
 };
@@ -153,39 +154,39 @@ public:
 class NoSemicolonError: public Error {
 public:
     NoSemicolonError(int line) {
-        this.error_line = line;
+        this->error_line = line;
     }
     void display() override {
-        cout << this.error_line << " " << "i" << endl;
+        cout << this->error_line << " " << "i" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , need ';' at end!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , need ';' at end!" << endl;
     }
 };
 
 class NoRightParenthesesError: public Error {
 public:
     NoRightParenthesesError(int line) {
-        this.error_line = line;
+        this->error_line = line;
     }
     void display() override {
-        cout << this.error_line << " " << "j" << endl;
+        cout << this->error_line << " " << "j" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , need ')' at end!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , need ')' at end!" << endl;
     }
 };
 
 class NoRightBracketsError: public Error {
 public:
     NoRightBracketsError(int line) {
-        this.error_line = line;
+        this->error_line = line;
     }
     void display() override {
-        cout << this.error_line << " " << "k" << endl;
+        cout << this->error_line << " " << "k" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , need ']' at end!" << endl;
+        cout << "[Debug]Error! At line: " << this->error_line << " , need ']' at end!" << endl;
     }
 };
 
@@ -194,15 +195,15 @@ private:
     int expectNum, realNum;
 public:
     PrintParameterNumError(int line, int _expectNum, int _realNum) {
-        this.error_line = line;
+        this->error_line = line;
         expectNum = _expectNum;
         realNum = _realNum;
     }
     void display() override {
-        cout << this.error_line << " " << "l" << endl;
+        cout << this->error_line << " " << "l" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , printf need " << expectNum
+        cout << "[Debug]Error! At line: " << this->error_line << " , printf need " << expectNum
         << " parameter but you have " << realNum << " parameter!" << endl;
     }
 };
@@ -212,14 +213,14 @@ private:
     string errorType;
 public:
     BreakContinueError(int line, string _errorType) {
-        this.error_line = line;
+        this->error_line = line;
         this->errorType = _errorType;
     }
     void display() override {
-        cout << this.error_line << " " << "m" << endl;
+        cout << this->error_line << " " << "m" << endl;
     }
     void debug() override {
-        cout << "[Debug]Error! At line: " << this.error_line << " , " <<
+        cout << "[Debug]Error! At line: " << this->error_line << " , " <<
         errorType << " should not appear outside the while block!" << endl;
     }
 };
