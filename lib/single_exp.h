@@ -30,11 +30,12 @@ public:
     void check() override {
         assert(sign == "+" || sign == "-" || sign == "!");
         cout << "UnaryExp check correct!" << endl;
-        lch->check();
+        //lch->check();
     }
+
     void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
+        /*cout << sign << endl;
+        lch->traversal();*/
     }
 };
 

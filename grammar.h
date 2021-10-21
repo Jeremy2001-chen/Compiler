@@ -12,6 +12,7 @@
 #include "lib/block.h"
 #include "lib/function.h"
 #include "lib/binary_exp.h"
+#include "lib/comp_unit.h"
 
 extern Output output;
 
@@ -19,7 +20,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
-    Node root;
+    CompUnit* compUnit;
     int wordIndex = 0, totalWord;
 
     void addLine(string str) {

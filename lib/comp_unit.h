@@ -11,24 +11,24 @@
 
 class CompUnit: public Node {
 private:
-    vector<VariableDecl> declList;
-    vector<FunF> funList;
-    Block mainBlock;
+    vector<VariableDecl*> declList;
+    vector<FunF*> funList;
+    Block* mainBlock;
 public:
     CompUnit() = default;
-    void setVar(VariableDecl var) {
+    void setVar(VariableDecl* var) {
         declList.push_back(var);
     }
-    void setFun(FunF fun) {
+    void setFun(FunF* fun) {
         funList.push_back(fun);
     }
-    void setMainBlock(Block main) {
+    void setMainBlock(Block* main) {
         mainBlock = main;
     }
-    void check() {
+    void check() override {
 
     }
-    void traversal() {
+    void traversal() override {
 
     }
 };

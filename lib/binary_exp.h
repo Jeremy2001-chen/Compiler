@@ -10,19 +10,20 @@
 
 #include "node.h"
 #include <cassert>
+#include <utility>
 
 class BinaryExp: public Node{
 protected:
-    Node ch[2];
+    Node* ch[2];
     string sign;
 public:
     string getSign() const {
         return sign;
     }
-    void setLch(const Node& Lch) {
+    void setLch(Node* Lch) {
         lch = Lch;
     }
-    void setRch(const Node& Rch) {
+    void setRch(Node* Rch) {
         rch = Rch;
     }
 };
@@ -30,108 +31,108 @@ public:
 class MulExp: public BinaryExp{
 public:
     MulExp(string _sign) {
-        sign = _sign;
+        sign = std::move(_sign);
     }
     void check() override {
         assert(sign == "*");
         cout << "MulExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << "*" << endl;
+        /*cout << "*" << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
 class AddExp: public BinaryExp{
 public:
-    AddExp(char _sign) {
-        sign = _sign;
+    AddExp(string _sign) {
+        sign = std::move(_sign);
     }
     void check() override {
         assert(sign == "+" || sign == "-");
         cout << "AddExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
 class RelExp: public BinaryExp{
 public:
     RelExp(string _sign) {
-        sign = _sign;
+        sign = std::move(_sign);
     }
     void check() override {
         assert(sign == "<" || sign == ">" || sign == ">=" || sign == "<=");
         cout << "RelExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /* cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
 class EqExp: public BinaryExp{
 public:
     EqExp(string _sign) {
-        sign = _sign;
+        sign = std::move(_sign);
     }
     void check() override {
-        assert(sign == "==" || sign == "!=");
+        /*assert(sign == "==" || sign == "!=");
         cout << "EqExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
 class LAndExp: public BinaryExp{
 public:
     LAndExp(string _sign) {
-        sign = _sign;
+        sign = std::move(_sign);
     }
     void check() override {
         assert(sign == "&&");
         cout << "LAndExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
 class LOrExp: public BinaryExp{
 public:
     LOrExp(string _sign) {
-        sign = _sign;
+        sign = std::move(_sign);
     }
-    void check() override {
+    void check() override  {
         assert(sign == "||");
         cout << "LOrExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -143,13 +144,13 @@ public:
     void check() override {
         assert(sign == ":=");
         cout << "AssignExp check correct!" << endl;
-        lch.check();
-        rch.check();
+        /*lch.check();
+        rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 #endif //COMPILER_BINARY_EXP_H

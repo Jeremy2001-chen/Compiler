@@ -6,6 +6,7 @@
 #define COMPILER_BLOCK_H
 
 #include "node.h"
+#include <utility>
 #include <vector>
 #include <cstring>
 #include "../error.h"
@@ -16,37 +17,37 @@ extern Output output;
 
 class Block: public Node {
 private:
-    vector<Node> blockItem;
+    vector<Node*> blockItem;
 public:
     Block() = default;
-    void addBlockItem(Node node) {
+    void addBlockItem(Node* node) {
         blockItem.push_back(node);
     }
     void check() override {
         //assert(blockItem);
-        for (auto &blockIt: blockItem) {
+        /*for (auto &blockIt: blockItem) {
             blockIt.check();
         }
-        cout << "Block check correct!" << endl;
+        cout << "Block check correct!" << endl;*/
     }
     void traversal() override {
-        for (auto &blockIt: blockItem) {
+        /*for (auto &blockIt: blockItem) {
             blockIt.traversal();
-        }
+        }*/
     }
 };
 
 class IfStmt: public Node {
 private:
-    vector<Node> cond;
-    vector<Node> tran;
+    vector<Node*> cond;
+    vector<Node*> tran;
 public:
     IfStmt() = default;
-    void addTran(Node _cond, Node _tran) {
+    void addTran(Node* _cond, Node* _tran) {
         cond.push_back(_cond);
         tran.push_back(_tran);
     }
-    void addElseTran(Node _tran) {
+    void addElseTran(Node* _tran) {
         tran.push_back(_tran);
     }
     void check() override {
@@ -59,10 +60,10 @@ public:
 
 class WhileStmt: public Node {
 private:
-    Node cond;
-    Block block;
+    Node* cond;
+    Block* block;
 public:
-    WhileStmt(const Node& _cond, Block _block) {
+    WhileStmt(Node* _cond, Block* _block) {
         cond = _cond;
         block = _block;
     }
@@ -98,14 +99,15 @@ public:
 
 class ReturnStmt: public Node {
 private:
-    Node returnExp;
+    Node* returnExp;
 public:
     ReturnStmt() {
+        returnExp = nullptr;
         type = -1;
     }
-    ReturnStmt(Node exp) {
+    ReturnStmt(Node* exp) {
         returnExp = exp;
-        type = exp.getType();
+        type = exp->getType();
     }
     void check() override {
 
@@ -119,10 +121,10 @@ class PrintfStmt: public Node {
 private:
     string format;
     vector<string> form;
-    vector<Node> exp;
+    vector<Node*> exp;
 public:
-    PrintfStmt(string _format, vector<Node> _exp,  int _formatLine, int _printfLine) {
-        format = _format;
+    PrintfStmt(string _format, vector<Node*> _exp,  int _formatLine, int _printfLine) {
+        format = std::move(_format);
         exp = std::move(_exp);
         line = _printfLine;
         checkFormatError(_formatLine);

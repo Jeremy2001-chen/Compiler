@@ -5,6 +5,8 @@
 #ifndef COMPILER_VALUE_H
 #define COMPILER_VALUE_H
 
+#include <utility>
+
 #include "node.h"
 
 class Number: public Node {
@@ -19,7 +21,7 @@ public:
         cout << "ConstValue check correct!" << endl;
     }
     void traversal() override {
-        cout << value << endl;
+        //cout << value << endl;
     }
 };
 
@@ -29,14 +31,14 @@ private:
     int offset;
     int value;
     Variable(string _name, int _offset, int _type, bool _const) {
-        name = _name;
+        name = std::move(_name);
         offset = _offset;
         type = _type;
         value = 0;
         Const = _const;
     }
     Variable(string _name, int _offset, int _type, int _value, bool _const) {
-        name = _name;
+        name = std::move(_name);
         offset = _offset;
         type = _type;
         value = _value;
@@ -46,7 +48,7 @@ private:
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
-        cout << name << "[" << offset << "] = " << value << endl;
+        //cout << name << "[" << offset << "] = " << value << endl;
     }
 };
 
@@ -54,22 +56,22 @@ class VariableDecl: public Node {
 private:
     string name;
     int offset;
-    vector<Node> value;
+    vector<Node*> value;
 public:
-    VariableDecl(string _name, int _offset, vector<Node> _value, bool _const) {
-        name = _name;
+    VariableDecl(string _name, int _offset, vector<Node*> _value, bool _const) {
+        name = std::move(_name);
         offset = _offset;
-        value = _value;
+        value = std::move(_value);
         Const = _const;
     }
     void check() override {
         cout << "Variable Declaration check correct!" << endl;
     }
     void traversal() override {
-        cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
-        for (auto node: value) {
+        /*cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
+        for (auto &node: value) {
             node.traversal();
-        }
+        }*/
     }
 };
 
@@ -77,7 +79,7 @@ class ReadValue: public Node{
 public:
     ReadValue() = default;
     void check() override {
-        cout << "please read a integer!" << endl;
+        //cout << "please read a integer!" << endl;
     }
     void traversal() override {
 
