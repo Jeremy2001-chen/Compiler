@@ -13,8 +13,11 @@ private:
 public:
     virtual void check() = 0;
     virtual void traversal() = 0;
-    int getType() const {
+    int getType() {
         return type;
+    }
+    bool getConstType() {
+        return Const;
     }
 };
 
