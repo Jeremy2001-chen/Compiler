@@ -11,8 +11,8 @@ protected:
     bool Const = false;
     int line = 0;
 public:
-    virtual void check();
-    virtual void traversal();
+    virtual void check() = 0;
+    virtual void traversal() = 0;
     int getType() {
         return type;
     }
