@@ -32,16 +32,16 @@ public:
     MulExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "*");
+    void check() {
+        /*assert(sign == "*");
         cout << "MulExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << "*" << endl;
+    void traversal() {
+        /*cout << "*" << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -50,16 +50,16 @@ public:
     AddExp(char _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "+" || sign == "-");
+    void check() {
+        /*assert(sign == "+" || sign == "-");
         cout << "AddExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -68,16 +68,16 @@ public:
     RelExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "<" || sign == ">" || sign == ">=" || sign == "<=");
+    void check() {
+        /*assert(sign == "<" || sign == ">" || sign == ">=" || sign == "<=");
         cout << "RelExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -86,16 +86,16 @@ public:
     EqExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "==" || sign == "!=");
+    void check() {
+        /*assert(sign == "==" || sign == "!=");
         cout << "EqExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -104,16 +104,16 @@ public:
     LAndExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "&&");
+    void check() {
+        /*assert(sign == "&&");
         cout << "LAndExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -122,16 +122,16 @@ public:
     LOrExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "||");
+    void check()  {
+        /*assert(sign == "||");
         cout << "LOrExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 
@@ -140,16 +140,16 @@ public:
     AssignExp() {
         sign = ":=";
     }
-    void check() override {
-        assert(sign == ":=");
+    void check() {
+        /*assert(sign == ":=");
         cout << "AssignExp check correct!" << endl;
         lch.check();
-        rch.check();
+        rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
+    void traversal() {
+        /*cout << sign << endl;
         lch.traversal();
-        rch.traversal();
+        rch.traversal();*/
     }
 };
 #endif //COMPILER_BINARY_EXP_H

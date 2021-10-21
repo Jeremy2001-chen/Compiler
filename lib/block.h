@@ -22,17 +22,17 @@ public:
     void addBlockItem(Node node) {
         blockItem.push_back(node);
     }
-    void check() override {
+    void check() {
         //assert(blockItem);
-        for (auto &blockIt: blockItem) {
+        /*for (auto &blockIt: blockItem) {
             blockIt.check();
         }
-        cout << "Block check correct!" << endl;
+        cout << "Block check correct!" << endl;*/
     }
-    void traversal() override {
-        for (auto &blockIt: blockItem) {
+    void traversal() {
+        /*for (auto &blockIt: blockItem) {
             blockIt.traversal();
-        }
+        }*/
     }
 };
 
@@ -49,10 +49,10 @@ public:
     void addElseTran(Node _tran) {
         tran.push_back(_tran);
     }
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };
@@ -66,10 +66,10 @@ public:
         cond = _cond;
         block = _block;
     }
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };
@@ -77,10 +77,10 @@ public:
 class BreakStmt: public Node {
 public:
     BreakStmt() = default;
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };
@@ -88,10 +88,10 @@ public:
 class ContinueStmt: public Node {
 public:
     ContinueStmt() = default;
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };
@@ -107,10 +107,10 @@ public:
         returnExp = exp;
         type = exp.getType();
     }
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };
@@ -156,10 +156,10 @@ public:
         }
     }
 
-    void check() override {
+    void check() {
 
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };

@@ -15,11 +15,11 @@ public:
         value = _value;
         Const = true;
     }
-    void check() override {
-        cout << "ConstValue check correct!" << endl;
+    void check() {
+        //cout << "ConstValue check correct!" << endl;
     }
-    void traversal() override {
-        cout << value << endl;
+    void traversal() {
+        //cout << value << endl;
     }
 };
 
@@ -42,11 +42,11 @@ private:
         value = _value;
         Const = _const;
     }
-    void check() override {
-        cout << "Variable check correct!" << endl;
+    void check() {
+        //cout << "Variable check correct!" << endl;
     }
-    void traversal() override {
-        cout << name << "[" << offset << "] = " << value << endl;
+    void traversal() {
+        //cout << name << "[" << offset << "] = " << value << endl;
     }
 };
 
@@ -56,30 +56,33 @@ private:
     int offset;
     vector<Node> value;
 public:
+    VariableDecl() {
+        type = -2;
+    }
     VariableDecl(string _name, int _offset, vector<Node> _value, bool _const) {
         name = _name;
         offset = _offset;
         value = _value;
         Const = _const;
     }
-    void check() override {
-        cout << "Variable Declaration check correct!" << endl;
+    void check() {
+        //cout << "Variable Declaration check correct!" << endl;
     }
-    void traversal() override {
-        cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
-        for (auto node: value) {
+    void traversal() {
+        /*cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
+        for (auto &node: value) {
             node.traversal();
-        }
+        }*/
     }
 };
 
 class ReadValue: public Node{
 public:
     ReadValue() = default;
-    void check() override {
-        cout << "please read a integer!" << endl;
+    void check() {
+        //cout << "please read a integer!" << endl;
     }
-    void traversal() override {
+    void traversal() {
 
     }
 };

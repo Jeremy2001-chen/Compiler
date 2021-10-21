@@ -12,6 +12,7 @@
 #include "lib/block.h"
 #include "lib/function.h"
 #include "lib/binary_exp.h"
+#include "lib/comp_unit.h"
 
 extern Output output;
 
@@ -19,7 +20,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
-    Node root;
+    CompUnit comp;
     int wordIndex = 0, totalWord;
 
     void addLine(string str) {
@@ -38,42 +39,50 @@ private:
         currentWord = lexical.getWord(wordIndex);
     }
 
-    bool checkCompUnit(){
+    CompUnit& checkCompUnit(){
+        CompUnit* compUnit;
+        compUnit = new CompUnit();
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
-            if (checkDecl()) {
+            VariableDecl var = dynamic_cast<VariableDecl*>(checkDecl());
+            if (!var.empty()) {
                 startIndex = wordIndex;
+                compUnit.setVar(var);
             } else {
                 setIndex(startIndex);
                 break;
             }
         }
         while (startIndex < totalWord) {
-            if (checkFuncDef()) {
+            FunF fun = checkFuncDef();
+            if (!fun.empty()) {
                 startIndex = wordIndex;
+                compUnit.setFun(fun);
             } else {
                 setIndex(startIndex);
                 break;
             }
         }
-        bool state = checkMainFuncDef();
-        if (!state) {
-            return false;
+        Block state = checkMainFuncDef();
+        if (state.empty()) {
+            return {};
         }
         addLine("<CompUnit>");
-        return true;
+        return compUnit;
     }
 
-    bool checkDecl() {
+    VariableDecl& checkDecl() {
         int startIndex = wordIndex;
-        if (checkConstDecl()) {
-            return true;
+        VariableDecl constVar = checkConstDecl();
+        if (!constVar.empty()) {
+            return constVar;
         }
         setIndex(startIndex);
-        if (checkVarDecl()) {
-            return true;
+        VariableDecl var = checkVarDecl();
+        if (!var.empty()) {
+            return var;
         }
-        return false;
+        return {};
     }
 
     bool checkConstDecl() {
@@ -829,8 +838,8 @@ public:
         lexical = Lexical(article);
         totalWord = lexical.totalWordCount();
         currentWord = lexical.getWord(0);
-        bool state = checkCompUnit();
-        if (!state) {
+        Node state = checkCompUnit();
+        if (state.empty()) {
             exit(1);
         }
         if (wordIndex != totalWord) {

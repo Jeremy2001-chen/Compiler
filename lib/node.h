@@ -7,17 +7,23 @@
 
 class Node{
 protected:
-    int type = 0; //-1: void, 0: int, 1: int[], 2: int[][]
+    int type = 0; //-2: NULL, -1: void, 0: int, 1: int[], 2: int[][]
     bool Const = false;
     int line = 0;
 public:
-    virtual void check();
-    virtual void traversal();
+    Node() {
+        type = -2;
+    }
+    void check();
+    void traversal();
     int getType() {
         return type;
     }
     bool getConstType() {
         return Const;
+    }
+    bool empty() const {
+        return type == -2;
     }
 };
 

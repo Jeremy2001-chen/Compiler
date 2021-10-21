@@ -7,6 +7,7 @@
 
 #include "node.h"
 #include <cassert>
+#include <utility>
 #include "../error.h"
 
 using namespace std;
@@ -21,16 +22,16 @@ private:
     int offset;
 public:
     FunFParam(string _name, int _offset, int _type) {
-        name = _name;
+        name = std::move(_name);
         offset = _offset;
         type = _type;
     }
-    void check() override {
+    void check() {
         //assert(name && funBlock);
-        cout << "FunFParam check correct!" << endl;
+        //cout << "FunFParam check correct!" << endl;
     }
-    void traversal() override {
-        cout << "parameter: " << name << " " << offset << endl;
+    void traversal() {
+        //cout << "parameter: " << name << " " << offset << endl;
     }
 };
 
@@ -53,17 +54,17 @@ public:
     string getName() {
         return name;
     }
-    void check() override {
+    void check() {
         //assert(name && funBlock);
-        funBlock.check();
-        cout << "FunF check correct!" << endl;
+        //funBlock.check();
+        //cout << "FunF check correct!" << endl;
     }
-    void traversal() override {
-        cout << "Function : " << name << endl;
+    void traversal() {
+        /*cout << "Function : " << name << endl;
         for (auto para: param) {
             para.traversal();
         }
-        funBlock.traversal();
+        funBlock.traversal();*/
     }
     string typeChange(int _type) {
         if (_type == -1)
@@ -96,16 +97,16 @@ public:
         fun = std::move(_func);
         param = std::move(_para);
     }
-    void check() override {
+    void check() {
         //assert(fun && param);
-        assert(name == fun.getName());
-        cout << "FunR check correct!" << endl;
+        //assert(name == fun.getName());
+        //cout << "FunR check correct!" << endl;
         //fun.checkRParam(param);
     }
-    void traversal() override {
-        cout << "function: " << name << endl;
+    void traversal() {
+        /*cout << "function: " << name << endl;
         for (auto & para : param)
-            para.traversal();
+            para.traversal();*/
         //param.traversal();
     }
     string getName() {

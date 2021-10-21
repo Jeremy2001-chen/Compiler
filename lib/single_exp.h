@@ -27,14 +27,14 @@ public:
     UnaryExp(string _sign) {
         sign = _sign;
     }
-    void check() override {
-        assert(sign == "+" || sign == "-" || sign == "!");
+    void check() {
+        /*assert(sign == "+" || sign == "-" || sign == "!");
         cout << "UnaryExp check correct!" << endl;
-        lch.check();
+        lch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
-        lch.traversal();
+    void traversal() {
+        /*cout << sign << endl;
+        lch.traversal();*/
     }
 };
 
