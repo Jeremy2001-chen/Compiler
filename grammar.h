@@ -13,6 +13,8 @@
 #include "lib/function.h"
 #include "lib/binary_exp.h"
 #include "lib/comp_unit.h"
+#include "table.h"
+#include "error.h"
 
 extern Output output;
 
@@ -20,7 +22,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
-    CompUnit* compUnit;
+    SymbolTable symbolTable;
     int wordIndex = 0, totalWord;
 
     void addLine(string str) {
@@ -39,10 +41,16 @@ private:
         currentWord = lexical.getWord(wordIndex);
     }
 
-    bool checkCompUnit(){
-        int startIndex = wordIndex;
+    CompUnit* checkCompUnit(){
+        CompUnit* compUnit = new CompUnit();
+        int startIndex = wordIndex, currentLine = currentWord.getLine();
         while (startIndex < totalWord) {
-            if (checkDecl()) {
+            vector<VariableDecl*>* variableDeclList = checkDecl();
+            for (auto& it: (*variableDeclList)) {
+                symbolTable.insertVarTable(it->getName(), it, it->getConstType(), currentLine);
+                compUnit->setVar(it);
+            }
+            if (!variableDeclList->empty()) {
                 startIndex = wordIndex;
             } else {
                 setIndex(startIndex);
@@ -50,58 +58,75 @@ private:
             }
         }
         while (startIndex < totalWord) {
-            if (checkFuncDef()) {
+            FunF* funF = checkFuncDef();
+            symbolTable.insertFunTable(funF->getName(), funF, currentLine);
+            if (funF != nullptr) {
+                compUnit->setFun(funF);
                 startIndex = wordIndex;
             } else {
                 setIndex(startIndex);
                 break;
             }
         }
-        bool state = checkMainFuncDef();
-        if (!state) {
-            return false;
+        Block* mainBlock = checkMainFuncDef();
+        if (mainBlock == nullptr) {
+            compUnit = nullptr;
+            return compUnit;
         }
+        compUnit->setMainBlock(mainBlock);
         addLine("<CompUnit>");
-        return true;
+        return compUnit;
     }
 
-    bool checkDecl() {
+    vector<VariableDecl*>* checkDecl() {
+        vector<VariableDecl*>* variableDeclList = nullptr;
         int startIndex = wordIndex;
-        if (checkConstDecl()) {
-            return true;
+        variableDeclList = checkConstDecl();
+        if (variableDeclList != nullptr) {
+            return variableDeclList;
         }
         setIndex(startIndex);
-        if (checkVarDecl()) {
-            return true;
+        variableDeclList = checkVarDecl();
+        if (variableDeclList != nullptr) {
+            return variableDeclList;
         }
-        return false;
+        return variableDeclList;
     }
 
-    bool checkConstDecl() {
+    vector<VariableDecl*>* checkConstDecl() {
+        vector<VariableDecl*>* variableDeclList = nullptr;
+        int currentLine = currentWord.getLine();
         if (!currentWord.checkType("CONSTTK")) //'const'
-            return false;
+            return variableDeclList;
         move();
         if (!checkBType())
-            return false;
-        if (!checkConstDef())
-            return false;
-        int startIndex = wordIndex;
+            return variableDeclList;
+        VariableDecl* variableDecl = checkConstDef();
+        if (variableDecl == nullptr)
+            return variableDeclList;
+        variableDeclList = new vector<VariableDecl*>();
+        variableDeclList->push_back(variableDecl);
+        int startIndex = wordIndex, errorLine = currentWord.getLine();
         while (startIndex < totalWord) {
             if (!currentWord.checkType("COMMA")) { //','
                 break;
             }
             move();
-            if (!checkConstDef()) {
+            variableDecl = checkConstDef();
+            if (variableDecl == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            errorLine = currentWord.getLine();
+            variableDeclList->push_back(variableDecl);
             startIndex = wordIndex;
         }
-        if (!currentWord.checkType("SEMICN")) //';'
-            return false;
+        if (!currentWord.checkType("SEMICN")) { //';'
+            output.addError(NoSemicolonError(errorLine));
+        }
         move();
         addLine("<ConstDecl>");
-        return true;
+        return variableDeclList;
     }
 
     bool checkBType() {

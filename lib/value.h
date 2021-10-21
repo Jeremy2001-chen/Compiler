@@ -73,6 +73,9 @@ public:
             node.traversal();
         }*/
     }
+    string getName() const {
+        return name;
+    }
 };
 
 class ReadValue: public Node{

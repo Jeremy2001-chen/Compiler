@@ -61,9 +61,9 @@ public:
 class WhileStmt: public Node {
 private:
     Node* cond;
-    Block* block;
+    Node* block;
 public:
-    WhileStmt(Node* _cond, Block* _block) {
+    WhileStmt(Node* _cond, Node* _block) {
         cond = _cond;
         block = _block;
     }
