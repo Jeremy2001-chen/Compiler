@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include "lexical.h"
-#include "output.h"
 #include "grammar.h"
 
 using namespace std;

@@ -6,13 +6,13 @@
 #define COMPILER_NODE_H
 
 class Node{
-private:
+protected:
     int type = 0; //-1: void, 0: int, 1: int[], 2: int[][]
     bool Const = false;
     int line = 0;
 public:
-    virtual void check() = 0;
-    virtual void traversal() = 0;
+    virtual void check();
+    virtual void traversal();
     int getType() {
         return type;
     }

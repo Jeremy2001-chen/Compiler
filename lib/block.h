@@ -9,7 +9,7 @@
 #include <vector>
 #include <cstring>
 #include "../error.h"
-#include "output.h"
+#include "../output.h"
 using namespace std;
 
 extern Output output;
@@ -23,14 +23,14 @@ public:
         blockItem.push_back(node);
     }
     void check() override {
-        assert(blockItem);
-        for (auto blockIt: blockItem) {
+        //assert(blockItem);
+        for (auto &blockIt: blockItem) {
             blockIt.check();
         }
         cout << "Block check correct!" << endl;
     }
     void traversal() override {
-        for (auto blockIt: blockItem) {
+        for (auto &blockIt: blockItem) {
             blockIt.traversal();
         }
     }
@@ -62,7 +62,7 @@ private:
     Node cond;
     Block block;
 public:
-    WhileStmt(Node _cond, Block _block) {
+    WhileStmt(const Node& _cond, Block _block) {
         cond = _cond;
         block = _block;
     }
@@ -101,7 +101,6 @@ private:
     Node returnExp;
 public:
     ReturnStmt() {
-        returnExp = nullptr;
         type = -1;
     }
     ReturnStmt(Node exp) {
@@ -118,34 +117,45 @@ public:
 
 class PrintfStmt: public Node {
 private:
+    string format;
     vector<string> form;
     vector<Node> exp;
 public:
-    PrintfStmt(string format, vector<Node> _exp, int _line) {
+    PrintfStmt(string _format, vector<Node> _exp,  int _formatLine, int _printfLine) {
+        format = _format;
+        exp = std::move(_exp);
+        line = _printfLine;
+        checkFormatError(_formatLine);
+        int formatSize = form.size(), expSize = exp.size();
+        if (formatSize != expSize + 1) {
+            output.addError(PrintParameterNumError(_printfLine, formatSize - 1, expSize));
+        }
+    }
+
+    void checkFormatError(int _formatLine) {
         string tmp = "";
         bool errorChar = false;
         int len = format.size();
         for (int i = 0; i < len; i++) {
-            if (c[i] != 32 && c[i] != 33 && (c[i] < 40 || c[i] > 126))
+            if (format[i] != 32 && format[i] != 33 && (format[i] < 40 || format[i] > 126))
                 errorChar = true;
-            if (c[i] == '\\') {
-                if (!(i < len - 1 && c[i+1] == '\n'))
+            if (format[i] == '\\') {
+                if (!(i < len - 1 && format[i+1] == '\n'))
                     errorChar = true;
             }
-            if (i < len - 1 && c[i] == '%' && c[i+1] == 'd') {
+            if (i < len - 1 && format[i] == '%' && format[i+1] == 'd') {
                 form.push_back(tmp);
                 tmp = "";
             } else {
-                tmp += c[i];
+                tmp += format[i];
             }
         }
         form.push_back(tmp);
-        exp = std::move(_exp);
-        this.line = _line;
         if (errorChar) {
-            output.addError(PrintParameterNumError(_line, format.size(), exp.size()));
+            output.addError(IllegalCharacterError(_formatLine));
         }
     }
+
     void check() override {
 
     }

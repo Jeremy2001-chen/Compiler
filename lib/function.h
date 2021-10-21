@@ -9,30 +9,28 @@
 #include <cassert>
 #include "../error.h"
 
+using namespace std;
 extern Output output;
-class FunR: public Node {
+
+class FunRParam: public Node {
+};
+
+class FunFParam: public Node {
 private:
-    FunF fun;
-    vector<FunRParam> param;
     string name;
+    int offset;
 public:
-    FunR(string _name, FunF _func, vector<FunRParam> _para) {
+    FunFParam(string _name, int _offset, int _type) {
         name = _name;
-        fun = _func;
-        param = _para;
+        offset = _offset;
+        type = _type;
     }
     void check() override {
-        assert(fun && param);
-        assert(name == fun.getName())
-        cout << "FunR check correct!" << endl;
-        //fun.checkRParam(param);
+        //assert(name && funBlock);
+        cout << "FunFParam check correct!" << endl;
     }
     void traversal() override {
-        cout << "function: " << name << endl;
-        param.traversal();
-    }
-    string getName() {
-        return name;
+        cout << "parameter: " << name << " " << offset << endl;
     }
 };
 
@@ -42,6 +40,7 @@ private:
     string name;
     Block funBlock;
 public:
+    FunF() = default;
     FunF(string _name, vector<FunFParam> _para, Block _block, int _returnType) {
         name = _name;
         param = _para;
@@ -55,13 +54,15 @@ public:
         return name;
     }
     void check() override {
-        assert(param && name && funBlock);
+        //assert(name && funBlock);
         funBlock.check();
         cout << "FunF check correct!" << endl;
     }
     void traversal() override {
         cout << "Function : " << name << endl;
-        param.traversal();
+        for (auto para: param) {
+            para.traversal();
+        }
         funBlock.traversal();
     }
     string typeChange(int _type) {
@@ -84,17 +85,31 @@ public:
     }
 };
 
-class FunRParam: public Node {
-};
-
-class FunFParam: public Node {
+class FunR: public Node {
 private:
+    FunF fun;
+    vector<Node> param;
     string name;
-    int offset;
-    FunFParam(string _name, int _offset, int _type) {
-        name = _name;
-        offset = _offset;
-        type = _type;
+public:
+    FunR(string _name, FunF _func, vector<Node> _para) {
+        name = std::move(_name);
+        fun = std::move(_func);
+        param = std::move(_para);
+    }
+    void check() override {
+        //assert(fun && param);
+        assert(name == fun.getName());
+        cout << "FunR check correct!" << endl;
+        //fun.checkRParam(param);
+    }
+    void traversal() override {
+        cout << "function: " << name << endl;
+        for (auto & para : param)
+            para.traversal();
+        //param.traversal();
+    }
+    string getName() {
+        return name;
     }
 };
 

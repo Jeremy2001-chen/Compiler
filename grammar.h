@@ -6,6 +6,12 @@
 #define GRAMMAR_1005_GRAMMAR_H
 
 #include "output.h"
+#include "lib/node.h"
+#include "lib/single_exp.h"
+#include "lib/value.h"
+#include "lib/block.h"
+#include "lib/function.h"
+#include "lib/binary_exp.h"
 
 extern Output output;
 
@@ -13,6 +19,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
+    Node root;
     int wordIndex = 0, totalWord;
 
     void addLine(string str) {

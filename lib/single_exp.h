@@ -10,8 +10,8 @@
 
 #define lch ch[0]
 class SingleExp: public Node {
-private:
-    Node ch[1] = {NULL};
+protected:
+    Node ch[1];
     string sign;
 public:
     string getSign() const {
@@ -30,11 +30,11 @@ public:
     void check() override {
         assert(sign == "+" || sign == "-" || sign == "!");
         cout << "UnaryExp check correct!" << endl;
-        this.lch.check();
+        lch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
+        lch.traversal();
     }
 };
 

@@ -12,8 +12,8 @@
 #include <cassert>
 
 class BinaryExp: public Node{
-private:
-    Node ch[2] = {NULL, NULL};
+protected:
+    Node ch[2];
     string sign;
 public:
     string getSign() const {
@@ -35,13 +35,13 @@ public:
     void check() override {
         assert(sign == "*");
         cout << "MulExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << "*" << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
@@ -53,13 +53,13 @@ public:
     void check() override {
         assert(sign == "+" || sign == "-");
         cout << "AddExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
@@ -71,13 +71,13 @@ public:
     void check() override {
         assert(sign == "<" || sign == ">" || sign == ">=" || sign == "<=");
         cout << "RelExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
@@ -89,13 +89,13 @@ public:
     void check() override {
         assert(sign == "==" || sign == "!=");
         cout << "EqExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
@@ -107,13 +107,13 @@ public:
     void check() override {
         assert(sign == "&&");
         cout << "LAndExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
@@ -125,31 +125,31 @@ public:
     void check() override {
         assert(sign == "||");
         cout << "LOrExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 
 class AssignExp: public BinaryExp{
 public:
-    Assign() {
+    AssignExp() {
         sign = ":=";
     }
     void check() override {
         assert(sign == ":=");
         cout << "AssignExp check correct!" << endl;
-        this.lch.check();
-        this.rch.check();
+        lch.check();
+        rch.check();
     }
     void traversal() override {
         cout << sign << endl;
-        this.lch.traversal();
-        this.rch.traversal();
+        lch.traversal();
+        rch.traversal();
     }
 };
 #endif //COMPILER_BINARY_EXP_H
