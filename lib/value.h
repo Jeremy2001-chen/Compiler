@@ -56,13 +56,16 @@ class VariableDecl: public Node {
 private:
     string name;
     int offset;
-    vector<Node*> value;
+    Node* offsetTree;
+    vector<Node*>* value;
 public:
-    VariableDecl(string _name, int _offset, vector<Node*> _value, bool _const) {
+    VariableDecl(string _name, Node* _offsetTree, vector<Node*>* _value, bool _const, int _line) {
         name = std::move(_name);
-        offset = _offset;
-        value = std::move(_value);
+        offsetTree = _offsetTree;
+        offset = 0; //reserve
+        value = _value;
         Const = _const;
+        line = _line;
     }
     void check() override {
         cout << "Variable Declaration check correct!" << endl;
@@ -75,6 +78,9 @@ public:
     }
     string getName() const {
         return name;
+    }
+    int getLine() const {
+        return line;
     }
 };
 

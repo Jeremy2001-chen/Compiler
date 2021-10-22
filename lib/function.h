@@ -36,14 +36,19 @@ public:
 
 class FunF: public Node {
 private:
-    vector<FunFParam*> param;
+    vector<FunFParam*>* param;
     string name;
     Block* funBlock;
 public:
     FunF() = default;
-    FunF(string _name, vector<FunFParam*> _para, Block* _block, int _returnType) {
+    FunF(string _name, vector<FunFParam*>* _para, int _returnType) {
         name = std::move(_name);
-        param = std::move(_para);
+        param = _para;
+        type = _returnType;
+    }
+    FunF(string _name, vector<FunFParam*>* _para, Block* _block, int _returnType) {
+        name = std::move(_name);
+        param = _para;
         funBlock = _block;
         type = _returnType;
     }
@@ -52,6 +57,9 @@ public:
     }
     string getName() {
         return name;
+    }
+    void setBlock(Block* block) {
+        funBlock = block;
     }
     void check() override {
         //assert(name && funBlock);
@@ -75,30 +83,33 @@ public:
         else if (_type == 2)
             return "int[][]";
     }
-    void checkRParam(vector<FunRParam*> rParam, int line) {
-        if (param.size() != rParam.size())
-            output.addError(NotMatchParameterNumError(line, name, param.size(), rParam.size()));
-        for (int i = 0; i < param.size(); ++i)
-            if (param[i]->getType() != rParam[i]->getType()) {
-                output.addError(NotMatchParameterTypeError(line, name, typeChange(param[i]->getType()), typeChange(rParam[i]->getType())));
+    void checkRParam(vector<FunRParam*>* rParam, int line) {
+        if (param->size() != rParam->size())
+            output.addError(NotMatchParameterNumError(line, name,
+                                                      (int)param->size(), (int)rParam->size()));
+        for (int i = 0; i < param->size(); ++i)
+            if ((*param)[i]->getType() != (*rParam)[i]->getType()) {
+                output.addError(NotMatchParameterTypeError(line, name,
+                                                           typeChange((*param)[i]->getType()),
+                                                           typeChange((*rParam)[i]->getType())));
             }
     }
 };
 
 class FunR: public Node {
 private:
-    FunF fun;
-    vector<Node*> param;
+    FunF* fun;
+    vector<Node*>* param;
     string name;
 public:
-    FunR(string _name, FunF _func, vector<Node*> _para) {
+    FunR(string _name, FunF* _func, vector<Node*>* _para) {
         name = std::move(_name);
-        fun = std::move(_func);
-        param = std::move(_para);
+        fun = _func;
+        param = _para;
     }
     void check() override {
         //assert(fun && param);
-        assert(name == fun.getName());
+        assert(name == fun->getName());
         cout << "FunR check correct!" << endl;
         //fun.checkRParam(param);
     }
