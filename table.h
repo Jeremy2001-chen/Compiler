@@ -5,6 +5,7 @@
 #ifndef COMPILER_TABLE_H
 #define COMPILER_TABLE_H
 
+#include <utility>
 #include <vector>
 #include "./lib/function.h"
 #include "output.h"
@@ -20,8 +21,8 @@ private:
     Node* astNode;
 public:
     Table(string _name, string _kind, int _type, bool _constFlag, Node* _node, int _layer, int _line) {
-        name = _name;
-        kind = _kind;
+        name = std::move(_name);
+        kind = std::move(_kind);
         type = _type;
         line = _line;
         astNode = _node;
@@ -43,8 +44,11 @@ public:
     bool getConstFlag() {
         return constFlag;
     }
-    int getLayer() {
+    int getLayer() const {
         return layer;
+    }
+    Node* getAstNode() {
+        return astNode;
     }
 };
 
@@ -54,8 +58,8 @@ private:
     int tableSize = 0, maxSize = 0;
     int layer;
 public:
-    void insertFunTable(const string& _name, FunF* _node, int line) {
-        if (!checkDecl(_name)) {
+    void insertFunTable(const string& _name, Node* _node, int line) {
+        if (!checkDecl(_name, "fun")) {
             output.addError(NameRedefineError(line, _name));
         } else {
             Table* tableItem = new Table(_name, "fun", _node->getType(), _node->getConstType(), _node, layer, line);
@@ -69,8 +73,8 @@ public:
             }
         }
     }
-    void insertVarTable(const string& _name, VariableDecl* _node, bool isConst, int line) {
-        if (!checkDecl(_name)) {
+    void insertVarTable(const string& _name, Node* _node, bool isConst, int line) {
+        if (!checkDecl(_name, "var")) {
             output.addError(NameRedefineError(line, _name));
         } else {
             Table* tableItem = new Table(_name, "var", _node->getType(), isConst, _node, layer, line);
@@ -84,26 +88,50 @@ public:
             }
         }
     }
-    int findTable(const string& name) {
+    int findTableDecl(const string& name, const string& kind) {
         int index = -1;
         for (int i = tableSize; i >= 0; -- i) {
             if (list[i]->getLayer() != layer)
                 break;
-            else if (list[i]->getName() == name) {
+            else if (list[i]->getName() == name && list[i]->getKind() == kind) {
                 index = i;
                 break;
             }
         }
         return index;
     }
-    bool checkDecl(const string& _name) {
-        return findTable(_name) == -1;
+    int findTableUse(const string& name, const string& kind) {
+        int index = -1;
+        for (int i = tableSize; i >= 0; -- i) {
+            if (list[i]->getName() == name && list[i]->getKind() == kind) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
+    bool checkDecl(const string& _name, const string& _kind) {
+        return findTableDecl(_name, _kind) == -1;
+    }
+    bool checkUse(const string& _name, const string& _kind) {
+        return findTableUse(_name, _kind) == -1;
+    }
+    Table* getUse(const string& _name, const string& _kind) {
+        return getIndex(findTableUse(_name, _kind));
     }
     void pop() {
         tableSize -= 1;
     }
-    void setLayer(int det) {
-        layer += det;
+    void addLayer() {
+        layer += 1;
+    }
+    void popLayer() {
+        int newSize = tableSize;
+        for(int i = tableSize; i >= 0; -- i)
+            if (list[i]->getLayer() == layer) {
+                newSize -= 1;
+            }
+        tableSize = newSize;
     }
     int getLayer() const {
         return layer;
@@ -114,13 +142,21 @@ public:
         }
         return list[index];
     }
-    Table* getTableFromName(string _name, int line) {
+    Table* getTableFromName(const string& _name, int line) {
         for (int i = tableSize; i >= 0; -- i) {
             if (list[i]->getName() == _name)
                 return list[i];
         }
         output.addError(UndefineNameError(line, _name));
         return nullptr;
+    }
+    Table* getTopFun() {
+        for (int i = tableSize; i >= 0; -- i) {
+            if (list[i]->getKind() == "fun") {
+                return list[i];
+            }
+        }
+        exit(666);
     }
 };
 #endif //COMPILER_TABLE_H

@@ -23,8 +23,14 @@ private:
     Lexical lexical;
     Word currentWord;
     SymbolTable symbolTable;
+    int whileCnt = 0;
     int wordIndex = 0, totalWord;
 
+    int getPrevLine() {
+        if (wordIndex == 0)
+            return 0;
+        return lexical.getWord(wordIndex-1).getLine();
+    }
     void addLine(string str) {
         output.addLine(str, wordIndex - 1);
     }
@@ -45,9 +51,8 @@ private:
         CompUnit* compUnit = new CompUnit();
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
-            vector<VariableDecl*>* variableDeclList = checkDecl();
-            for (auto& it: (*variableDeclList)) {
-                symbolTable.insertVarTable(it->getName(), it, it->getConstType(), currentLine);
+            DeclStmt* variableDeclList = checkDecl();
+            for (auto& it: (*variableDeclList->getDecl())) {
                 compUnit->setVar(it);
             }
             if (variableDeclList != nullptr) {
@@ -59,7 +64,6 @@ private:
         }
         while (startIndex < totalWord) {
             FunF* funF = checkFuncDef();
-            symbolTable.insertFunTable(funF->getName(), funF, currentLine);
             if (funF != nullptr) {
                 compUnit->setFun(funF);
                 startIndex = wordIndex;
@@ -68,18 +72,18 @@ private:
                 break;
             }
         }
-        Block* mainBlock = checkMainFuncDef();
-        if (mainBlock == nullptr) {
+        FunF* mainFunction = checkMainFuncDef();
+        if (mainFunction == nullptr) {
             compUnit = nullptr;
             return compUnit;
         }
-        compUnit->setMainBlock(mainBlock);
+        compUnit->setMainBlock(mainFunction);
         addLine("<CompUnit>");
         return compUnit;
     }
 
-    vector<VariableDecl*>* checkDecl() {
-        vector<VariableDecl*>* variableDeclList = nullptr;
+    DeclStmt* checkDecl() {
+        DeclStmt* variableDeclList = nullptr;
         int startIndex = wordIndex;
         variableDeclList = checkConstDecl();
         if (variableDeclList != nullptr) {
@@ -90,21 +94,20 @@ private:
         if (variableDeclList != nullptr) {
             return variableDeclList;
         }
-        return variableDeclList;
+        return nullptr;
     }
 
-    vector<VariableDecl*>* checkConstDecl() {
-        vector<VariableDecl*>* variableDeclList = nullptr;
+    DeclStmt* checkConstDecl() {
         if (!currentWord.checkType("CONSTTK")) //'const'
-            return variableDeclList;
+            return nullptr;
         move();
         if (!checkBType())
-            return variableDeclList;
+            return nullptr;
         VariableDecl* variableDecl = checkConstDef();
         if (variableDecl == nullptr)
-            return variableDeclList;
-        variableDeclList = new vector<VariableDecl*>();
-        variableDeclList->push_back(variableDecl);
+            return nullptr;
+        DeclStmt* variableDeclList = new DeclStmt();
+        variableDeclList->addDecl(variableDecl);
         symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                    variableDecl->getConstType(), variableDecl->getLine());
 
@@ -120,7 +123,7 @@ private:
                 break;
             }
             errorLine = currentWord.getLine();
-            variableDeclList->push_back(variableDecl);
+            variableDeclList->addDecl(variableDecl);
             symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                        variableDecl->getConstType(), variableDecl->getLine());
             startIndex = wordIndex;
@@ -147,8 +150,8 @@ private:
         if (name.empty())
             return variableDecl;
         int startIndex = wordIndex, errorLine = 0;
-        AddExp* addExp = nullptr;
-        vector<AddExp*>* offsetList = new vector<AddExp*>();
+        Node* addExp = nullptr;
+        vector<Node*>* offsetList = new vector<Node*>();
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LBRACK")) //'['
                 break;
@@ -183,7 +186,7 @@ private:
     vector<Node*>* checkConstInitVal() {
         vector<Node*>* list = new vector<Node*>();
         int startIndex = wordIndex;
-        AddExp* exp = checkConstExp();
+        Node* exp = checkConstExp();
         if (exp != nullptr) {
             list->push_back(exp);
             addLine("<ConstInitVal>");
@@ -224,8 +227,7 @@ private:
         return list;
     }
 
-    vector<VariableDecl*>* checkVarDecl() {
-        vector<VariableDecl*>* varList = new vector<VariableDecl*>();
+    DeclStmt* checkVarDecl() {
         if (!checkBType()) {
             return nullptr;
         }
@@ -233,7 +235,8 @@ private:
         if (variableDecl == nullptr) {
             return nullptr;
         }
-        varList->push_back(variableDecl);
+        DeclStmt* varList = new DeclStmt();
+        varList->addDecl(variableDecl);
         symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                    variableDecl->getConstType(), variableDecl->getLine());
         int startIndex = wordIndex, errorLine = currentWord.getLine();
@@ -249,7 +252,7 @@ private:
             }
             errorLine = currentWord.getLine();
             startIndex = wordIndex;
-            varList->push_back(variableDecl);
+            varList->addDecl(variableDecl);
             symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                        variableDecl->getConstType(), variableDecl->getLine());
         }
@@ -259,7 +262,7 @@ private:
         } else
             move();
         addLine("<VarDecl>");
-        return true;
+        return varList;
     }
 
     VariableDecl* checkVarDef() {
@@ -270,8 +273,8 @@ private:
             return variableDecl;
         }
         int startIndex = wordIndex, errorLine = 0;
-        AddExp* addExp = nullptr;
-        vector<AddExp*>* offsetList = new vector<AddExp*>();
+        Node* addExp = nullptr;
+        vector<Node*>* offsetList = new vector<Node*>();
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LBRACK")) { //'['
                 break;
@@ -307,7 +310,7 @@ private:
 
     vector<Node*>* checkInitVal() {
         int startIndex = wordIndex;
-        AddExp* addExp = checkExp();
+        Node* addExp = checkExp();
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
             list->push_back(addExp);
@@ -378,37 +381,60 @@ private:
         move();
         fun = new FunF(name, param, type == "void" ? -1 : 0);
         symbolTable.insertFunTable(name, fun, identLine);
+
+        /* into the function body*/
+        symbolTable.addLayer();
+        for (auto &para: (*param)) {
+            symbolTable.insertVarTable(para->getName(), para, para->getConstType(), para->getLine());
+        }
         Block* block = checkBlock();
+        symbolTable.popLayer();
+
         if (block == nullptr) {
             return nullptr;
         }
         fun->setBlock(block);
+        // not void function
+        if (fun->getType() != -1 &&
+            block->getLastItem()->getClassType() != ReturnStmtType) {
+            int lastLine = lexical.getWord(wordIndex - 1).getLine();
+            output.addError(NoReturnError(lastLine, fun->getName()));
+        }
         addLine("<FuncDef>");
         return fun;
     }
 
-    bool checkMainFuncDef() {
+    FunF* checkMainFuncDef() {
         if (!currentWord.checkType("INTTK")) { //'int'
-            return false;
+            return nullptr;
         }
         move();
         if (!currentWord.checkType("MAINTK")) { //'main'
-            return false;
+            return nullptr;
         }
         move();
         if (!currentWord.checkType("LPARENT")) { //'('
-            return false;
+            return nullptr;
         }
+        int currentLine = currentWord.getLine();
         move();
         if (!currentWord.checkType("RPARENT")) { //')'
-            return false;
+            //return false;
+            output.addError(NoRightParenthesesError(currentLine));
+        } else {
+            move();
         }
-        move();
-        if (!checkBlock()) {
-            return false;
+        FunF* mainFun = new FunF("main", nullptr, 0);
+        symbolTable.insertFunTable("main", mainFun, currentWord.getLine());
+        symbolTable.addLayer();
+        Block* block = checkBlock();
+        mainFun->setBlock(block);
+        if (block == nullptr) {
+            return nullptr;
         }
+        symbolTable.popLayer();
         addLine("<MainFuncDef>");
-        return true;
+        return mainFun;
     }
 
     string checkFuncType() {
@@ -424,508 +450,758 @@ private:
         return "";
     }
 
-    bool checkFuncFParams() {
-        if (!checkFuncFParam()) {
-            return false;
+    vector<FunFParam*>* checkFuncFParams() {
+        vector<FunFParam*>* funFParams = new vector<FunFParam*>();
+        FunFParam* funFParam = checkFuncFParam();
+        if (funFParam == nullptr) {
+            return nullptr;
         }
+        funFParams->push_back(funFParam);
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("COMMA")) { //','
                 break;
             }
             move();
-            if (!checkFuncFParam()) {
+            funFParam = checkFuncFParam();
+            if (funFParam == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            funFParams->push_back(funFParam);
             startIndex = wordIndex;
         }
         addLine("<FuncFParams>");
-        return true;
+        return funFParams;
     }
 
-    bool checkFuncFParam() {
+    FunFParam* checkFuncFParam() {
         if (!checkBType()) {
-            return false;
+            return nullptr;
         }
-        if (!checkIdent()) {
-            return false;
+        int currentLine = currentWord.getLine();
+        string name = checkIdent();
+        if (name.empty()) {
+            return nullptr;
         }
         int startIndex = wordIndex;
+        Node* offsetTree = nullptr;
+        int type = 0;
         if (currentWord.checkType("LBRACK")) { //'['
             move();
+            startIndex = wordIndex;
+            type += 1;
             if (currentWord.checkType("RBRACK")) { //']'
                 move();
                 startIndex = wordIndex;
-                while (startIndex < totalWord) {
-                    if (!currentWord.checkType("LBRACK")) { //'['
-                        break;
-                    }
-                    move();
-                    if (!checkConstExp()) {
-                        setIndex(startIndex);
-                        break;
-                    }
-                    if (!currentWord.checkType("RBRACK")) { //']'
-                        setIndex(startIndex);
-                        break;
-                    }
-                    move();
-                    startIndex = wordIndex;
-                }
             } else {
-                setIndex(startIndex);
+                output.addError(NoRightBracketsError(currentLine));
+            }
+            while (startIndex < totalWord) {
+                if (!currentWord.checkType("LBRACK")) { //'['
+                    break;
+                }
+                type += 1;
+                move();
+                offsetTree = checkConstExp();
+                if (offsetTree == nullptr) {
+                    setIndex(startIndex);
+                    break;
+                }
+                if (!currentWord.checkType("RBRACK")) { //']'
+                    //setIndex(startIndex);
+                    //break;
+                    output.addError(NoRightBracketsError(currentLine));
+                } else {
+                    move();
+                }
+                startIndex = wordIndex;
             }
         }
+        FunFParam* funFParam = new FunFParam(name, offsetTree, type, currentLine);
         addLine("<FuncFParam>");
-        return true;
+        return funFParam;
     }
 
-    bool checkBlock() {
+    Block* checkBlock() {
         if (!currentWord.checkType("LBRACE")) { //'{'
-            return false;
+            return nullptr;
         }
+        Block* block = new Block();
         move();
         int startIndex = wordIndex;
-        while (checkBlockItem())
+        while (true) {
+            Node* blockItem = checkBlockItem();
+            if (blockItem == nullptr)
+                break;
+            if (blockItem->getClassType() == DeclStmtType) {
+                vector<VariableDecl*>* decl = ((DeclStmt*)blockItem)->getDecl();
+                for (auto &vd: *decl) {
+                    block->addBlockItem(vd);
+                }
+            } else if (blockItem->getClassType() != NullStmtType)
+                block->addBlockItem(blockItem);
             startIndex = wordIndex;
+        }
         setIndex(startIndex);
-
         if (!currentWord.checkType("RBRACE")) { //'}'
-            return false;
+            return nullptr;
         }
         move();
         addLine("<Block>");
-        return true;
+        return block;
     }
 
-    bool checkBlockItem() {
+    Node* checkBlockItem() {
         int startIndex = wordIndex;
-        if (checkDecl()) {
-            return true;
+        DeclStmt* declStmt = checkDecl();
+        if (declStmt != nullptr) {
+            return declStmt;
         }
         setIndex(startIndex);
-        if (checkStmt()) {
-            return true;
+        Node* stmt = checkStmt();
+        if (stmt != nullptr) {
+            return stmt;
         }
-        return false;
+        return nullptr;
     }
 
-    bool checkStmt() {
-        int startIndex = wordIndex;
-        if (checkExp()) {
-            if (currentWord.checkType("SEMICN")) {
-                move();
+    Node* checkStmt() {
+        int startIndex = wordIndex, currentLine = 0;
+        Node* exp = checkExp();
+        if (exp != nullptr) {
+            if (!currentWord.checkType("ASSIGN")) { //not '='
+                if (!currentWord.checkType("SEMICN")) { //';'
+                    output.addError(NoSemicolonError(getPrevLine()));
+                } else {
+                    move();
+                }
                 addLine("<Stmt>");
-                return true;
+                return exp;
             }
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("SEMICN")) {
+            NullStmt* nullStmt = new NullStmt();
             move();
             addLine("<Stmt>");
-            return true;
+            return nullStmt;
         }
-        if (checkLVal()) {
+
+        currentLine = currentWord.getLine();
+        Variable* variable = checkLVal();
+        if (variable != nullptr) {
             if (!currentWord.checkType("ASSIGN")) { //'='
-                return false;
+                return nullptr;
             }
             move();
             startIndex = wordIndex;
-            if (checkExp()) {
-                if (!currentWord.checkType("SEMICN")) //';'
-                    return false;
-                move();
+            AssignExp* assignExp = new AssignExp();
+            assignExp->setLch(variable);
+            exp = checkExp();
+            if (exp != nullptr) {
+                if (!currentWord.checkType("SEMICN")) { //';'
+                    //return false;
+                    output.addError(NoSemicolonError(getPrevLine()));
+                }
+                else
+                    move();
+                if (variable->getConstType() && !exp->getConstType()) { // const int -> int
+                    output.addError(ConstVariableChangeError(currentLine,
+                                                             variable->getName()));
+                }
+                assignExp->setRch(exp);
                 addLine("<Stmt>");
-                return true;
+                return assignExp;
             }
             setIndex(startIndex);
             if (currentWord.checkType("GETINTTK")) { //'getint'
                 move();
                 if (!currentWord.checkType("LPARENT")) //'('
-                    return false;
+                    return nullptr;
                 move();
-                if (!currentWord.checkType("RPARENT")) //')'
-                    return false;
-                move();
-                if (!currentWord.checkType("SEMICN")) //';'
-                    return false;
-                move();
+                if (!currentWord.checkType("RPARENT")) { //')'
+                    output.addError(NoRightParenthesesError(getPrevLine()));
+                } else
+                    move();
+                if (!currentWord.checkType("SEMICN")) { //';'
+                    //return false;
+                    output.addError(NoSemicolonError(getPrevLine()));
+                } else {
+                    move();
+                }
+                if (variable->getConstType()) {
+                    output.addError(ConstVariableChangeError(currentLine,
+                                                             variable->getName()));
+                }
+                ReadValue* readValue = new ReadValue();
+                assignExp->setRch(readValue);
                 addLine("<Stmt>");
-                return true;
+                return assignExp;
             }
-            return false;
+            return nullptr;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("BREAKTK")) { //'break'
             move();
-            if (!currentWord.checkType("SEMICN")) //';'
-                return false;
+            BreakStmt* breakStmt = new BreakStmt();
+            if (whileCnt == 0) {
+                output.addError(BreakContinueError(getPrevLine(), "break"));
+            }
+            if (!currentWord.checkType("SEMICN")) { //';'
+                //return false;
+                output.addError(NoSemicolonError(getPrevLine()));
+            }
             move();
             addLine("<Stmt>");
-            return true;
+            return breakStmt;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("CONTINUETK")) { //'continue'
             move();
-            if (!currentWord.checkType("SEMICN")) //';'
-                return false;
+            ContinueStmt* continueStmt = new ContinueStmt();
+            if (whileCnt == 0) {
+                output.addError(BreakContinueError(getPrevLine(), "continue"));
+            }
+            if (!currentWord.checkType("SEMICN")) { //';'
+                //return false;
+                output.addError(NoSemicolonError(getPrevLine()));
+            }
             move();
             addLine("<Stmt>");
-            return true;
+            return continueStmt;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("RETURNTK")) { //'return'
             move();
+            ReturnStmt* returnStmt = nullptr;
             startIndex = wordIndex;
-            if (!checkExp()) {
+            Node* addExp = checkExp();
+            if (addExp == nullptr) {
                 setIndex(startIndex);
+                returnStmt = new ReturnStmt();
+            } else {
+                Table* table = symbolTable.getTopFun();
+                if (table->getType() == -1) {
+                    output.addError(NotMatchReturnError(getPrevLine(), table->getName()));
+                }
+                returnStmt = new ReturnStmt(addExp);
             }
-            if (!currentWord.checkType("SEMICN")) //';'
-                return false;
+            if (!currentWord.checkType("SEMICN")) { //';'
+                //return false;
+                output.addError(NoSemicolonError(getPrevLine()));
+            }
             move();
             addLine("<Stmt>");
-            return true;
+            return returnStmt;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("PRINTFTK")) { //'printf'
+            string format;
             move();
+            currentLine = getPrevLine();
             if (!currentWord.checkType("LPARENT")) //'('
-                return false;
+                return nullptr;
             move();
             if (!currentWord.checkType("STRCON")) //'FormatString'
-                return false;
+                return nullptr;
+            else {
+                bool errorChar = false;
+                format = currentWord.getValue();
+                int len = (int)format.size();
+                for (int i = 0; i < len; i++) {
+                    if (format[i] != 32 && format[i] != 33 && (format[i] < 40 || format[i] > 126))
+                        errorChar = true;
+                    if (format[i] == '\\') {
+                        if (!(i < len - 1 && format[i+1] == '\n'))
+                            errorChar = true;
+                    }
+                }
+                if (errorChar) {
+                    output.addError(IllegalCharacterError(currentWord.getLine()));
+                }
+            }
             move();
+            int formatLine = getPrevLine();
+            vector<Node*>* expList = new vector<Node*>();
             startIndex = wordIndex;
             while(startIndex < totalWord) {
                 if (!currentWord.checkType("COMMA")) { //','
                     break;
                 }
                 move();
-                if (!checkExp()) {
+                exp = checkExp();
+                if (exp == nullptr) {
                     setIndex(startIndex);
                     break;
                 }
+                expList -> push_back(exp);
                 startIndex = wordIndex;
             }
-            if (!currentWord.checkType("RPARENT")) //')'
-                return false;
-            move();
-            if (!currentWord.checkType("SEMICN")) //';'
-                return false;
-            move();
+            if (!currentWord.checkType("RPARENT")) { //')'
+                //return false;
+                output.addError(NoRightParenthesesError(getPrevLine()));
+            } else {
+                move();
+            }
+            if (!currentWord.checkType("SEMICN")) { //';'
+                //return false;
+                output.addError(NoSemicolonError(getPrevLine()));
+            } else {
+                move();
+            }
+            PrintfStmt* printfStmt = new PrintfStmt(format, expList, currentLine);
+            if (printfStmt->expectNum() == printfStmt->realNum()) {
+                output.addError(PrintParameterNumError(currentLine, printfStmt->expectNum(), printfStmt->realNum()));
+            }
             addLine("<Stmt>");
-            return true;
+            return printfStmt;
         }
+
         setIndex(startIndex);
-        if (checkBlock()) {
+        symbolTable.addLayer();
+        Block* block = checkBlock();
+        symbolTable.popLayer();
+        if (block != nullptr) {
             addLine("<Stmt>");
-            return true;
+            return block;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("WHILETK")) { //'while'
             move();
             if (!currentWord.checkType("LPARENT")) //'('
-                return false;
+                return nullptr;
             move();
-            if (!checkCond())
-                return false;
-            if (!currentWord.checkType("RPARENT")) //')'
-                return false;
-            move();
-            if (!checkStmt())
-                return false;
+            Node* cond = checkCond();
+            if (cond == nullptr)
+                return nullptr;
+            if (!currentWord.checkType("RPARENT")) { //')'
+                //return false;
+                output.addError(NoRightParenthesesError(getPrevLine()));
+            } else {
+                move();
+            }
+            Node* stmt = checkStmt();
+            if (stmt == nullptr)
+                return nullptr;
+            WhileStmt* whileStmt = new WhileStmt(cond, stmt);
             addLine("<Stmt>");
-            return true;
+            return whileStmt;
         }
+
         setIndex(startIndex);
         if (currentWord.checkType("IFTK")) { //'if'
+            IfStmt* ifStmt = new IfStmt();
             move();
             if (!currentWord.checkType("LPARENT")) //'('
-                return false;
+                return nullptr;
             move();
-            if (!checkCond())
-                return false;
-            if (!currentWord.checkType("RPARENT")) //')'
-                return false;
-            move();
-            if (!checkStmt())
-                return false;
+            Node* cond = checkCond();
+            if (cond == nullptr)
+                return nullptr;
+            if (!currentWord.checkType("RPARENT")) { //')'
+                //return false;
+                output.addError(NoRightParenthesesError(getPrevLine()));
+            } else {
+                move();
+            }
+            Node* ifSt = checkStmt();
+            ifStmt->addTran(cond, ifSt);
+            if (ifSt == nullptr)
+                return nullptr;
             startIndex = wordIndex;
             if (currentWord.checkType("ELSETK")) { //'else'
                 move();
-                if (!checkStmt())
-                    return false;
+                Node* elseStmt = checkStmt();
+                if (elseStmt == nullptr)
+                    return nullptr;
+                ifStmt->addElseTran(elseStmt);
             }
             addLine("<Stmt>");
-            return true;
+            return ifStmt;
         }
-        return false;
+        return nullptr;
     }
 
-    bool checkExp() {
-        if (!checkAddExp()) {
-            return false;
+    Node* checkExp() {
+        Node* addExp = checkAddExp();
+        if (addExp == nullptr) {
+            return nullptr;
         }
         addLine("<Exp>");
-        return true;
+        return addExp;
     }
 
-    bool checkCond() {
-        if (!checkLOrExp()) {
-            return false;
+    Node* checkCond() {
+        Node* lOrExp = checkLOrExp();
+        if (lOrExp == nullptr) {
+            return nullptr;
         }
         addLine("<Cond>");
-        return true;
+        return lOrExp;
     }
 
-    bool checkLVal() {
-        if (!checkIdent())
-            return false;
+    Variable* checkLVal() {
+        string name = checkIdent();
+        if (name.empty())
+            return nullptr;
+        if (!symbolTable.checkUse(name, "var")) {
+            output.addError(UndefineNameError(getPrevLine(), name));
+        }
+        Table* table = symbolTable.getUse(name, "var");
         int startIndex = wordIndex;
+        vector<Node*> addList;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LBRACK")) //'['
-                break;
+                return nullptr;
             move();
-            if (!checkExp()) {
+            Node* addExp = checkExp();
+            if (addExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
-            if (!currentWord.checkType("RBRACK")) //']'
-                break;
-            move();
+            addList.push_back(addExp);
+            if (!currentWord.checkType("RBRACK")) { //']'
+                //break;
+                output.addError(NoRightBracketsError(getPrevLine()));
+            } else {
+                move();
+            }
             startIndex = wordIndex;
         }
+        Variable* variable = nullptr;
+        if (addList.size() == 0) {
+            variable = new Variable(name, nullptr, 0, table->getConstFlag());
+        } else if (addList.size() == 1) {
+            variable = new Variable(name, addList[0], 1, table->getConstFlag());
+        } else if (addList.size() == 2) {
+            AddExp* addExp = new AddExp("+");
+            MulExp* mulExp = new MulExp("*");
+            Node* offset = ((VariableDecl*)table->getAstNode())->getOffsetTree();
+            addExp->setRch(addList[1]);
+            mulExp->setLch(addList[0]);
+            mulExp->setRch(offset);
+            addExp->setLch(mulExp);
+            variable = new Variable(name, addExp, 2, table->getConstFlag());
+        }
         addLine("<LVal>");
-        return true;
+        return variable;
     }
 
-    bool checkPrimaryExp() {
+    Node* checkPrimaryExp() {
         int startIndex = wordIndex;
-        if (checkLVal()) {
+        Variable* lVal = checkLVal();
+        if (lVal != nullptr) {
             addLine("<PrimaryExp>");
-            return true;
+            return lVal;
         }
+
         setIndex(startIndex);
-        if (checkNumber()) {
+        Number* number = checkNumber();
+        if (number != nullptr) {
             addLine("<PrimaryExp>");
-            return true;
+            return number;
         }
+
         setIndex(startIndex);
-        if (!currentWord.checkType("LPARENT")) //'('
-            return false;
+        if (!currentWord.checkType("LPARENT")){ //'('
+            return nullptr;
+        }
         move();
-        if (!checkExp())
-            return false;
+        Node* addExp = checkExp();
+        if (addExp == nullptr)
+            return nullptr;
         if (!currentWord.checkType("RPARENT")) //')'
-            return false;
+            return nullptr;
         move();
         addLine("<PrimaryExp>");
-        return true;
+        return addExp;
     }
 
-    bool checkNumber() {
-        if (!checkIntConst()) {
-            return false;
+    Number* checkNumber() {
+        string number = checkIntConst();
+        if (number == "") {
+            return nullptr;
+        }
+        int x = 0;
+        for(auto &c: number) {
+            x = (x << 3) + (x << 1) + c - '0';
         }
         addLine("<Number>");
-        return true;
+        Number* number1 = new Number(x);
+        return number1;
     }
 
-    bool checkUnaryExp() {
+    Node* checkUnaryExp() {
         int startIndex = wordIndex;
-        if (checkIdent()) {
+        int currentLine = currentWord.getLine();
+        string name = checkIdent();
+        if (!name.empty()) {
+            FunR* funR = nullptr;
             if (currentWord.checkType("LPARENT")) { //'('
                 move();
                 startIndex = wordIndex;
-                if (!checkFuncRParams())
+                vector<Node*>* funRParams = checkFuncRParams();
+                if (funRParams == nullptr)
                     setIndex(startIndex);
-                if (!currentWord.checkType("RPARENT")) //')'
-                    return false;
-                move();
+                if (!currentWord.checkType("RPARENT")) { //')'
+                    output.addError(NoRightParenthesesError(getPrevLine()));
+                    //return false;
+                } else {
+                    move();
+                }
+                if (!symbolTable.checkUse(name, "fun")) {
+                    output.addError(NameRedefineError(currentLine, name));
+                } else {
+                    Table* table = symbolTable.getUse(name, "fun");
+                    FunF* funF = (FunF*)table->getAstNode();
+                    funR = new FunR(name, funF, funRParams);
+                    funF->checkRParam(funRParams, currentLine);
+                }
                 addLine("<UnaryExp>");
-                return true;
+                return funR;
             }
         }
+
         setIndex(startIndex);
-        if (checkPrimaryExp()) {
+        Node* primaryExp = checkPrimaryExp();
+        if (primaryExp != nullptr) {
             addLine("<UnaryExp>");
-            return true;
+            return primaryExp;
         }
+
         setIndex(startIndex);
-        if (checkUnaryOp()) {
-            if (!checkUnaryExp())
-                return false;
+        string op = checkUnaryOp();
+        if (!op.empty()) {
+            UnaryExp* unaryExp = nullptr;
+            Node* Lch = checkUnaryExp();
+            if (Lch == nullptr)
+                return nullptr;
+            unaryExp = new UnaryExp(op);
+            unaryExp->setLch(Lch);
             addLine("<UnaryExp>");
-            return true;
+            return unaryExp;
         }
-        return false;
+        return nullptr;
     }
 
-    bool checkUnaryOp() {
+    string checkUnaryOp() {
         if (currentWord.checkType("PLUS") || currentWord.checkType("MINU") || currentWord.checkType("NOT")) {
             move();
             addLine("<UnaryOp>");
-            return true;
+            return currentWord.getValue();
         }
-        return false;
+        return "";
     }
 
-    bool checkFuncRParams() {
-        if (!checkExp()) {
-            return false;
+    vector<Node*>* checkFuncRParams() {
+        vector<Node*>* funRList = new vector<Node*>();
+        Node* exp = checkExp();
+        if (exp == nullptr) {
+            return nullptr;
         }
+        funRList->push_back(exp);
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("COMMA")) //','
                 break;
             move();
-            if (!checkExp()) {
+            exp = checkExp();
+            if (exp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            funRList->push_back(exp);
             startIndex = wordIndex;
         }
         addLine("<FuncRParams>");
-        return true;
+        return funRList;
     }
 
-    bool checkMulExp() {
-        if (!checkUnaryExp())
-            return false;
+    Node* checkMulExp() {
+        Node* unaryExp = checkUnaryExp();
+        if (unaryExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node *last = unaryExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("MULT") && !currentWord.checkType("DIV") && !currentWord.checkType("MOD")) //'*' or '/' or '%'
                 break;
+            MulExp* mulExp = new MulExp(currentWord.getValue());
             addLine("<MulExp>");
             move();
-            if (!checkUnaryExp()) {
+            unaryExp = checkUnaryExp();
+            if (unaryExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            mulExp->setLch(last);
+            mulExp->setRch(unaryExp);
+            last = mulExp;
             startIndex = wordIndex;
         }
         addLine("<MulExp>");
-        return true;
+        return last;
     }
 
-    bool checkAddExp() {
-        if (!checkMulExp())
-            return false;
+    Node* checkAddExp() {
+        Node* mulExp = checkMulExp();
+        if (mulExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node *last = mulExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("PLUS") && !currentWord.checkType("MINU") ) //'+' or '-'
                 break;
+            AddExp* addExp = new AddExp(currentWord.getValue());
             addLine("<AddExp>");
             move();
-            if (!checkMulExp()) {
+            mulExp = checkMulExp();
+            if (mulExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            addExp->setLch(last);
+            addExp->setRch(mulExp);
+            last = addExp;
             startIndex = wordIndex;
         }
         addLine("<AddExp>");
-        return true;
+        return last;
     }
 
-    bool checkRelExp() {
-        if (!checkAddExp())
-            return false;
+    Node* checkRelExp() {
+        Node* addExp = checkAddExp();
+        if (addExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node *last = addExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LSS") && !currentWord.checkType("LEQ") && !currentWord.checkType("GRE") && !currentWord.checkType("GEQ")) //'<' or '<=' or '>' or '>='
                 break;
+            RelExp* relExp = new RelExp(currentWord.getValue());
             addLine("<RelExp>");
             move();
-            if (!checkAddExp()) {
+            addExp = checkAddExp();
+            if (addExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            relExp->setLch(last);
+            relExp->setRch(addExp);
+            last = relExp;
             startIndex = wordIndex;
         }
         addLine("<RelExp>");
-        return true;
+        return last;
     }
 
-    bool checkEqExp() {
-        if (!checkRelExp())
-            return false;
+    Node* checkEqExp() {
+        Node* relExp = checkRelExp();
+        if (relExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node* last = relExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("EQL") && !currentWord.checkType("NEQ")) //'==' or '!='
                 break;
+            EqExp* eqExp = new EqExp(currentWord.getValue());
             addLine("<EqExp>");
             move();
-            if (!checkRelExp()) {
+            relExp = checkRelExp();
+            if (relExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            eqExp->setLch(last);
+            eqExp->setRch(relExp);
+            last = eqExp;
             startIndex = wordIndex;
         }
         addLine("<EqExp>");
-        return true;
+        return last;
     }
 
-    bool checkLAndExp() {
-        if (!checkEqExp())
-            return false;
+    Node* checkLAndExp() {
+        Node* eqExp = checkEqExp();
+        if (eqExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node* last = eqExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("AND")) //'&&'
                 break;
+            LAndExp* lAndExp = new LAndExp(currentWord.getValue());
             addLine("<LAndExp>");
             move();
-            if (!checkEqExp()) {
+            eqExp = checkEqExp();
+            if (eqExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            lAndExp->setLch(last);
+            lAndExp->setRch(eqExp);
+            last = lAndExp;
             startIndex = wordIndex;
         }
         addLine("<LAndExp>");
-        return true;
+        return last;
     }
 
-    bool checkLOrExp() {
-        if (!checkLAndExp())
-            return false;
+    Node* checkLOrExp() {
+        Node* lAndExp = checkLAndExp();
+        if (lAndExp == nullptr)
+            return nullptr;
         int startIndex = wordIndex;
+        Node* last = lAndExp;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("OR")) //'&&'
                 break;
+            LOrExp* lOrExp = new LOrExp(currentWord.getValue());
             addLine("<LOrExp>");
             move();
-            if (!checkLAndExp()) {
+            lAndExp = checkLAndExp();
+            if (lAndExp == nullptr) {
                 setIndex(startIndex);
                 break;
             }
+            lOrExp->setLch(last);
+            lOrExp->setRch(lAndExp);
             startIndex = wordIndex;
         }
         addLine("<LOrExp>");
-        return true;
+        return last;
     }
 
-    bool checkConstExp() {
-        if (checkAddExp()) {
+    Node* checkConstExp() {
+        Node* addExp = checkAddExp();
+        if (addExp != nullptr) {
             addLine("<ConstExp>");
-            return true;
+            return addExp;
         }
-        return false;
+        return nullptr;
     }
 
-    bool checkIdent() {
+    string checkIdent() {
         if (currentWord.checkType("IDENFR")) {
             move();
-            return true;
+            return currentWord.getValue();
         }
-        return false;
+        return "";
     }
 
-    bool checkIntConst() {
+    string checkIntConst() {
         if (currentWord.checkType("INTCON")) {
             move();
-            return true;
+            return currentWord.getValue();
         }
-        return false;
+        return "";
     }
 
 public:
@@ -934,8 +1210,8 @@ public:
         lexical = Lexical(article);
         totalWord = lexical.totalWordCount();
         currentWord = lexical.getWord(0);
-        bool state = checkCompUnit();
-        if (!state) {
+        Node* state = checkCompUnit();
+        if (state == nullptr) {
             exit(1);
         }
         if (wordIndex != totalWord) {

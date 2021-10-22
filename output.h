@@ -13,7 +13,7 @@ typedef pair<int, string> pis;
 class Output{
 private:
     vector<string> line;
-    vector<Error> errors;
+    vector<Error*> errors;
     stack<pis> s;
 public:
     Output() = default;
@@ -21,7 +21,7 @@ public:
         line.push_back(_line);
         //cout << _line << endl;
     }
-    void addError(const Error& error) {
+    void addError(Error* error) {
         errors.push_back(error);
     }
     void addLine(const string& _line, int index) {

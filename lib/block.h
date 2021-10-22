@@ -11,6 +11,8 @@
 #include <cstring>
 #include "../error.h"
 #include "../output.h"
+#include "../type.h"
+
 using namespace std;
 
 extern Output output;
@@ -19,9 +21,14 @@ class Block: public Node {
 private:
     vector<Node*> blockItem;
 public:
-    Block() = default;
+    Block() {
+        classType = BlockType;
+    }
     void addBlockItem(Node* node) {
         blockItem.push_back(node);
+    }
+    Node* getLastItem() {
+        return blockItem[(int)blockItem.size()-1];
     }
     void check() override {
         //assert(blockItem);
@@ -42,7 +49,9 @@ private:
     vector<Node*> cond;
     vector<Node*> tran;
 public:
-    IfStmt() = default;
+    IfStmt() {
+        classType = IfStmtType;
+    }
     void addTran(Node* _cond, Node* _tran) {
         cond.push_back(_cond);
         tran.push_back(_tran);
@@ -66,6 +75,7 @@ public:
     WhileStmt(Node* _cond, Node* _block) {
         cond = _cond;
         block = _block;
+        classType = WhileStmtType;
     }
     void check() override {
 
@@ -77,7 +87,9 @@ public:
 
 class BreakStmt: public Node {
 public:
-    BreakStmt() = default;
+    BreakStmt() {
+        classType = BreakStmtType;
+    }
     void check() override {
 
     }
@@ -88,7 +100,9 @@ public:
 
 class ContinueStmt: public Node {
 public:
-    ContinueStmt() = default;
+    ContinueStmt() {
+        classType = ContinueStmtType;
+    }
     void check() override {
 
     }
@@ -104,6 +118,7 @@ public:
     ReturnStmt() {
         returnExp = nullptr;
         type = -1;
+        classType = ReturnStmtType;
     }
     ReturnStmt(Node* exp) {
         returnExp = exp;
@@ -121,30 +136,25 @@ class PrintfStmt: public Node {
 private:
     string format;
     vector<string> form;
-    vector<Node*> exp;
+    vector<Node*>* exp;
 public:
-    PrintfStmt(string _format, vector<Node*> _exp,  int _formatLine, int _printfLine) {
+    PrintfStmt(string _format, vector<Node*>* _exp, int _printfLine) {
         format = std::move(_format);
-        exp = std::move(_exp);
+        exp = _exp;
         line = _printfLine;
-        checkFormatError(_formatLine);
-        int formatSize = form.size(), expSize = exp.size();
-        if (formatSize != expSize + 1) {
-            output.addError(PrintParameterNumError(_printfLine, formatSize - 1, expSize));
-        }
+        classType = PrintfStmtType;
+        getForm();
     }
-
-    void checkFormatError(int _formatLine) {
-        string tmp = "";
-        bool errorChar = false;
-        int len = format.size();
+    int expectNum() const {
+        return (int)form.size() - 1;
+    }
+    int realNum() const {
+        return (int)exp -> size();
+    }
+    void getForm() {
+        string tmp;
+        int len = (int)format.size();
         for (int i = 0; i < len; i++) {
-            if (format[i] != 32 && format[i] != 33 && (format[i] < 40 || format[i] > 126))
-                errorChar = true;
-            if (format[i] == '\\') {
-                if (!(i < len - 1 && format[i+1] == '\n'))
-                    errorChar = true;
-            }
             if (i < len - 1 && format[i] == '%' && format[i+1] == 'd') {
                 form.push_back(tmp);
                 tmp = "";
@@ -153,11 +163,20 @@ public:
             }
         }
         form.push_back(tmp);
-        if (errorChar) {
-            output.addError(IllegalCharacterError(_formatLine));
-        }
     }
 
+    void check() override {
+
+    }
+    void traversal() override {
+
+    }
+};
+class NullStmt: public Node {
+public:
+    NullStmt() {
+        classType = NullStmtType;
+    }
     void check() override {
 
     }

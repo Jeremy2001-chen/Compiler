@@ -9,28 +9,40 @@
 #include <cassert>
 #include <utility>
 #include "../error.h"
+#include "binary_exp.h"
 
 using namespace std;
 extern Output output;
 
 class FunRParam: public Node {
+public:
+    FunRParam() {
+        classType = FunRParamType;
+    }
 };
 
 class FunFParam: public Node {
 private:
     string name;
     int offset;
+    Node* offsetTree;
 public:
-    FunFParam(string _name, int _offset, int _type) {
+    FunFParam(string _name, Node* _offsetTree, int _type, int _line) {
         name = std::move(_name);
-        offset = _offset;
+        offsetTree = _offsetTree;
+        //offset = ?
         type = _type;
+        classType = FunFParamType;
+        line = _line;
     }
     void check() override {
         cout << "FunFParam check correct!" << endl;
     }
     void traversal() override {
         //cout << "parameter: " << name << " " << offset << endl;
+    }
+    string getName() const {
+        return name;
     }
 };
 
@@ -40,17 +52,21 @@ private:
     string name;
     Block* funBlock;
 public:
-    FunF() = default;
+    FunF() {
+        classType = FunFType;
+    }
     FunF(string _name, vector<FunFParam*>* _para, int _returnType) {
         name = std::move(_name);
         param = _para;
         type = _returnType;
+        classType = FunFType;
     }
     FunF(string _name, vector<FunFParam*>* _para, Block* _block, int _returnType) {
         name = std::move(_name);
         param = _para;
         funBlock = _block;
         type = _returnType;
+        classType = FunFType;
     }
     void setFunBlock(Block* _block) {
         funBlock = _block;
@@ -82,8 +98,9 @@ public:
             return "int[]";
         else if (_type == 2)
             return "int[][]";
+        return "";
     }
-    void checkRParam(vector<FunRParam*>* rParam, int line) {
+    void checkRParam(vector<Node*>* rParam, int line) {
         if (param->size() != rParam->size())
             output.addError(NotMatchParameterNumError(line, name,
                                                       (int)param->size(), (int)rParam->size()));
@@ -106,6 +123,7 @@ public:
         name = std::move(_name);
         fun = _func;
         param = _para;
+        classType = FunRType;
     }
     void check() override {
         //assert(fun && param);

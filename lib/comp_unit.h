@@ -13,17 +13,19 @@ class CompUnit: public Node {
 private:
     vector<VariableDecl*> declList;
     vector<FunF*> funList;
-    Block* mainBlock;
+    FunF* mainFun;
 public:
-    CompUnit() = default;
+    CompUnit() {
+        classType = CompUnitType;
+    }
     void setVar(VariableDecl* var) {
         declList.push_back(var);
     }
     void setFun(FunF* fun) {
         funList.push_back(fun);
     }
-    void setMainBlock(Block* main) {
-        mainBlock = main;
+    void setMainBlock(FunF* main) {
+        mainFun = main;
     }
     void check() override {
 

@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by chenjiyuan3 on 2021/10/19.
 //
@@ -10,15 +12,13 @@ class Error{
 protected:
     int error_line;
 public:
-    virtual void display();
-    virtual void debug();
+    virtual void display() = 0;
+    virtual void debug() = 0;
 };
-
-
 
 class IllegalCharacterError : public Error {
 public:
-    IllegalCharacterError(int line) {
+    explicit IllegalCharacterError(int line) {
         this->error_line = line;
     }
     void display() override {
@@ -35,7 +35,7 @@ private:
 public:
     NameRedefineError(int line, string _str) {
         this->error_line = line;
-        this->str = _str;
+        this->str = std::move(_str);
     }
     void display() override {
         cout << this->error_line << " " << "b" << endl;
@@ -102,11 +102,11 @@ public:
     }
 };
 
-class HasReturnError: public Error {
+class NotMatchReturnError: public Error {
 private:
     string funName;
 public:
-    HasReturnError(int line, string _funName) {
+    NotMatchReturnError(int line, string _funName) {
         this->error_line = line;
         this->funName = _funName;
     }
@@ -115,7 +115,7 @@ public:
     }
     void debug() override {
         cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
-        funName << " has return statement!" << endl;
+        funName << " has the incorrect return statement!" << endl;
     }
 };
 

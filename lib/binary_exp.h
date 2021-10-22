@@ -11,6 +11,7 @@
 #include "node.h"
 #include <cassert>
 #include <utility>
+#include "../type.h"
 
 class BinaryExp: public Node{
 protected:
@@ -32,6 +33,7 @@ class MulExp: public BinaryExp{
 public:
     MulExp(string _sign) {
         sign = std::move(_sign);
+        classType = MulType;
     }
     void check() override {
         assert(sign == "*");
@@ -50,6 +52,7 @@ class AddExp: public BinaryExp{
 public:
     AddExp(string _sign) {
         sign = std::move(_sign);
+        classType = AddExpType;
     }
     void check() override {
         assert(sign == "+" || sign == "-");
@@ -68,6 +71,7 @@ class RelExp: public BinaryExp{
 public:
     RelExp(string _sign) {
         sign = std::move(_sign);
+        classType = RelExpType;
     }
     void check() override {
         assert(sign == "<" || sign == ">" || sign == ">=" || sign == "<=");
@@ -86,6 +90,7 @@ class EqExp: public BinaryExp{
 public:
     EqExp(string _sign) {
         sign = std::move(_sign);
+        classType = EqExpType;
     }
     void check() override {
         /*assert(sign == "==" || sign == "!=");
@@ -104,6 +109,7 @@ class LAndExp: public BinaryExp{
 public:
     LAndExp(string _sign) {
         sign = std::move(_sign);
+        classType = LAndExpType;
     }
     void check() override {
         assert(sign == "&&");
@@ -122,6 +128,7 @@ class LOrExp: public BinaryExp{
 public:
     LOrExp(string _sign) {
         sign = std::move(_sign);
+        classType = LOrExpType;
     }
     void check() override  {
         assert(sign == "||");
@@ -140,6 +147,7 @@ class AssignExp: public BinaryExp{
 public:
     AssignExp() {
         sign = ":=";
+        classType = AssignExpType;
     }
     void check() override {
         assert(sign == ":=");

@@ -16,6 +16,7 @@ public:
     Number(int _value) {
         value = _value;
         Const = true;
+        classType = NumberType;
     }
     void check() override {
         cout << "ConstValue check correct!" << endl;
@@ -29,26 +30,37 @@ class Variable: public Node {
 private:
     string name;
     int offset;
+    Node* offsetTree;
     int value;
-    Variable(string _name, int _offset, int _type, bool _const) {
+    Node* valueTree;
+public:
+    Variable(string _name, Node* _offsetTree, int _type, bool _const) {
         name = std::move(_name);
-        offset = _offset;
+        //offset = _offset;
+        offsetTree = _offsetTree;
         type = _type;
         value = 0;
         Const = _const;
+        classType = VariableType;
     }
-    Variable(string _name, int _offset, int _type, int _value, bool _const) {
+    Variable(string _name, Node* _offsetTree, int _type, Node* _valueTree, bool _const) {
         name = std::move(_name);
-        offset = _offset;
+        offsetTree = _offsetTree;
+        //offset = _offset;
         type = _type;
-        value = _value;
+        valueTree = _valueTree;
+        //value = 0;
         Const = _const;
+        classType = VariableType;
     }
     void check() override {
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
         //cout << name << "[" << offset << "] = " << value << endl;
+    }
+    string getName() {
+        return name;
     }
 };
 
@@ -66,6 +78,7 @@ public:
         value = _value;
         Const = _const;
         line = _line;
+        classType = VariableDeclType;
     }
     void check() override {
         cout << "Variable Declaration check correct!" << endl;
@@ -79,19 +92,43 @@ public:
     string getName() const {
         return name;
     }
-    int getLine() const {
-        return line;
+    Node* getOffsetTree() {
+        return offsetTree;
     }
 };
 
 class ReadValue: public Node{
 public:
-    ReadValue() = default;
+    ReadValue() {
+        classType = ReadValueType;
+    }
     void check() override {
         //cout << "please read a integer!" << endl;
     }
     void traversal() override {
 
+    }
+};
+
+class DeclStmt: public Node {
+private:
+    vector<VariableDecl*>* decl;
+public:
+    DeclStmt() {
+        decl = new vector<VariableDecl*>();
+        classType = DeclStmtType;
+    }
+    void addDecl(VariableDecl* varDecl) {
+        decl->push_back(varDecl);
+    }
+    void check() override {
+        //cout << "please read a integer!" << endl;
+    }
+    void traversal() override {
+
+    }
+    vector<VariableDecl*>* getDecl() {
+        return decl;
     }
 };
 #endif //COMPILER_VALUE_H
