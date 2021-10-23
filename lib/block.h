@@ -27,6 +27,9 @@ public:
     void addBlockItem(Node* node) {
         blockItem.push_back(node);
     }
+    vector<Node*> getBlockItem() {
+        return blockItem;
+    }
     Node* getLastItem() {
         return blockItem[(int)blockItem.size()-1];
     }

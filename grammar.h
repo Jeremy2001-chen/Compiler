@@ -129,7 +129,7 @@ private:
             startIndex = wordIndex;
         }
         if (!currentWord.checkType("SEMICN")) { //';'
-            output.addError(NoSemicolonError(errorLine));
+            output.addError(new NoSemicolonError(errorLine));
         }
         move();
         addLine("<ConstDecl>");
@@ -166,9 +166,10 @@ private:
             if (!currentWord.checkType("RBRACK")) { //']'
                 //setIndex(startIndex);
                 //break;
-                output.addError(NoRightBracketsError(errorLine)); //can output first? I think yes
-            } else
+                output.addError(new NoRightBracketsError(errorLine)); //can output first? I think yes
+            } else {
                 move();
+            }
             startIndex = wordIndex;
         }
         if (!currentWord.checkType("ASSIGN")) //'=
@@ -258,9 +259,10 @@ private:
         }
         if (!currentWord.checkType("SEMICN")) { //';'
             //return false;
-            output.addError(NoSemicolonError(errorLine));
-        } else
+            output.addError(new NoSemicolonError(errorLine));
+        } else {
             move();
+        }
         addLine("<VarDecl>");
         return varList;
     }
@@ -290,7 +292,7 @@ private:
             if (!currentWord.checkType("RBRACK")) { //']'
                 //setIndex(startIndex);
                 //break;
-                output.addError(NoRightBracketsError(errorLine)); //can output first? I think yes
+                output.addError(new NoRightBracketsError(errorLine)); //can output first? I think yes
             } else
                 move();
             startIndex = wordIndex;
@@ -376,9 +378,10 @@ private:
         }
         if (!currentWord.checkType("RPARENT")) { //')'
             //return false;
-            output.addError(NoRightParenthesesError(noEndLine));
+            output.addError(new NoRightParenthesesError(noEndLine));
+        } else {
+            move();
         }
-        move();
         fun = new FunF(name, param, type == "void" ? -1 : 0);
         symbolTable.insertFunTable(name, fun, identLine);
 
@@ -395,10 +398,17 @@ private:
         }
         fun->setBlock(block);
         // not void function
-        if (fun->getType() != -1 &&
-            block->getLastItem()->getClassType() != ReturnStmtType) {
-            int lastLine = lexical.getWord(wordIndex - 1).getLine();
-            output.addError(NoReturnError(lastLine, fun->getName()));
+        if (fun->getType() != -1) {
+            bool hasReturnStmt = false;
+            for (auto &item: block->getBlockItem()) {
+                if (item->getClassType() == ReturnStmtType) {
+                    hasReturnStmt = true;
+                    break;
+                }
+            }
+            if (!hasReturnStmt) {
+                output.addError(new NoReturnError(getPrevLine(), fun->getName()));
+            }
         }
         addLine("<FuncDef>");
         return fun;
@@ -420,7 +430,7 @@ private:
         move();
         if (!currentWord.checkType("RPARENT")) { //')'
             //return false;
-            output.addError(NoRightParenthesesError(currentLine));
+            output.addError(new NoRightParenthesesError(currentLine));
         } else {
             move();
         }
@@ -495,7 +505,7 @@ private:
                 move();
                 startIndex = wordIndex;
             } else {
-                output.addError(NoRightBracketsError(currentLine));
+                output.addError(new NoRightBracketsError(currentLine));
             }
             while (startIndex < totalWord) {
                 if (!currentWord.checkType("LBRACK")) { //'['
@@ -511,7 +521,7 @@ private:
                 if (!currentWord.checkType("RBRACK")) { //']'
                     //setIndex(startIndex);
                     //break;
-                    output.addError(NoRightBracketsError(currentLine));
+                    output.addError(new NoRightBracketsError(currentLine));
                 } else {
                     move();
                 }
@@ -572,7 +582,7 @@ private:
         if (exp != nullptr) {
             if (!currentWord.checkType("ASSIGN")) { //not '='
                 if (!currentWord.checkType("SEMICN")) { //';'
-                    output.addError(NoSemicolonError(getPrevLine()));
+                    output.addError(new NoSemicolonError(getPrevLine()));
                 } else {
                     move();
                 }
@@ -603,12 +613,12 @@ private:
             if (exp != nullptr) {
                 if (!currentWord.checkType("SEMICN")) { //';'
                     //return false;
-                    output.addError(NoSemicolonError(getPrevLine()));
+                    output.addError(new NoSemicolonError(getPrevLine()));
                 }
                 else
                     move();
                 if (variable->getConstType() && !exp->getConstType()) { // const int -> int
-                    output.addError(ConstVariableChangeError(currentLine,
+                    output.addError(new ConstVariableChangeError(currentLine,
                                                              variable->getName()));
                 }
                 assignExp->setRch(exp);
@@ -622,17 +632,17 @@ private:
                     return nullptr;
                 move();
                 if (!currentWord.checkType("RPARENT")) { //')'
-                    output.addError(NoRightParenthesesError(getPrevLine()));
+                    output.addError(new NoRightParenthesesError(getPrevLine()));
                 } else
                     move();
                 if (!currentWord.checkType("SEMICN")) { //';'
                     //return false;
-                    output.addError(NoSemicolonError(getPrevLine()));
+                    output.addError(new NoSemicolonError(getPrevLine()));
                 } else {
                     move();
                 }
                 if (variable->getConstType()) {
-                    output.addError(ConstVariableChangeError(currentLine,
+                    output.addError(new ConstVariableChangeError(currentLine,
                                                              variable->getName()));
                 }
                 ReadValue* readValue = new ReadValue();
@@ -648,13 +658,14 @@ private:
             move();
             BreakStmt* breakStmt = new BreakStmt();
             if (whileCnt == 0) {
-                output.addError(BreakContinueError(getPrevLine(), "break"));
+                output.addError(new BreakContinueError(getPrevLine(), "break"));
             }
             if (!currentWord.checkType("SEMICN")) { //';'
                 //return false;
-                output.addError(NoSemicolonError(getPrevLine()));
+                output.addError(new NoSemicolonError(getPrevLine()));
+            } else {
+                move();
             }
-            move();
             addLine("<Stmt>");
             return breakStmt;
         }
@@ -664,13 +675,14 @@ private:
             move();
             ContinueStmt* continueStmt = new ContinueStmt();
             if (whileCnt == 0) {
-                output.addError(BreakContinueError(getPrevLine(), "continue"));
+                output.addError(new BreakContinueError(getPrevLine(), "continue"));
             }
             if (!currentWord.checkType("SEMICN")) { //';'
                 //return false;
-                output.addError(NoSemicolonError(getPrevLine()));
+                output.addError(new NoSemicolonError(getPrevLine()));
+            } else {
+                move();
             }
-            move();
             addLine("<Stmt>");
             return continueStmt;
         }
@@ -687,15 +699,16 @@ private:
             } else {
                 Table* table = symbolTable.getTopFun();
                 if (table->getType() == -1) {
-                    output.addError(NotMatchReturnError(getPrevLine(), table->getName()));
+                    output.addError(new NotMatchReturnError(getPrevLine(), table->getName()));
                 }
                 returnStmt = new ReturnStmt(addExp);
             }
             if (!currentWord.checkType("SEMICN")) { //';'
                 //return false;
-                output.addError(NoSemicolonError(getPrevLine()));
+                output.addError(new NoSemicolonError(getPrevLine()));
+            } else {
+                move();
             }
-            move();
             addLine("<Stmt>");
             return returnStmt;
         }
@@ -723,7 +736,7 @@ private:
                     }
                 }
                 if (errorChar) {
-                    output.addError(IllegalCharacterError(currentWord.getLine()));
+                    output.addError(new IllegalCharacterError(currentWord.getLine()));
                 }
             }
             move();
@@ -745,19 +758,19 @@ private:
             }
             if (!currentWord.checkType("RPARENT")) { //')'
                 //return false;
-                output.addError(NoRightParenthesesError(getPrevLine()));
+                output.addError(new NoRightParenthesesError(getPrevLine()));
             } else {
                 move();
             }
             if (!currentWord.checkType("SEMICN")) { //';'
                 //return false;
-                output.addError(NoSemicolonError(getPrevLine()));
+                output.addError(new NoSemicolonError(getPrevLine()));
             } else {
                 move();
             }
             PrintfStmt* printfStmt = new PrintfStmt(format, expList, currentLine);
             if (printfStmt->expectNum() == printfStmt->realNum()) {
-                output.addError(PrintParameterNumError(currentLine, printfStmt->expectNum(), printfStmt->realNum()));
+                output.addError(new PrintParameterNumError(currentLine, printfStmt->expectNum(), printfStmt->realNum()));
             }
             addLine("<Stmt>");
             return printfStmt;
@@ -783,11 +796,13 @@ private:
                 return nullptr;
             if (!currentWord.checkType("RPARENT")) { //')'
                 //return false;
-                output.addError(NoRightParenthesesError(getPrevLine()));
+                output.addError(new NoRightParenthesesError(getPrevLine()));
             } else {
                 move();
             }
+            whileCnt += 1;
             Node* stmt = checkStmt();
+            whileCnt -= 1;
             if (stmt == nullptr)
                 return nullptr;
             WhileStmt* whileStmt = new WhileStmt(cond, stmt);
@@ -807,7 +822,7 @@ private:
                 return nullptr;
             if (!currentWord.checkType("RPARENT")) { //')'
                 //return false;
-                output.addError(NoRightParenthesesError(getPrevLine()));
+                output.addError(new NoRightParenthesesError(getPrevLine()));
             } else {
                 move();
             }
@@ -852,7 +867,7 @@ private:
         if (name.empty())
             return nullptr;
         if (!symbolTable.checkUse(name, "var")) {
-            output.addError(UndefineNameError(getPrevLine(), name));
+            output.addError(new UndefineNameError(getPrevLine(), name));
         }
         Table* table = symbolTable.getUse(name, "var");
         int startIndex = wordIndex;
@@ -869,7 +884,7 @@ private:
             addList.push_back(addExp);
             if (!currentWord.checkType("RBRACK")) { //']'
                 //break;
-                output.addError(NoRightBracketsError(getPrevLine()));
+                output.addError(new NoRightBracketsError(getPrevLine()));
             } else {
                 move();
             }
@@ -951,13 +966,13 @@ private:
                 if (funRParams == nullptr)
                     setIndex(startIndex);
                 if (!currentWord.checkType("RPARENT")) { //')'
-                    output.addError(NoRightParenthesesError(getPrevLine()));
+                    output.addError(new NoRightParenthesesError(getPrevLine()));
                     //return false;
                 } else {
                     move();
                 }
                 if (!symbolTable.checkUse(name, "fun")) {
-                    output.addError(NameRedefineError(currentLine, name));
+                    output.addError(new NameRedefineError(currentLine, name));
                 } else {
                     Table* table = symbolTable.getUse(name, "fun");
                     FunF* funF = (FunF*)table->getAstNode();

@@ -102,11 +102,11 @@ public:
     }
     void checkRParam(vector<Node*>* rParam, int line) {
         if (param->size() != rParam->size())
-            output.addError(NotMatchParameterNumError(line, name,
+            output.addError(new NotMatchParameterNumError(line, name,
                                                       (int)param->size(), (int)rParam->size()));
         for (int i = 0; i < param->size(); ++i)
             if ((*param)[i]->getType() != (*rParam)[i]->getType()) {
-                output.addError(NotMatchParameterTypeError(line, name,
+                output.addError(new NotMatchParameterTypeError(line, name,
                                                            typeChange((*param)[i]->getType()),
                                                            typeChange((*rParam)[i]->getType())));
             }

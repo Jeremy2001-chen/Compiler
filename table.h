@@ -60,7 +60,7 @@ private:
 public:
     void insertFunTable(const string& _name, Node* _node, int line) {
         if (!checkDecl(_name, "fun")) {
-            output.addError(NameRedefineError(line, _name));
+            output.addError(new NameRedefineError(line, _name));
         } else {
             Table* tableItem = new Table(_name, "fun", _node->getType(), _node->getConstType(), _node, layer, line);
             if (tableSize == maxSize) {
@@ -75,7 +75,7 @@ public:
     }
     void insertVarTable(const string& _name, Node* _node, bool isConst, int line) {
         if (!checkDecl(_name, "var")) {
-            output.addError(NameRedefineError(line, _name));
+            output.addError(new NameRedefineError(line, _name));
         } else {
             Table* tableItem = new Table(_name, "var", _node->getType(), isConst, _node, layer, line);
             if (tableSize == maxSize) {
@@ -147,7 +147,7 @@ public:
             if (list[i]->getName() == _name)
                 return list[i];
         }
-        output.addError(UndefineNameError(line, _name));
+        output.addError(new UndefineNameError(line, _name));
         return nullptr;
     }
     Table* getTopFun() {
