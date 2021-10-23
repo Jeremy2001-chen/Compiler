@@ -113,7 +113,6 @@ private:
         variableDeclList->addDecl(variableDecl);
         symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                    variableDecl->getConstType(), variableDecl->getLine());
-
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("COMMA")) { //','
@@ -408,11 +407,9 @@ private:
 
         /* into the function body*/
         symbolTable.addLayer();
-        if (param != nullptr) {
-            for (auto &para: (*param)) {
-                //cout << "param: " << para->getName() << endl;
-                symbolTable.insertVarTable(para->getName(), para, para->getConstType(), para->getLine());
-            }
+        for (auto &para: (*param)) {
+            //cout << "param: " << para->getName() << endl;
+            symbolTable.insertVarTable(para->getName(), para, para->getConstType(), para->getLine());
         }
         Block* block = checkBlock();
         symbolTable.popLayer();
@@ -653,8 +650,9 @@ private:
                     //return false;
                     output.addError(new NoSemicolonError(getPrevLine()));
                 }
-                else
+                else {
                     move();
+                }
                 if (variable->getConstType()) { // const int -> int
                     output.addError(new ConstVariableChangeError(currentLine,
                                                              variable->getName()));
@@ -671,8 +669,9 @@ private:
                 move();
                 if (!currentWord.checkType("RPARENT")) { //')'
                     output.addError(new NoRightParenthesesError(getPrevLine()));
-                } else
+                } else {
                     move();
+                }
                 if (!currentWord.checkType("SEMICN")) { //';'
                     //return false;
                     output.addError(new NoSemicolonError(getPrevLine()));
@@ -876,9 +875,9 @@ private:
                 move();
             }
             Node* ifSt = checkStmt();
-            ifStmt->addTran(cond, ifSt);
             if (ifSt == nullptr)
                 return nullptr;
+            ifStmt->addTran(cond, ifSt);
             startIndex = wordIndex;
             if (currentWord.checkType("ELSETK")) { //'else'
                 move();
@@ -916,11 +915,12 @@ private:
         string name = checkIdent();
         if (name.empty())
             return nullptr;
-        if (!symbolTable.checkUse(name, "var")) {
+        if (!symbolTable.checkUse(name, "var") && !output.sameError(getPrevLine())) {
             output.addError(new UndefineNameError(getPrevLine(), name));
         }
         Table* table = symbolTable.getUse(name, "var");
-        int beginType = table->getType();
+        int beginType = table != nullptr ? table->getType() : 0;
+        bool constFlag = table != nullptr && table->getConstFlag();
         //cout << table->getName() << " " << table->getType() << endl;
         int startIndex = wordIndex;
         vector<Node*> addList;
@@ -944,18 +944,18 @@ private:
         }
         Variable* variable = nullptr;
         if (addList.size() == 0) {
-            variable = new Variable(name, nullptr, beginType, table->getConstFlag());
+            variable = new Variable(name, nullptr, beginType, constFlag);
         } else if (addList.size() == 1) {
-            variable = new Variable(name, addList[0], beginType-1, table->getConstFlag());
+            variable = new Variable(name, addList[0], beginType-1, constFlag);
         } else if (addList.size() == 2) {
             AddExp* addExp = new AddExp("+");
             MulExp* mulExp = new MulExp("*");
-            Node* offset = ((VariableDecl*)table->getAstNode())->getOffsetTree();
+            Node* offset = table != nullptr ? ((VariableDecl*)table->getAstNode())->getOffsetTree() : nullptr;
             addExp->setRch(addList[1]);
             mulExp->setLch(addList[0]);
             mulExp->setRch(offset);
             addExp->setLch(mulExp);
-            variable = new Variable(name, addExp, beginType-2, table->getConstFlag());
+            variable = new Variable(name, addExp, beginType-2, constFlag);
         }
         addLine("<LVal>");
         return variable;
@@ -1027,6 +1027,7 @@ private:
                 }
                 if (!symbolTable.checkUse(name, "fun")) {
                     output.addError(new NameRedefineError(currentLine, name));
+                    funR = new FunR(name, nullptr, nullptr);
                 } else {
                     Table* table = symbolTable.getUse(name, "fun");
                     FunF* funF = (FunF*)table->getAstNode();
@@ -1245,6 +1246,7 @@ private:
             }
             lOrExp->setLch(last);
             lOrExp->setRch(lAndExp);
+            last = lOrExp;
             startIndex = wordIndex;
         }
         addLine("<LOrExp>");

@@ -138,7 +138,7 @@ public:
     }
     Table* getIndex(int index) {
         if (index < 0 || index > tableSize) {
-            exit(1);
+            return nullptr;
         }
         return list[index];
     }

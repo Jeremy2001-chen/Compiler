@@ -48,7 +48,7 @@ public:
         sort(errors.begin(), errors.end(), cmp);
         string ret;
         for (Error *error: errors) {
-            ret = ret + error->debug();
+            ret = ret + error->display();
         }
         return ret;
     }
@@ -62,6 +62,11 @@ public:
             else
                 break;
         }
+    }
+
+    bool sameError(int line) {
+        Error* error = errors[(int)errors.size()-1];
+        return error -> getErrorLine() == line;
     }
 };
 
