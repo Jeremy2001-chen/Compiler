@@ -612,7 +612,7 @@ private:
 
     Node* checkStmt() {
         cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
-        int startIndex = wordIndex, currentLine = 0;
+        int startIndex = wordIndex, currentLine = 0, errorCnt = output.getErrorSum();
         Node* exp = checkExp();
         if (exp != nullptr) {
             if (!currentWord.checkType("ASSIGN")) { //not '='
@@ -625,6 +625,7 @@ private:
                 return exp;
             }
         }
+        output.setError(errorCnt);
 
         setIndex(startIndex);
         if (currentWord.checkType("SEMICN")) {
@@ -765,7 +766,7 @@ private:
                 format = currentWord.getValue();
                 int len = (int)format.size();
                 for (int i = 1; i < len - 1; i++) { //'"' must remove!
-                    if (format[i] == 32 || format[i] == 33 || (format[i] >= 40 && format[i] <= 126)) {
+                    if (format[i] == 32 || format[i] == 33 || (format[i] >= 40 && format[i] <= 126 && format[i] != 92)) {
                         continue;
                     } else if (format[i] == '%') {
                         if (format[i+1] != 'd') {
@@ -915,7 +916,7 @@ private:
         string name = checkIdent();
         if (name.empty())
             return nullptr;
-        if (!symbolTable.checkUse(name, "var") && !output.sameError(getPrevLine())) {
+        if (!symbolTable.checkUse(name, "var")) {
             output.addError(new UndefineNameError(getPrevLine(), name));
         }
         Table* table = symbolTable.getUse(name, "var");

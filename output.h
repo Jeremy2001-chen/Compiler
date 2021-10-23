@@ -63,10 +63,14 @@ public:
         }
     }
 
-    bool sameError(int line) {
-        if ((int)errors.size() == 0) return false;
-        Error* error = errors[(int)errors.size()-1];
-        return error -> getErrorLine() == line;
+    int getErrorSum() {
+        return (int)errors.size();
+    }
+
+    void setError(int num) {
+        while ((int)errors.size() > num) {
+            errors.pop_back();
+        }
     }
 };
 
