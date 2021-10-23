@@ -611,7 +611,7 @@ private:
     }
 
     Node* checkStmt() {
-        //cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         int startIndex = wordIndex, currentLine = 0;
         Node* exp = checkExp();
         if (exp != nullptr) {

@@ -160,7 +160,7 @@ public:
                 return list[i];
             }
         }
-        exit(666);
+        exit(1);
     }
 };
 #endif //COMPILER_TABLE_H

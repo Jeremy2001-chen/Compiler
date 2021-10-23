@@ -65,6 +65,7 @@ public:
     }
 
     bool sameError(int line) {
+        if ((int)errors.size() == 0) return false;
         Error* error = errors[(int)errors.size()-1];
         return error -> getErrorLine() == line;
     }

@@ -158,8 +158,8 @@ public:
     void getForm() {
         string tmp;
         int len = (int)format.size();
-        for (int i = 0; i < len; i++) {
-            if (i < len - 1 && format[i] == '%' && format[i+1] == 'd') {
+        for (int i = 1; i < len - 1; i++) {
+            if (i < len - 2 && format[i] == '%' && format[i+1] == 'd') {
                 form.push_back(tmp);
                 tmp = "";
             } else {
