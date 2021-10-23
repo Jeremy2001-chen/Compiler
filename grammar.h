@@ -467,6 +467,17 @@ private:
         if (block == nullptr) {
             return nullptr;
         }
+        bool hasReturnStmt = false;
+        vector<Node*> blockItem = block->getBlockItem();
+        for (int i = 0; i < blockItem.size(); ++ i) {
+            if (blockItem[i]->getType() == ReturnStmtType) {
+                hasReturnStmt = true;
+                break;
+            }
+        }
+        if (!hasReturnStmt) {
+            output.addError(new NoReturnError(getPrevLine(), "main"));
+        }
         symbolTable.popLayer();
         addLine("<MainFuncDef>");
         return mainFun;
