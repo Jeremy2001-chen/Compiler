@@ -63,6 +63,7 @@ private:
                 break;
             }
         }
+        //cout << currentWord.getLine() << " " << currentWord.getValue() << endl;
         while (startIndex < totalWord) {
             FunF* funF = checkFuncDef();
             if (funF != nullptr) {
@@ -113,7 +114,7 @@ private:
         symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                    variableDecl->getConstType(), variableDecl->getLine());
 
-        int startIndex = wordIndex, errorLine = currentWord.getLine();
+        int startIndex = wordIndex;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("COMMA")) { //','
                 break;
@@ -124,16 +125,16 @@ private:
                 setIndex(startIndex);
                 break;
             }
-            errorLine = currentWord.getLine();
             variableDeclList->addDecl(variableDecl);
             symbolTable.insertVarTable(variableDecl->getName(), variableDecl,
                                        variableDecl->getConstType(), variableDecl->getLine());
             startIndex = wordIndex;
         }
         if (!currentWord.checkType("SEMICN")) { //';'
-            output.addError(new NoSemicolonError(errorLine));
+            output.addError(new NoSemicolonError(getPrevLine()));
+        } else {
+            move();
         }
-        move();
         addLine("<ConstDecl>");
         return variableDeclList;
     }
@@ -169,7 +170,7 @@ private:
             if (!currentWord.checkType("RBRACK")) { //']'
                 //setIndex(startIndex);
                 //break;
-                output.addError(new NoRightBracketsError(errorLine)); //can output first? I think yes
+                output.addError(new NoRightBracketsError(getPrevLine())); //can output first? I think yes
             } else {
                 move();
             }
@@ -267,7 +268,7 @@ private:
         //cout << "c: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         if (!currentWord.checkType("SEMICN")) { //';'
             //return false;
-            output.addError(new NoSemicolonError(errorLine));
+            output.addError(new NoSemicolonError(getPrevLine()));
         } else {
             move();
         }
@@ -286,7 +287,7 @@ private:
         if (currentWord.getValue() == "(") { // should not be function
             return nullptr;
         }
-        int startIndex = wordIndex, errorLine = 0;
+        int startIndex = wordIndex;
         Node* addExp = nullptr;
         vector<Node*>* offsetList = new vector<Node*>();
         int type = 0;
@@ -296,7 +297,6 @@ private:
             }
             move();
             addExp = checkConstExp();
-            errorLine = currentWord.getLine();
             if (addExp == nullptr) {
                 setIndex(startIndex);
                 break;
@@ -305,7 +305,7 @@ private:
             if (!currentWord.checkType("RBRACK")) { //']'
                 //setIndex(startIndex);
                 //break;
-                output.addError(new NoRightBracketsError(errorLine)); //can output first? I think yes
+                output.addError(new NoRightBracketsError(getPrevLine())); //can output first? I think yes
             } else {
                 move();
             }
@@ -399,7 +399,7 @@ private:
         }
         if (!currentWord.checkType("RPARENT")) { //')'
             //return false;
-            output.addError(new NoRightParenthesesError(noEndLine));
+            output.addError(new NoRightParenthesesError(getPrevLine()));
         } else {
             move();
         }
@@ -455,7 +455,7 @@ private:
         move();
         if (!currentWord.checkType("RPARENT")) { //')'
             //return false;
-            output.addError(new NoRightParenthesesError(currentLine));
+            output.addError(new NoRightParenthesesError(getPrevLine()));
         } else {
             move();
         }
@@ -541,7 +541,7 @@ private:
                 move();
                 startIndex = wordIndex;
             } else {
-                output.addError(new NoRightBracketsError(currentLine));
+                output.addError(new NoRightBracketsError(getPrevLine()));
             }
             while (startIndex < totalWord) {
                 if (!currentWord.checkType("LBRACK")) { //'['
@@ -557,7 +557,7 @@ private:
                 if (!currentWord.checkType("RBRACK")) { //']'
                     //setIndex(startIndex);
                     //break;
-                    output.addError(new NoRightBracketsError(currentLine));
+                    output.addError(new NoRightBracketsError(getPrevLine()));
                 } else {
                     move();
                 }
