@@ -1,13 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include "lexical.h"
-#include "output.h"
 #include "grammar.h"
 
 using namespace std;
 
 ifstream fin("testfile.txt");
 ofstream fout("output.txt");
+ofstream eout("error.txt");
 
 Output output;
 string input;
@@ -22,7 +22,8 @@ void read() {
 
 void print(string outString) {
     cout << outString << endl;
-    fout << outString << endl;
+    //fout << outString << endl;
+    eout << outString << endl;
 }
 
 int main() {

@@ -15,24 +15,28 @@ class Word{
 private:
     string typeCode;
     string value;
+    int line;
 public:
     Word() = default;
 
-    Word(string _typeCode, string _value) {
+    Word(string _typeCode, string _value, int _line) {
         typeCode = std::move(_typeCode);
         value = std::move(_value);
+        line = _line;
         //output.addLine(to_string());
     }
 
-    Word(string _typeCode, int _value) {
+    Word(string _typeCode, int _value, int _line) {
         typeCode = std::move(_typeCode);
         value = ::to_string(_value);
+        line = _line;
         //output.addLine(to_string());
     }
 
-    Word(string _typeCode, char _c) {
+    Word(string _typeCode, char _c, int _line) {
         typeCode = std::move(_typeCode);
         value = string(1, _c);
+        line = _line;
         //output.addLine(to_string());
     }
 
@@ -42,6 +46,10 @@ public:
 
     string getValue() {
         return value;
+    }
+
+    int getLine() {
+        return line;
     }
 
     string to_string() {
