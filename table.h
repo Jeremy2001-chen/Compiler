@@ -114,7 +114,7 @@ public:
         return findTableDecl(_name, _kind) == -1;
     }
     bool checkUse(const string& _name, const string& _kind) {
-        return findTableUse(_name, _kind) == -1;
+        return findTableUse(_name, _kind) != -1;
     }
     Table* getUse(const string& _name, const string& _kind) {
         return getIndex(findTableUse(_name, _kind));

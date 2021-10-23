@@ -6,7 +6,7 @@
 using namespace std;
 
 ifstream fin("testfile.txt");
-ofstream fout("error.txt");
+ofstream fout("output.txt");
 
 Output output;
 string input;
