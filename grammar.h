@@ -52,10 +52,10 @@ private:
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             DeclStmt* variableDeclList = checkDecl();
-            for (auto& it: (*variableDeclList->getDecl())) {
-                compUnit->setVar(it);
-            }
             if (variableDeclList != nullptr) {
+                for (auto& it: (*variableDeclList->getDecl())) {
+                    compUnit->setVar(it);
+                }
                 startIndex = wordIndex;
             } else {
                 setIndex(startIndex);
@@ -178,7 +178,8 @@ private:
         vector<Node*>* valueList = checkConstInitVal();
         if (valueList == nullptr)
             return variableDecl;
-        variableDecl = new VariableDecl(name, (*offsetList)[(int)offsetList->size()-1],
+        Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
+        variableDecl = new VariableDecl(name, offsetTree,
                                         valueList, true, currentLine);
         addLine("<ConstDef>");
         return variableDecl;
@@ -304,7 +305,8 @@ private:
             if (valueList == nullptr)
                 return nullptr;
         }
-        variableDecl = new VariableDecl(name, (*offsetList)[(int)offsetList->size()-1],
+        Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
+        variableDecl = new VariableDecl(name, offsetTree,
                                         valueList, false, currentLine);
         addLine("<VarDef>");
         return variableDecl;
@@ -1008,9 +1010,10 @@ private:
 
     string checkUnaryOp() {
         if (currentWord.checkType("PLUS") || currentWord.checkType("MINU") || currentWord.checkType("NOT")) {
+            string op = currentWord.getValue();
             move();
             addLine("<UnaryOp>");
-            return currentWord.getValue();
+            return op;
         }
         return "";
     }
@@ -1205,16 +1208,18 @@ private:
 
     string checkIdent() {
         if (currentWord.checkType("IDENFR")) {
+            string name = currentWord.getValue();
             move();
-            return currentWord.getValue();
+            return name;
         }
         return "";
     }
 
     string checkIntConst() {
         if (currentWord.checkType("INTCON")) {
+            string value = currentWord.getValue();
             move();
-            return currentWord.getValue();
+            return value;
         }
         return "";
     }

@@ -90,7 +90,7 @@ public:
     }
     int findTableDecl(const string& name, const string& kind) {
         int index = -1;
-        for (int i = tableSize; i >= 0; -- i) {
+        for (int i = tableSize - 1; i >= 0; -- i) {
             if (list[i]->getLayer() != layer)
                 break;
             else if (list[i]->getName() == name && list[i]->getKind() == kind) {
@@ -102,7 +102,7 @@ public:
     }
     int findTableUse(const string& name, const string& kind) {
         int index = -1;
-        for (int i = tableSize; i >= 0; -- i) {
+        for (int i = tableSize - 1; i >= 0; -- i) {
             if (list[i]->getName() == name && list[i]->getKind() == kind) {
                 index = i;
                 break;
@@ -127,7 +127,7 @@ public:
     }
     void popLayer() {
         int newSize = tableSize;
-        for(int i = tableSize; i >= 0; -- i)
+        for(int i = tableSize - 1; i >= 0; -- i)
             if (list[i]->getLayer() == layer) {
                 newSize -= 1;
             }
@@ -143,7 +143,7 @@ public:
         return list[index];
     }
     Table* getTableFromName(const string& _name, int line) {
-        for (int i = tableSize; i >= 0; -- i) {
+        for (int i = tableSize - 1 ; i >= 0; -- i) {
             if (list[i]->getName() == _name)
                 return list[i];
         }
@@ -151,7 +151,7 @@ public:
         return nullptr;
     }
     Table* getTopFun() {
-        for (int i = tableSize; i >= 0; -- i) {
+        for (int i = tableSize - 1; i >= 0; -- i) {
             if (list[i]->getKind() == "fun") {
                 return list[i];
             }
