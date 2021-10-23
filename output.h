@@ -54,7 +54,6 @@ public:
     }
 
     void setIndex(int index) {
-        //cout << "back to " << index << endl;
         while (!s.empty()) {
             pis top = s.top();
             if (top.first >= index)

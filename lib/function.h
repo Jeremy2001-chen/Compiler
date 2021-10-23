@@ -126,6 +126,7 @@ public:
         fun = _func;
         param = _para;
         classType = FunRType;
+        type = _func == nullptr ? 0 : _func->getType();
     }
     void check() override {
         //assert(fun && param);
