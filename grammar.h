@@ -466,8 +466,8 @@ private:
         }
         bool hasReturnStmt = false;
         vector<Node*> blockItem = block->getBlockItem();
-        for (int i = 0; i < blockItem.size(); ++ i) {
-            if (blockItem[i]->getType() == ReturnStmtType) {
+        for (auto & i : blockItem) {
+            if (i->getClassType() == ReturnStmtType) {
                 hasReturnStmt = true;
                 break;
             }
@@ -1026,7 +1026,7 @@ private:
                     move();
                 }
                 if (!symbolTable.checkUse(name, "fun")) {
-                    output.addError(new NameRedefineError(currentLine, name));
+                    output.addError(new UndefineNameError(currentLine, name));
                     funR = new FunR(name, nullptr, nullptr);
                 } else {
                     Table* table = symbolTable.getUse(name, "fun");
