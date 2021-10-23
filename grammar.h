@@ -456,7 +456,7 @@ private:
         } else {
             move();
         }
-        FunF* mainFun = new FunF("main", nullptr, 0);
+        FunF* mainFun = new FunF("main", new vector<FunFParam*>(), 0);
         symbolTable.insertFunTable("main", mainFun, currentWord.getLine());
         symbolTable.addLayer();
         Block* block = checkBlock();
@@ -611,7 +611,7 @@ private:
     }
 
     Node* checkStmt() {
-        cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         int startIndex = wordIndex, currentLine = 0;
         Node* exp = checkExp();
         if (exp != nullptr) {
@@ -765,7 +765,7 @@ private:
                 format = currentWord.getValue();
                 int len = (int)format.size();
                 for (int i = 1; i < len - 1; i++) { //'"' must remove!
-                    if (format[i] == 32 || format[i] == 3 || (format[i] >= 40 && format[i] <= 126)) {
+                    if (format[i] == 32 || format[i] == 33 || (format[i] >= 40 && format[i] <= 126)) {
                         continue;
                     } else if (format[i] == '%') {
                         if (format[i+1] != 'd') {
