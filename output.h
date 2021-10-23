@@ -48,7 +48,7 @@ public:
         sort(errors.begin(), errors.end(), cmp);
         string ret;
         for (Error *error: errors) {
-            ret = ret + error->debug();
+            ret = ret + error->display();
         }
         return ret;
     }

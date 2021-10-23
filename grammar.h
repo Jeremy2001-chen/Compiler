@@ -611,7 +611,7 @@ private:
     }
 
     Node* checkStmt() {
-        //cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         int startIndex = wordIndex, currentLine = 0;
         Node* exp = checkExp();
         if (exp != nullptr) {
@@ -943,7 +943,7 @@ private:
             startIndex = wordIndex;
         }
         Variable* variable = nullptr;
-        if (addList.size() == 0) {
+        if ((int)addList.size() == 0) {
             variable = new Variable(name, nullptr, beginType, constFlag);
         } else if (addList.size() == 1) {
             variable = new Variable(name, addList[0], beginType-1, constFlag);
@@ -1027,7 +1027,7 @@ private:
                 }
                 if (!symbolTable.checkUse(name, "fun")) {
                     output.addError(new UndefineNameError(currentLine, name));
-                    funR = new FunR(name, nullptr, nullptr);
+                    funR = new FunR(name, nullptr, funRParams);
                 } else {
                     Table* table = symbolTable.getUse(name, "fun");
                     FunF* funF = (FunF*)table->getAstNode();

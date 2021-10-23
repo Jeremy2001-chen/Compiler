@@ -104,12 +104,14 @@ public:
         if (param->size() != rParam->size())
             output.addError(new NotMatchParameterNumError(line, name,
                                                       (int)param->size(), (int)rParam->size()));
-        for (int i = 0; i < param->size(); ++i)
-            if ((*param)[i]->getType() != (*rParam)[i]->getType()) {
-                output.addError(new NotMatchParameterTypeError(line, name,
-                                                           typeChange((*param)[i]->getType()),
-                                                           typeChange((*rParam)[i]->getType())));
-            }
+        else {
+            for (int i = 0; i < param->size(); ++i)
+                if ((*param)[i]->getType() != (*rParam)[i]->getType()) {
+                    output.addError(new NotMatchParameterTypeError(line, name,
+                                                                   typeChange((*param)[i]->getType()),
+                                                                   typeChange((*rParam)[i]->getType())));
+                }
+        }
     }
 };
 
