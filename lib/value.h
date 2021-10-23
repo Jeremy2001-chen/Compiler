@@ -71,13 +71,14 @@ private:
     Node* offsetTree;
     vector<Node*>* value;
 public:
-    VariableDecl(string _name, Node* _offsetTree, vector<Node*>* _value, bool _const, int _line) {
+    VariableDecl(string _name, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
         name = std::move(_name);
         offsetTree = _offsetTree;
         offset = 0; //reserve
         value = _value;
         Const = _const;
         line = _line;
+        type = _type;
         classType = VariableDeclType;
     }
     void check() override {

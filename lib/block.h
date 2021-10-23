@@ -126,6 +126,7 @@ public:
     ReturnStmt(Node* exp) {
         returnExp = exp;
         type = exp->getType();
+        classType = ReturnStmtType;
     }
     void check() override {
 

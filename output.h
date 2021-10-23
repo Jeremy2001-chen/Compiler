@@ -7,6 +7,7 @@
 
 #include <stack>
 #include "error.h"
+#include <algorithm>
 using namespace std;
 
 typedef pair<int, string> pis;
@@ -29,15 +30,27 @@ public:
         s.push(make_pair(index, _line));
     }
 
+    static bool cmp(Error* error1, Error* error2) {
+        return error1->getErrorLine() < error2->getErrorLine();
+    }
+
     string to_string() {
-        while (!s.empty()) {
+        // this is for grammar
+        /*while (!s.empty()) {
             line.push_back(s.top().second);
             s.pop();
         }
         string ret;
         for (auto it = line.rbegin(); it != line.rend(); ++it)
             ret += (*it) + "\n";
-        return ret.substr(0, ret.size()-1);
+        return ret.substr(0, ret.size()-1);*/
+        // this is for error
+        sort(errors.begin(), errors.end(), cmp);
+        string ret;
+        for (Error *error: errors) {
+            ret = ret + error->display();
+        }
+        return ret;
     }
 
     void setIndex(int index) {

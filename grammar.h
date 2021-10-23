@@ -54,7 +54,7 @@ private:
             DeclStmt* variableDeclList = checkDecl();
             if (variableDeclList != nullptr) {
                 for (auto& it: (*variableDeclList->getDecl())) {
-                    cout << "def var: " + (*it).getName() << endl;
+                    cout << "def var: " + (*it).getName() << " " << (*it).getType() << endl;
                     compUnit->setVar(it);
                 }
                 startIndex = wordIndex;
@@ -154,6 +154,7 @@ private:
         int startIndex = wordIndex, errorLine = 0;
         Node* addExp = nullptr;
         vector<Node*>* offsetList = new vector<Node*>();
+        int type = 0;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LBRACK")) //'['
                 break;
@@ -172,9 +173,10 @@ private:
             } else {
                 move();
             }
+            type += 1;
             startIndex = wordIndex;
         }
-        cout << "checkConstDef: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkConstDef: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         if (!currentWord.checkType("ASSIGN")) //'=
             return variableDecl;
         move();
@@ -183,7 +185,7 @@ private:
             return variableDecl;
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetTree,
-                                        valueList, true, currentLine);
+                                        valueList, type, true, currentLine);
         addLine("<ConstDef>");
         return variableDecl;
     }
@@ -287,6 +289,7 @@ private:
         int startIndex = wordIndex, errorLine = 0;
         Node* addExp = nullptr;
         vector<Node*>* offsetList = new vector<Node*>();
+        int type = 0;
         while (startIndex < totalWord) {
             if (!currentWord.checkType("LBRACK")) { //'['
                 break;
@@ -303,8 +306,10 @@ private:
                 //setIndex(startIndex);
                 //break;
                 output.addError(new NoRightBracketsError(errorLine)); //can output first? I think yes
-            } else
+            } else {
                 move();
+            }
+            type += 1;
             startIndex = wordIndex;
         }
         vector<Node*>* valueList = nullptr;
@@ -317,7 +322,7 @@ private:
         }
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetTree,
-                                        valueList, false, currentLine);
+                                        valueList, type, false, currentLine);
         addLine("<VarDef>");
         return variableDecl;
     }
@@ -417,6 +422,7 @@ private:
         }
         fun->setBlock(block);
         // not void function
+        //cout << fun->getName() << " " << block -> getBlockItem().size() << " " << fun->getType() << endl;
         if (fun->getType() != -1) {
             bool hasReturnStmt = false;
             for (auto &item: block->getBlockItem()) {
@@ -597,7 +603,7 @@ private:
     }
 
     Node* checkStmt() {
-        cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkStmt: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         int startIndex = wordIndex, currentLine = 0;
         Node* exp = checkExp();
         if (exp != nullptr) {
@@ -638,7 +644,7 @@ private:
                 }
                 else
                     move();
-                if (variable->getConstType() && !exp->getConstType()) { // const int -> int
+                if (variable->getConstType()) { // const int -> int
                     output.addError(new ConstVariableChangeError(currentLine,
                                                              variable->getName()));
                 }
@@ -748,12 +754,23 @@ private:
                 bool errorChar = false;
                 format = currentWord.getValue();
                 int len = (int)format.size();
-                for (int i = 0; i < len; i++) {
-                    if (format[i] != 32 && format[i] != 33 && (format[i] < 40 || format[i] > 126))
-                        errorChar = true;
-                    if (format[i] == '\\') {
-                        if (!(i < len - 1 && format[i+1] == '\n'))
+                for (int i = 1; i < len - 1; i++) { //'"' must remove!
+                    if (format[i] == 32 || format[i] == 3 || (format[i] >= 40 && format[i] <= 126)) {
+                        continue;
+                    } else if (format[i] == '%') {
+                        if (format[i+1] != 'd') {
                             errorChar = true;
+                            break;
+                        }
+                        i += 1;
+                    } else if (format[i] == '\\') {
+                        if (format[i+1] != 'n') {
+                            errorChar = true;
+                            break;
+                        }
+                        i += 1;
+                    } else {
+                        errorChar = true;
                     }
                 }
                 if (errorChar) {
@@ -790,7 +807,7 @@ private:
                 move();
             }
             PrintfStmt* printfStmt = new PrintfStmt(format, expList, currentLine);
-            if (printfStmt->expectNum() == printfStmt->realNum()) {
+            if (printfStmt->expectNum() != printfStmt->realNum()) {
                 output.addError(new PrintParameterNumError(currentLine, printfStmt->expectNum(), printfStmt->realNum()));
             }
             addLine("<Stmt>");
@@ -866,7 +883,7 @@ private:
     }
 
     Node* checkExp() {
-        cout << "checkExp: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkExp: " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         Node* addExp = checkAddExp();
         if (addExp == nullptr) {
             return nullptr;
@@ -892,6 +909,8 @@ private:
             output.addError(new UndefineNameError(getPrevLine(), name));
         }
         Table* table = symbolTable.getUse(name, "var");
+        int beginType = table->getType();
+        //cout << table->getName() << " " << table->getType() << endl;
         int startIndex = wordIndex;
         vector<Node*> addList;
         while (startIndex < totalWord) {
@@ -914,9 +933,9 @@ private:
         }
         Variable* variable = nullptr;
         if (addList.size() == 0) {
-            variable = new Variable(name, nullptr, 0, table->getConstFlag());
+            variable = new Variable(name, nullptr, beginType, table->getConstFlag());
         } else if (addList.size() == 1) {
-            variable = new Variable(name, addList[0], 1, table->getConstFlag());
+            variable = new Variable(name, addList[0], beginType-1, table->getConstFlag());
         } else if (addList.size() == 2) {
             AddExp* addExp = new AddExp("+");
             MulExp* mulExp = new MulExp("*");
@@ -925,7 +944,7 @@ private:
             mulExp->setLch(addList[0]);
             mulExp->setRch(offset);
             addExp->setLch(mulExp);
-            variable = new Variable(name, addExp, 2, table->getConstFlag());
+            variable = new Variable(name, addExp, beginType-2, table->getConstFlag());
         }
         addLine("<LVal>");
         return variable;
@@ -1065,7 +1084,7 @@ private:
     }
 
     Node* checkMulExp() {
-        cout << "checkMulExp : " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkMulExp : " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         Node* unaryExp = checkUnaryExp();
         if (unaryExp == nullptr)
             return nullptr;
@@ -1095,7 +1114,7 @@ private:
         Node* mulExp = checkMulExp();
         if (mulExp == nullptr)
             return nullptr;
-        cout << "checkAddExp : " << currentWord.getLine() << " " << currentWord.getValue() << endl;
+        //cout << "checkAddExp : " << currentWord.getLine() << " " << currentWord.getValue() << endl;
         int startIndex = wordIndex;
         Node *last = mulExp;
         while (startIndex < totalWord) {

@@ -12,8 +12,11 @@ class Error{
 protected:
     int error_line;
 public:
-    virtual void display() = 0;
-    virtual void debug() = 0;
+    virtual string display() = 0;
+    virtual string debug() = 0;
+    int getErrorLine() const {
+        return error_line;
+    }
 };
 
 class IllegalCharacterError : public Error {
@@ -21,11 +24,11 @@ public:
     explicit IllegalCharacterError(int line) {
         this->error_line = line;
     }
-    void display() override {
-        cout << this->error_line << " " << "a" << endl;
+    string display() override {
+        return (to_string(this->error_line) + " a\n");
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the format string has illegal character!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the format string has illegal character!\n";
     }
 };
 
@@ -37,11 +40,12 @@ public:
         this->error_line = line;
         this->str = std::move(_str);
     }
-    void display() override {
-        cout << this->error_line << " " << "b" << endl;
+    string display() override {
+        return to_string(this->error_line) + " b\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the name " << str << " define again!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the name " +
+                str + " define again!\n";
     }
 };
 
@@ -53,11 +57,12 @@ public:
         this->error_line = line;
         this->str = _str;
     }
-    void display() override {
-        cout << this->error_line << " " << "c" << endl;
+    string display() override {
+        return to_string(this->error_line) + " c\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the name " << str << " has not defined!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the name " +
+                str + " has not defined!\n";
     }
 };
 
@@ -72,13 +77,13 @@ public:
         expectNum = _expectNum;
         realNum = _realNum;
     }
-    void display() override {
-        cout << this->error_line << " " << "d" << endl;
+    string display() override {
+        return to_string(this->error_line) + " d\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
-        funName << " expect " << expectNum <<
-        " parameter, but you have " << realNum << " parameter!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the function " +
+        funName + " expect " + to_string(expectNum) +
+        " parameter, but you have " + to_string(realNum) + " parameter!\n";
     }
 };
 
@@ -91,14 +96,15 @@ public:
         this->error_line = line;
         this->expectType = _expectType;
         this->realType = _readType;
+        this->funName = _funName;
     }
-    void display() override {
-        cout << this->error_line << " " << "e" << endl;
+    string display() override {
+        return to_string(this->error_line) + " e\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
-        funName << " expect " << expectType << " type parameter, but you have " <<
-        realType << " parameter!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the function " +
+        funName + " expect " + expectType + " type parameter, but you have " +
+        realType + " parameter!\n";
     }
 };
 
@@ -110,12 +116,12 @@ public:
         this->error_line = line;
         this->funName = _funName;
     }
-    void display() override {
-        cout << this->error_line << " " << "f" << endl;
+    string display() override {
+        return to_string(this->error_line) + " f\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
-        funName << " has the incorrect return statement!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the function " +
+        funName + " has the incorrect return statement!\n";
     }
 };
 
@@ -127,12 +133,12 @@ public:
         this->error_line = line;
         this->funName = _funName;
     }
-    void display() override {
-        cout << this->error_line << " " << "g" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "g\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the function " <<
-        funName << " no return statement!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the function " +
+        funName + " has no return statement!\n";
     }
 };
 
@@ -144,12 +150,12 @@ public:
         this->error_line = line;
         this->varName = _varName;
     }
-    void display() override {
-        cout << this->error_line << " " << "h" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "h\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , the const variable " <<
-        varName << "can't change!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , the const variable " +
+        varName + "can't change!\n";
     }
 };
 
@@ -158,11 +164,11 @@ public:
     NoSemicolonError(int line) {
         this->error_line = line;
     }
-    void display() override {
-        cout << this->error_line << " " << "i" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "i\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , need ';' at end!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , need ';' at end!\n";
     }
 };
 
@@ -171,11 +177,11 @@ public:
     NoRightParenthesesError(int line) {
         this->error_line = line;
     }
-    void display() override {
-        cout << this->error_line << " " << "j" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "j\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , need ')' at end!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , need ')' at end!\n";
     }
 };
 
@@ -184,11 +190,11 @@ public:
     NoRightBracketsError(int line) {
         this->error_line = line;
     }
-    void display() override {
-        cout << this->error_line << " " << "k" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "k\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , need ']' at end!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , need ']' at end!\n";
     }
 };
 
@@ -201,12 +207,12 @@ public:
         expectNum = _expectNum;
         realNum = _realNum;
     }
-    void display() override {
-        cout << this->error_line << " " << "l" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "l\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , printf need " << expectNum
-        << " parameter but you have " << realNum << " parameter!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , printf need " + to_string(expectNum)
+        + " parameter but you have " + to_string(realNum) + " parameter!\n";
     }
 };
 
@@ -218,12 +224,12 @@ public:
         this->error_line = line;
         this->errorType = _errorType;
     }
-    void display() override {
-        cout << this->error_line << " " << "m" << endl;
+    string display() override {
+        return to_string(this->error_line) + " " + "m\n";
     }
-    void debug() override {
-        cout << "[Debug]Error! At line: " << this->error_line << " , " <<
-        errorType << " should not appear outside the while block!" << endl;
+    string debug() override {
+        return "[Debug]Error! At line: " + to_string(this->error_line) + " , " +
+        errorType + " should not appear outside the while block!\n";
     }
 };
 #endif //GRAMMAR_1005_ERROR_H
