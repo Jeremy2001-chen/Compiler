@@ -19,6 +19,9 @@ public:
     FunRParam() {
         classType = FunRParamType;
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class FunFParam: public Node {
@@ -43,6 +46,9 @@ public:
     }
     string getName() const {
         return name;
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 
@@ -113,6 +119,9 @@ public:
                 }
         }
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class FunR: public Node {
@@ -142,6 +151,9 @@ public:
     }
     string getName() {
         return name;
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 

@@ -8,6 +8,7 @@
 #include "node.h"
 #include <cassert>
 #include <utility>
+#include "value.h"
 
 #define lch ch[0]
 class SingleExp: public Node {
@@ -23,19 +24,33 @@ public:
         return sign;
     }
     void setLch(Node* Lch) {
+        if (lch)
+            size -= lch->getSize();
         lch = Lch;
+        if (lch)
+            size += lch->getSize();
     }
     void check() override {
         cout << "SingleExp check correct!" << endl;
 
     }
     void traversal() override {
+
+    }
+    virtual int op(int) = 0;
+    Node* optimize() override {
+        if (!lch -> getConstType())
+            return this;
+        ConstValue* lchConst = (ConstValue*)lch;
+        Number* number = new Number(op(lchConst->getValue()));
+        free(lch);
+        return number;
     }
 };
 
 class UnaryExp: public SingleExp {
 public:
-    UnaryExp(string _sign) {
+    explicit UnaryExp(string _sign) {
         sign = std::move(_sign);
         classType = UnaryExpType;
     }
@@ -47,6 +62,14 @@ public:
     void traversal() override {
         /*cout << sign << endl;
         lch->traversal();*/
+    }
+    int op(int l) override {
+        switch (sign[0]) {
+            case '+': return l;
+            case '-': return -l;
+            case '!': return !l;
+            default: exit(-2);
+        }
     }
 };
 

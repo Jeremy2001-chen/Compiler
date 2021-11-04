@@ -45,6 +45,9 @@ public:
             blockIt.traversal();
         }*/
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class IfStmt: public Node {
@@ -68,6 +71,9 @@ public:
     void traversal() override {
 
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class WhileStmt: public Node {
@@ -86,6 +92,9 @@ public:
     void traversal() override {
 
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class BreakStmt: public Node {
@@ -99,6 +108,9 @@ public:
     void traversal() override {
 
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 
 class ContinueStmt: public Node {
@@ -111,6 +123,9 @@ public:
     }
     void traversal() override {
 
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 
@@ -133,6 +148,9 @@ public:
     }
     void traversal() override {
 
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 
@@ -175,6 +193,9 @@ public:
     void traversal() override {
 
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 class NullStmt: public Node {
 public:
@@ -186,6 +207,9 @@ public:
     }
     void traversal() override {
 
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 #endif //COMPILER_BLOCK_H

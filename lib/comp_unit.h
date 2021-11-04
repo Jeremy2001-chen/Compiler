@@ -33,5 +33,8 @@ public:
     void traversal() override {
 
     }
+    Node* optimize() override {
+        return this;
+    }
 };
 #endif //COMPILER_COMP_UNIT_H
