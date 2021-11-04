@@ -9,9 +9,16 @@
 
 #include "node.h"
 
-class Number: public Node {
-private:
+class ConstValue: public Node{
+protected:
     int value;
+public:
+    int getValue() {
+        return value;
+    }
+};
+
+class Number: public ConstValue {
 public:
     Number(int _value) {
         value = _value;
@@ -26,12 +33,11 @@ public:
     }
 };
 
-class Variable: public Node {
+class Variable: public ConstValue {
 private:
     string name;
     int offset;
     Node* offsetTree;
-    int value;
     Node* valueTree;
 public:
     Variable(string _name, Node* _offsetTree, int _type, bool _const) {
