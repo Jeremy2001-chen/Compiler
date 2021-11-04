@@ -222,7 +222,7 @@ private:
 public:
     BreakContinueError(int line, string _errorType) {
         this->error_line = line;
-        this->errorType = _errorType;
+        this->errorType = std::move(_errorType);
     }
     string display() override {
         return to_string(this->error_line) + " " + "m\n";
