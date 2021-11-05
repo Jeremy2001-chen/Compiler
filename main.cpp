@@ -22,7 +22,7 @@ void read() {
 
 void print(string outString) {
     cout << outString << endl;
-    //fout << outString << endl;
+    fout << outString << endl;
     eout << outString << endl;
 }
 

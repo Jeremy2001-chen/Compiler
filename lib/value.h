@@ -40,6 +40,7 @@ public:
 Node* getOffset(Node* offsetTree) {
     Node* off = offsetTree->optimize();
     if (off->getClassType() != NumberType && off->getClassType() != VariableType) {
+        cout << off->getClassType() << endl;
         cout << "error when the offset not a const exp!" << endl;
         exit(-3);
     }

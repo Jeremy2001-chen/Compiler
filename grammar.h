@@ -1141,8 +1141,9 @@ private:
                 return nullptr;
             unaryExp = new UnaryExp(op);
             unaryExp->setLch(Lch);
+            Node* root = unaryExp->optimize();
             addLine("<UnaryExp>");
-            return unaryExp;
+            return root;
         }
         return nullptr;
     }

@@ -35,8 +35,8 @@ public:
     }
 
     string to_string() {
-        // this is for grammar
-        /*while (!s.empty()) {
+        /*//this is for grammar
+        while (!s.empty()) {
             line.push_back(s.top().second);
             s.pop();
         }
@@ -44,7 +44,7 @@ public:
         for (auto it = line.rbegin(); it != line.rend(); ++it)
             ret += (*it) + "\n";
         return ret.substr(0, ret.size()-1);*/
-        // this is for error
+        //this is for error
         sort(errors.begin(), errors.end(), cmp);
         string ret;
         for (Error *error: errors) {
