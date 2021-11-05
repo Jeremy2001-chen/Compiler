@@ -52,18 +52,23 @@ public:
         classType = MulType;
     }
     void check() override {
-        assert(sign == "*");
+        assert(sign == "*" || sign == "/" || sign == "%");
         cout << "MulExp check correct!" << endl;
         /*lch.check();
         rch.check();*/
     }
     void traversal() override {
-        cout << "*" << endl;
+        cout << sign << endl;
         lch->traversal();
         rch->traversal();
     }
     int op(int l, int r) override {
-        return l * r;
+        switch (sign[0]) {
+            case '*': return l * r;
+            case '/': return l / r;
+            case '%': return l % r;
+            default: exit(-2);
+        }
     }
 };
 
