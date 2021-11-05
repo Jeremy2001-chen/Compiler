@@ -1000,21 +1000,30 @@ private:
             startIndex = wordIndex;
         }
 
-        Variable* variable = nullptr;
-        if ((int)addList.size() == 0) {
-            variable = new Variable(name, nullptr, beginType, constFlag);
-        } else if (addList.size() == 1) {
-            variable = new Variable(name, addList[0], beginType-1, constFlag);
-        } else if (addList.size() == 2) {
-            AddExp* addExp = new AddExp("+");
+        /* calculate the offset */
+        Node* offset = nullptr, *setValue = nullptr;
+        if ((int)addList.size() == 0)
+            offset = new Number(1);
+        else if((int)addList.size() == 1)
+            offset = addList[0];
+        else {
+            Node* defOffset = table ? ((VariableDecl*)table->getAstNode())->getOffsetTree() : new Number(0);
             MulExp* mulExp = new MulExp("*");
-            Node* offset = table != nullptr ? ((VariableDecl*)table->getAstNode())->getOffsetTree() : nullptr;
-            addExp->setRch(addList[1]);
             mulExp->setLch(addList[0]);
-            mulExp->setRch(offset);
-            addExp->setLch(mulExp);
-            variable = new Variable(name, addExp, beginType-2, constFlag);
+            mulExp->setRch(defOffset);
+            AddExp* addExp = new AddExp("+");
+            addExp->setLch(mulExp->optimize());
+            addExp->setRch(addList[1]);
+            offset = addExp->optimize();
+            if (table && constFlag && offset->getConstType() && offset->getSize() == 1) {
+                Number* number = (Number*)offset;
+                setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
+            } else {
+                constFlag = false;
+            }
         }
+
+        Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag);
         addLine("<LVal>");
         return variable;
     }
@@ -1175,7 +1184,7 @@ private:
             }
             mulExp->setLch(last);
             mulExp->setRch(unaryExp);
-            last = mulExp;
+            last = mulExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<MulExp>");
@@ -1201,7 +1210,7 @@ private:
             }
             addExp->setLch(last);
             addExp->setRch(mulExp);
-            last = addExp;
+            last = addExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<AddExp>");
@@ -1227,7 +1236,7 @@ private:
             }
             relExp->setLch(last);
             relExp->setRch(addExp);
-            last = relExp;
+            last = relExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<RelExp>");
@@ -1253,7 +1262,7 @@ private:
             }
             eqExp->setLch(last);
             eqExp->setRch(relExp);
-            last = eqExp;
+            last = eqExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<EqExp>");
@@ -1279,7 +1288,7 @@ private:
             }
             lAndExp->setLch(last);
             lAndExp->setRch(eqExp);
-            last = lAndExp;
+            last = lAndExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<LAndExp>");
@@ -1305,7 +1314,7 @@ private:
             }
             lOrExp->setLch(last);
             lOrExp->setRch(lAndExp);
-            last = lOrExp;
+            last = lOrExp->optimize();
             startIndex = wordIndex;
         }
         addLine("<LOrExp>");
