@@ -9,11 +9,22 @@
 
 #include "node.h"
 
-class Number: public Node {
-private:
+class ConstValue: public Node{
+protected:
     int value;
 public:
-    Number(int _value) {
+    Node* optimize() override {
+        return this;
+    }
+
+    int getValue() const {
+        return value;
+    }
+};
+
+class Number: public ConstValue {
+public:
+    explicit Number(int _value) {
         value = _value;
         Const = true;
         classType = NumberType;
@@ -22,22 +33,33 @@ public:
         cout << "ConstValue check correct!" << endl;
     }
     void traversal() override {
-        //cout << value << endl;
+        cout << value << endl;
     }
 };
 
-class Variable: public Node {
+Node* getOffset(Node* offsetTree) {
+    Node* off = offsetTree->optimize();
+    if (off->getClassType() != NumberType && off->getClassType() != VariableType) {
+        cout << "error when the offset not a const exp!" << endl;
+        exit(-3);
+    }
+    return off;
+}
+
+class Variable: public ConstValue {
 private:
     string name;
     int offset;
     Node* offsetTree;
-    int value;
-    Node* valueTree;
+    Node* valueTree = nullptr;
 public:
     Variable(string _name, Node* _offsetTree, int _type, bool _const) {
         name = std::move(_name);
         //offset = _offset;
-        offsetTree = _offsetTree;
+        if (_offsetTree == nullptr)
+            offsetTree = new Number(1);
+        else
+            offsetTree = _offsetTree->optimize();
         type = _type;
         value = 0;
         Const = _const;
@@ -45,11 +67,25 @@ public:
     }
     Variable(string _name, Node* _offsetTree, int _type, Node* _valueTree, bool _const) {
         name = std::move(_name);
-        offsetTree = _offsetTree;
-        //offset = _offset;
+        if (_offsetTree == nullptr) {
+            offsetTree = new Number(1);
+            offset = 1;
+        }
+        else {
+            offsetTree = _offsetTree->optimize();
+            if (offsetTree -> getClassType() == NumberType) {
+                offset = ((Number*)offsetTree) -> getValue();
+            }
+        }
         type = _type;
-        valueTree = _valueTree;
-        //value = 0;
+
+        if (_valueTree == nullptr) {
+            value = 0;
+            valueTree = nullptr;
+        } else {
+            value = ((ConstValue*)_valueTree) -> getValue();
+            valueTree = nullptr;
+        }
         Const = _const;
         classType = VariableType;
     }
@@ -57,7 +93,7 @@ public:
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
-        //cout << name << "[" << offset << "] = " << value << endl;
+        cout << name << "[" << offset << "] = " << value << endl;
     }
     string getName() {
         return name;
@@ -71,11 +107,26 @@ private:
     Node* offsetTree;
     vector<Node*>* value;
 public:
+    Node* optimize() override {
+        return this;
+    }
     VariableDecl(string _name, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
         name = std::move(_name);
-        offsetTree = _offsetTree;
-        offset = 0; //reserve
+        if (_offsetTree == nullptr) {
+            offsetTree = new Number(1);
+            offset = 1;
+        } else {
+            offsetTree = getOffset(_offsetTree);
+            offset = ((Number*)offsetTree)->getValue();
+        }
         value = _value;
+        if (value == nullptr) {
+            value = new vector<Node*>();
+        }
+        for (int i = 0; i < value->size(); ++ i) {
+            if ((*value)[i]->getConstType())
+                cout << name << " " << i << " " << ((ConstValue*)(*value)[i])->getValue() << endl;
+        }
         Const = _const;
         line = _line;
         type = _type;
@@ -96,10 +147,18 @@ public:
     Node* getOffsetTree() {
         return offsetTree;
     }
+    Node* getPosValue(int pos) {
+        if (pos < (int)value->size())
+            return (*value)[pos];
+        return new Number(0); //ub
+    }
 };
 
 class ReadValue: public Node{
 public:
+    Node* optimize() override {
+        return this;
+    }
     ReadValue() {
         classType = ReadValueType;
     }
@@ -115,6 +174,9 @@ class DeclStmt: public Node {
 private:
     vector<VariableDecl*>* decl;
 public:
+    Node* optimize() override {
+        return this;
+    }
     DeclStmt() {
         decl = new vector<VariableDecl*>();
         classType = DeclStmtType;

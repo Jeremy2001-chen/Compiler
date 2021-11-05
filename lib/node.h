@@ -13,9 +13,11 @@ protected:
     ClassType classType = NodeType;
     bool Const = false;
     int line = 0;
+    int size = 1;
 public:
     virtual void check() = 0;
     virtual void traversal() = 0;
+    virtual Node* optimize() = 0;
     int getType() const {
         return type;
     }
@@ -33,6 +35,9 @@ public:
     }
     void setType(int _type) {
         type = _type;
+    }
+    int getSize() {
+        return size;
     }
 };
 

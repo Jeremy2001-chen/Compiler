@@ -160,6 +160,7 @@ public:
                 return list[i];
             }
         }
+        cout << "error when get top fun" << endl;
         exit(1);
     }
 };

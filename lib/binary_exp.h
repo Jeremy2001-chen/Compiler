@@ -15,42 +15,66 @@
 
 class BinaryExp: public Node{
 protected:
-    Node* ch[2];
+    Node* ch[2] = {nullptr, nullptr};
     string sign;
 public:
     string getSign() const {
         return sign;
     }
     void setLch(Node* Lch) {
+        if (lch)
+            size -= lch->getSize();
         lch = Lch;
+        if (lch)
+            size += lch->getSize();
     }
     void setRch(Node* Rch) {
+        if (rch)
+            size -= rch->getSize();
         rch = Rch;
+        if (rch)
+            size += rch->getSize();
+    }
+    virtual int op(int, int) = 0;
+    Node* optimize() override {
+        if (!lch -> getConstType() || !rch -> getConstType())
+            return this;
+        ConstValue* lchConst = (ConstValue*)lch, *rchConst = (ConstValue*)rch;
+        Number* number = new Number(op(lchConst->getValue(), rchConst->getValue()));
+        return number;
     }
 };
 
 class MulExp: public BinaryExp{
 public:
-    MulExp(string _sign) {
+    explicit MulExp(string _sign) {
         sign = std::move(_sign);
         classType = MulType;
     }
     void check() override {
-        assert(sign == "*");
+        assert(sign == "*" || sign == "/" || sign == "%");
         cout << "MulExp check correct!" << endl;
         /*lch.check();
         rch.check();*/
     }
     void traversal() override {
-        /*cout << "*" << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        switch (sign[0]) {
+            case '*': return l * r;
+            case '/': return l / r;
+            case '%': return l % r;
+            default: exit(-2);
+        }
     }
 };
 
 class AddExp: public BinaryExp{
 public:
-    AddExp(string _sign) {
+    explicit AddExp(string _sign) {
         sign = std::move(_sign);
         classType = AddExpType;
     }
@@ -61,15 +85,22 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        switch (sign[0]) {
+            case '+': return l + r;
+            case '-': return l - r;
+            default: exit(-2);
+        }
     }
 };
 
 class RelExp: public BinaryExp{
 public:
-    RelExp(string _sign) {
+    explicit RelExp(string _sign) {
         sign = std::move(_sign);
         classType = RelExpType;
     }
@@ -80,15 +111,22 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /* cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        if (sign == "<") return (l < r);
+        else if (sign == ">") return (l > r);
+        else if (sign == ">=") return (l >= r);
+        else if (sign == "<=") return (l <= r);
+        exit(-2);
     }
 };
 
 class EqExp: public BinaryExp{
 public:
-    EqExp(string _sign) {
+    explicit EqExp(string _sign) {
         sign = std::move(_sign);
         classType = EqExpType;
     }
@@ -99,15 +137,22 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        switch(sign[0]) {
+            case '=': return l == r;
+            case '!': return l != r;
+            default: exit(-2);
+        }
     }
 };
 
 class LAndExp: public BinaryExp{
 public:
-    LAndExp(string _sign) {
+    explicit LAndExp(string _sign) {
         sign = std::move(_sign);
         classType = LAndExpType;
     }
@@ -118,15 +163,18 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        return (l && r);
     }
 };
 
 class LOrExp: public BinaryExp{
 public:
-    LOrExp(string _sign) {
+    explicit LOrExp(string _sign) {
         sign = std::move(_sign);
         classType = LOrExpType;
     }
@@ -137,9 +185,12 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        return (l || r);
     }
 };
 
@@ -156,9 +207,12 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
+    }
+    int op(int l, int r) override {
+        return 1;
     }
 };
 #endif //COMPILER_BINARY_EXP_H
