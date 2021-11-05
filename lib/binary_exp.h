@@ -15,7 +15,7 @@
 
 class BinaryExp: public Node{
 protected:
-    Node* ch[2];
+    Node* ch[2] = {nullptr, nullptr};
     string sign;
 public:
     string getSign() const {
@@ -41,7 +41,6 @@ public:
             return this;
         ConstValue* lchConst = (ConstValue*)lch, *rchConst = (ConstValue*)rch;
         Number* number = new Number(op(lchConst->getValue(), rchConst->getValue()));
-        free(lch); free(rch);
         return number;
     }
 };
@@ -59,9 +58,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << "*" << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << "*" << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         return l * r;
@@ -81,9 +80,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         switch (sign[0]) {
@@ -107,9 +106,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /* cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         if (sign == "<") return (l < r);
@@ -133,9 +132,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         switch(sign[0]) {
@@ -159,9 +158,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         return (l && r);
@@ -181,9 +180,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         return (l || r);
@@ -203,9 +202,9 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch.traversal();
-        rch.traversal();*/
+        cout << sign << endl;
+        lch->traversal();
+        rch->traversal();
     }
     int op(int l, int r) override {
         return 1;

@@ -13,7 +13,7 @@
 #define lch ch[0]
 class SingleExp: public Node {
 protected:
-    Node* ch[1]{};
+    Node* ch[1] = {nullptr};
     string sign;
 public:
     SingleExp() {
@@ -43,7 +43,6 @@ public:
             return this;
         ConstValue* lchConst = (ConstValue*)lch;
         Number* number = new Number(op(lchConst->getValue()));
-        free(lch);
         return number;
     }
 };
@@ -60,8 +59,8 @@ public:
         //lch->check();
     }
     void traversal() override {
-        /*cout << sign << endl;
-        lch->traversal();*/
+        cout << sign << endl;
+        lch->traversal();
     }
     int op(int l) override {
         switch (sign[0]) {

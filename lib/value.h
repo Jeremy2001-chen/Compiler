@@ -33,7 +33,7 @@ public:
         cout << "ConstValue check correct!" << endl;
     }
     void traversal() override {
-        //cout << value << endl;
+        cout << value << endl;
     }
 };
 
@@ -71,18 +71,20 @@ public:
             offsetTree = new Number(1);
             offset = 1;
         }
-        else
+        else {
             offsetTree = _offsetTree->optimize();
+            if (offsetTree -> getClassType() == NumberType) {
+                offset = ((Number*)offsetTree) -> getValue();
+            }
+        }
         type = _type;
 
-        if (valueTree == nullptr) {
+        if (_valueTree == nullptr) {
             value = 0;
+            valueTree = nullptr;
         } else {
-            valueTree = _valueTree->optimize();
-            if (valueTree->getConstType() && valueTree->getSize() == 1) {
-                value = ((ConstValue*)valueTree) -> getValue();
-                valueTree = nullptr;
-            }
+            value = ((ConstValue*)_valueTree) -> getValue();
+            valueTree = nullptr;
         }
         Const = _const;
         classType = VariableType;
@@ -91,7 +93,7 @@ public:
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
-        //cout << name << "[" << offset << "] = " << value << endl;
+        cout << name << "[" << offset << "] = " << value << endl;
     }
     string getName() {
         return name;
@@ -118,6 +120,13 @@ public:
             offset = ((Number*)offsetTree)->getValue();
         }
         value = _value;
+        if (value == nullptr) {
+            value = new vector<Node*>();
+        }
+        for (int i = 0; i < value->size(); ++ i) {
+            if ((*value)[i]->getConstType())
+                cout << name << " " << i << " " << ((ConstValue*)(*value)[i])->getValue() << endl;
+        }
         Const = _const;
         line = _line;
         type = _type;

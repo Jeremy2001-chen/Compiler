@@ -212,6 +212,8 @@ private:
         Node* exp = checkConstExp();
         if (exp != nullptr) {
             list->push_back(exp);
+            cout << "const var traversal: " << endl;
+            exp->traversal();
             addLine("<ConstInitVal>");
             return list;
         }
@@ -358,6 +360,8 @@ private:
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
             list->push_back(addExp);
+            cout << "var traversal: " << endl;
+            addExp->traversal();
             addLine("<InitVal>");
             return list;
         }
@@ -373,6 +377,8 @@ private:
         if (initValList != nullptr)  {
             for (auto &val: *initValList) {
                 list->push_back(val);
+                cout << "var traversal: " << endl;
+                val->traversal();
             }
             startIndex = wordIndex;
             while (startIndex < totalWord) { //','
@@ -387,6 +393,8 @@ private:
                 }
                 for (auto &val: *initValList) {
                     list->push_back(val);
+                    cout << "var traversal: " << endl;
+                    val->traversal();
                 }
                 startIndex = wordIndex;
             }
@@ -440,7 +448,9 @@ private:
         symbolTable.addLayer();
         for (auto &para: (*param)) {
             //cout << "param: " << para->getName() << endl;
-            symbolTable.insertVarTable(para->getName(), para, para->getConstType(), para->getLine());
+            VariableDecl* variableDecl = new VariableDecl(para->getName(), para->getOffset(), nullptr,
+                                                          para->getType(), para->getConstType(), para->getLine());
+            symbolTable.insertVarTable(para->getName(), variableDecl, para->getConstType(), para->getLine());
         }
         Block* block = checkBlock();
         symbolTable.popLayer();
@@ -990,7 +1000,7 @@ private:
                 setIndex(startIndex);
                 break;
             }
-            addList.push_back(addExp);
+            addList.push_back(addExp->optimize());
             if (!currentWord.checkType("RBRACK")) { //']'
                 //break;
                 output.addError(new NoRightBracketsError(getPrevLine()));
@@ -1002,10 +1012,17 @@ private:
 
         /* calculate the offset */
         Node* offset = nullptr, *setValue = nullptr;
-        if ((int)addList.size() == 0)
+        if ((int)addList.size() == 0) {
             offset = new Number(1);
-        else if((int)addList.size() == 1)
+            setValue = table ? ((VariableDecl*)table->getAstNode())->getPosValue(0) : nullptr;
+        }
+        else if((int)addList.size() == 1) {
             offset = addList[0];
+            if (table && offset->getConstType() && offset->getSize() == 1) {
+                Number* number = (Number*)offset;
+                setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
+            }
+        }
         else {
             Node* defOffset = table ? ((VariableDecl*)table->getAstNode())->getOffsetTree() : new Number(0);
             MulExp* mulExp = new MulExp("*");
@@ -1015,7 +1032,7 @@ private:
             addExp->setLch(mulExp->optimize());
             addExp->setRch(addList[1]);
             offset = addExp->optimize();
-            if (table && constFlag && offset->getConstType() && offset->getSize() == 1) {
+            if (table && offset->getConstType() && offset->getSize() == 1) {
                 Number* number = (Number*)offset;
                 setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
             } else {
@@ -1350,12 +1367,13 @@ private:
 
 public:
     Grammar() = default;
-    Grammar(string article) {
+    explicit Grammar(string article) {
         lexical = Lexical(article);
         totalWord = lexical.totalWordCount();
         currentWord = lexical.getWord(0);
         Node* state = checkCompUnit();
         if (state == nullptr) {
+            cout << "error when decode" << endl;
             exit(1);
         }
         if (wordIndex != totalWord) {

@@ -27,13 +27,21 @@ public:
 class FunFParam: public Node {
 private:
     string name;
-    int offset;
+    int offset; //[][offset]
     Node* offsetTree;
 public:
     FunFParam(string _name, Node* _offsetTree, int _type, int _line) {
         name = std::move(_name);
-        offsetTree = _offsetTree;
-        //offset = ?
+        if (_offsetTree == nullptr) {
+            offset = 1;
+            offsetTree = new Number(1);
+        } else {
+            offsetTree = _offsetTree->optimize();
+            if (offsetTree->getClassType() == NumberType) {
+                offset = ((ConstValue*)offsetTree)->getValue();
+                offsetTree = nullptr;
+            }
+        }
         type = _type;
         classType = FunFParamType;
         line = _line;
@@ -49,6 +57,9 @@ public:
     }
     Node* optimize() override {
         return this;
+    }
+    Node* getOffset() {
+        return offsetTree;
     }
 };
 
