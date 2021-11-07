@@ -10,6 +10,9 @@
 #include <utility>
 #include "../error.h"
 #include "binary_exp.h"
+#include "../ir/ir.h"
+#include "../ir/ir_code.h"
+#include "../ir/ir_table.h"
 
 using namespace std;
 extern Output output;
@@ -33,14 +36,11 @@ public:
     FunFParam(string _name, Node* _offsetTree, int _type, int _line) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
-            offset = 1;
-            offsetTree = new Number(1);
+            offset = 0;
+            offsetTree = new Number(0);
         } else {
             offsetTree = _offsetTree->optimize();
-            if (offsetTree->getClassType() == NumberType) {
-                offset = ((ConstValue*)offsetTree)->getValue();
-                offsetTree = nullptr;
-            }
+            offset = ((ConstValue*)offsetTree)->getValue();
         }
         type = _type;
         classType = FunFParamType;
@@ -50,6 +50,11 @@ public:
         cout << "FunFParam check correct!" << endl;
     }
     void traversal() override {
+        string irName = irTableList_1.addVar(name);
+        if (type == 0)
+            IR_1.add(new IrParaDefine("var", irName));
+        else
+            IR_1.add(new IrParaDefine("arr", irName));
         //cout << "parameter: " << name << " " << offset << endl;
     }
     string getName() const {
@@ -100,6 +105,13 @@ public:
         cout << "FunF check correct!" << endl;
     }
     void traversal() override {
+        IR_1.add(new IrLabelLine(name));
+        IR_1.add(new IrFunDefine(type == -1 ? "void": "int", name));
+        irTableList_1.setBlock(1);
+        for (auto para: *param)
+            para -> traversal();
+        irTableList_1.setBlock(-1);
+        funBlock->traversal();
         /*cout << "Function : " << name << endl;
         for (auto para: param) {
             para.traversal();
@@ -155,6 +167,51 @@ public:
         //fun.checkRParam(param);
     }
     void traversal() override {
+        for (int i = param->size() - 1; i >= 0; -- i) {
+            Node* rp = (*param)[i];
+            if (rp -> getClassType() == FunRType) {
+                rp -> traversal();
+                IR_1.add(new IrPushVariable(irTableList_1.getTopTemIrName()));
+            } else {
+                if (rp -> getClassType() == VariableType && ((Variable*)rp) -> getIsArray()) {
+                    Variable* var = (Variable*)rp;
+                    string irName = irTableList_1.getIrName(var -> getName());
+                    Node* offset = var -> getOffsetTree();
+                    if (offset -> getClassType() == VariableType && offset -> getSize() == 1) {
+                        string irNameOff = irTableList_1.getIrName(((Variable*)offset) -> getName());
+                        if (rp -> getType() > 0)
+                            IR_1.add(new IrPushArray(irName, irNameOff));
+                        else {
+                            string tem = irTableList_1.allocTem();
+                            IR_1.add(new IrArrayGet(tem, irName, irNameOff));
+                            IR_1.add(new IrPushVariable(tem));
+                        }
+                    } else {
+                        offset -> traversal();
+                        string last = irTableList_1.getTopTemIrName();
+                        if (rp -> getType() > 0)
+                            IR_1.add(new IrPushArray(irName, last));
+                        else {
+                            string tem = irTableList_1.allocTem();
+                            IR_1.add(new IrArrayGet(tem, irName, last));
+                            IR_1.add(new IrPushVariable(tem));
+                        }
+                    }
+                } else if (rp -> getClassType() == VariableType) {
+                    Variable* var = (Variable*)rp;
+                    string irName = irTableList_1.getIrName(var -> getName());
+                    IR_1.add(new IrPushVariable(irName));
+                } else {
+                    rp -> traversal();
+                    IR_1.add(new IrPushVariable(irTableList_1.getTopTemIrName()));
+                }
+            }
+        }
+        IR_1.add(new IrCallFunction(name));
+        if (fun -> getType() != -1) {
+            string tem = irTableList_1.allocTem();
+            IR_1.add(new IrReturnValStmt(tem));
+        }
         /*cout << "function: " << name << endl;
         for (auto & para : param)
             para.traversal();*/

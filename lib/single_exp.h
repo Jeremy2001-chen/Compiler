@@ -34,9 +34,6 @@ public:
         cout << "SingleExp check correct!" << endl;
 
     }
-    void traversal() override {
-
-    }
     virtual int op(int) = 0;
     Node* optimize() override {
         if (!lch -> getConstType())
@@ -58,10 +55,19 @@ public:
         cout << "UnaryExp check correct!" << endl;
         //lch->check();
     }
+
     void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
+        string target, source;
+        if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
+            source = irTableList_1.getIrName(((Variable*)lch)->getName());
+        else {
+            lch -> traversal();
+            source = irTableList_1.getTopTemIrName();
+        }
+        target = irTableList_1.allocTem();
+        IR_1.add(new IrUnaryOp(target, sign, source));
     }
+
     int op(int l) override {
         switch (sign[0]) {
             case '+': return l;

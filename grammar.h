@@ -22,6 +22,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
+    Node* root;
     SymbolTable symbolTable;
     int whileCnt = 0;
     int wordIndex = 0, totalWord;
@@ -199,7 +200,7 @@ private:
         }
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
-        variableDecl = new VariableDecl(name, offsetTree,
+        variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, true, currentLine);
 
         addLine("<ConstDef>");
@@ -212,8 +213,6 @@ private:
         Node* exp = checkConstExp();
         if (exp != nullptr) {
             list->push_back(exp);
-            cout << "const var traversal: " << endl;
-            exp->traversal();
             addLine("<ConstInitVal>");
             return list;
         }
@@ -348,7 +347,7 @@ private:
         }
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
-        variableDecl = new VariableDecl(name, offsetTree,
+        variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, false, currentLine);
         addLine("<VarDef>");
         return variableDecl;
@@ -360,8 +359,6 @@ private:
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
             list->push_back(addExp);
-            cout << "var traversal: " << endl;
-            addExp->traversal();
             addLine("<InitVal>");
             return list;
         }
@@ -375,11 +372,8 @@ private:
         move();
         vector<Node*>* initValList = checkInitVal();
         if (initValList != nullptr)  {
-            for (auto &val: *initValList) {
+            for (auto &val: *initValList)
                 list->push_back(val);
-                cout << "var traversal: " << endl;
-                val->traversal();
-            }
             startIndex = wordIndex;
             while (startIndex < totalWord) { //','
                 if (!currentWord.checkType("COMMA")) { //','
@@ -391,11 +385,8 @@ private:
                     setIndex(startIndex);
                     break;
                 }
-                for (auto &val: *initValList) {
+                for (auto &val: *initValList)
                     list->push_back(val);
-                    cout << "var traversal: " << endl;
-                    val->traversal();
-                }
                 startIndex = wordIndex;
             }
         }
@@ -448,7 +439,7 @@ private:
         symbolTable.addLayer();
         for (auto &para: (*param)) {
             //cout << "param: " << para->getName() << endl;
-            VariableDecl* variableDecl = new VariableDecl(para->getName(), para->getOffset(), nullptr,
+            VariableDecl* variableDecl = new VariableDecl(para->getName(), nullptr, para->getOffset(), nullptr,
                                                           para->getType(), para->getConstType(), para->getLine());
             symbolTable.insertVarTable(para->getName(), variableDecl, para->getConstType(), para->getLine());
         }
@@ -1013,7 +1004,7 @@ private:
         /* calculate the offset */
         Node* offset = nullptr, *setValue = nullptr;
         if ((int)addList.size() == 0) {
-            offset = new Number(1);
+            offset = new Number(0);
             setValue = table ? ((VariableDecl*)table->getAstNode())->getPosValue(0) : nullptr;
         }
         else if((int)addList.size() == 1) {
@@ -1033,6 +1024,7 @@ private:
             addExp->setRch(addList[1]);
             offset = addExp->optimize();
             if (table && offset->getConstType() && offset->getSize() == 1) {
+                cout << "R: " << name << " " << ((Number*)defOffset) -> getValue() << " " << ((VariableDecl*)table->getAstNode())->getOffsetTree() << endl;
                 Number* number = (Number*)offset;
                 setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
             } else {
@@ -1040,7 +1032,8 @@ private:
             }
         }
 
-        Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag);
+        cout << name << " " << offset << endl;
+        Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag, beginType > 0);
         addLine("<LVal>");
         return variable;
     }
@@ -1141,8 +1134,9 @@ private:
                 return nullptr;
             unaryExp = new UnaryExp(op);
             unaryExp->setLch(Lch);
+            Node* root = unaryExp->optimize();
             addLine("<UnaryExp>");
-            return unaryExp;
+            return root;
         }
         return nullptr;
     }
@@ -1371,8 +1365,8 @@ public:
         lexical = Lexical(article);
         totalWord = lexical.totalWordCount();
         currentWord = lexical.getWord(0);
-        Node* state = checkCompUnit();
-        if (state == nullptr) {
+        root = checkCompUnit();
+        if (root == nullptr) {
             cout << "error when decode" << endl;
             exit(1);
         }
@@ -1381,6 +1375,10 @@ public:
             cout << "Current word: " << currentWord.getValue() << endl;
             exit(1);
         }
+    }
+
+    Node* getRoot() {
+        return root;
     }
 };
 

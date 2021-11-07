@@ -8,7 +8,13 @@
 #include "node.h"
 #include "value.h"
 #include "function.h"
+#include "../ir/ir.h"
+#include "../ir/ir_code.h"
+#include "../ir/ir_table.h"
 
+extern IR IR_1;
+extern IR IR_1;
+extern IrTableList irTableList_1;
 class CompUnit: public Node {
 private:
     vector<VariableDecl*> declList;
@@ -31,7 +37,15 @@ public:
 
     }
     void traversal() override {
-
+        for (auto var: declList) {
+            var->traversal();
+        }
+        IR_1.add(new IrCallFunction("main"));
+        IR_1.add(new IrExit());
+        for (auto fun: funList) {
+            fun->traversal();
+        }
+        mainFun->traversal();
     }
     Node* optimize() override {
         return this;
