@@ -6,9 +6,14 @@
 #define COMPILER_VALUE_H
 
 #include <utility>
+#include "../ir/ir.h"
+#include "../ir/ir_code.h"
+#include "../ir/ir_table.h"
 
 #include "node.h"
 
+extern IR IR_1;
+extern IrTableList irTableList_1;
 class ConstValue: public Node{
 protected:
     int value;
@@ -29,11 +34,14 @@ public:
         Const = true;
         classType = NumberType;
     }
+
     void check() override {
         cout << "ConstValue check correct!" << endl;
     }
+
     void traversal() override {
-        cout << value << endl;
+        string var = irTableList_1.allocTem();
+        IR_1.add(new IrNumberAssign(var, to_string(value)));
     }
 };
 
@@ -69,8 +77,8 @@ public:
     Variable(string _name, Node* _offsetTree, int _type, Node* _valueTree, bool _const) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
-            offsetTree = new Number(1);
-            offset = 1;
+            offsetTree = new Number(0);
+            offset = 0;
         }
         else {
             offsetTree = _offsetTree->optimize();
@@ -94,10 +102,23 @@ public:
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
-        cout << name << "[" << offset << "] = " << value << endl;
+        string var = irTableList_1.allocTem();
+        string irName = irTableList_1.getIrName(var);
+        if (type == 0)
+            IR_1.add(new IrBinaryOp(var, irName, "+", "%0"));
+        else {
+            offsetTree -> traversal();
+            string last = irTableList_1.getTopTemIrName();
+            IR_1.add(new IrArrayGet(var, irName, last));
+        }
     }
+
     string getName() {
         return name;
+    }
+
+    Node* getOffsetTree() {
+        return offsetTree;
     }
 };
 
@@ -107,11 +128,12 @@ private:
     int offset;
     Node* offsetTree;
     vector<Node*>* value;
+    int size;
 public:
     Node* optimize() override {
         return this;
     }
-    VariableDecl(string _name, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
+    VariableDecl(string _name, vector<Node*>* set, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
             offsetTree = new Number(1);
@@ -124,10 +146,19 @@ public:
         if (value == nullptr) {
             value = new vector<Node*>();
         }
+        if (set == nullptr)
+            size = -1;
+        else {
+            size = 1;
+            for (auto s: (*set)) {
+                size *= ((ConstValue*)s) -> getValue();
+            }
+        }
+        /*
         for (int i = 0; i < value->size(); ++ i) {
             if ((*value)[i]->getConstType())
                 cout << name << " " << i << " " << ((ConstValue*)(*value)[i])->getValue() << endl;
-        }
+        }*/
         Const = _const;
         line = _line;
         type = _type;
@@ -137,6 +168,20 @@ public:
         cout << "Variable Declaration check correct!" << endl;
     }
     void traversal() override {
+        if (size > 0) {
+            string irName = irTableList_1.addVar(name);
+            if (type == 0) {
+                if ((*value).empty())
+                    IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
+                else {
+                    (*value)[0] -> traversal();
+                    string tem = to_string(irTableList_1.getTemNumber());
+                    IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));
+                }
+            } else {
+                IR_1.add(new IrArrayDefine(Const, irName, to_string(size)));
+            }
+        }
         /*cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
         for (auto &node: value) {
             node.traversal();
@@ -189,7 +234,9 @@ public:
         //cout << "please read a integer!" << endl;
     }
     void traversal() override {
-
+        for (auto dec: (*decl)) {
+            dec->traversal();
+        }
     }
     vector<VariableDecl*>* getDecl() {
         return decl;

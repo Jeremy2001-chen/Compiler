@@ -12,10 +12,16 @@
 #include "../error.h"
 #include "../output.h"
 #include "../type.h"
+#include "../ir/ir.h"
+#include "../ir/ir_code.h"
+#include "../ir/ir_table.h"
 
 using namespace std;
 
 extern Output output;
+
+extern IR IR_1;
+extern IrTableList irTableList_1;
 
 class Block: public Node {
 private:
@@ -41,9 +47,11 @@ public:
         cout << "Block check correct!" << endl;*/
     }
     void traversal() override {
-        /*for (auto &blockIt: blockItem) {
-            blockIt.traversal();
-        }*/
+        irTableList_1.intoBlock();
+        for (auto &blockIt: blockItem) {
+            blockIt->traversal();
+        }
+        irTableList_1.popBlock();
     }
     Node* optimize() override {
         return this;
@@ -69,7 +77,17 @@ public:
 
     }
     void traversal() override {
-
+        cond[0]->traversal();
+        string con = irTableList_1.getTopTemIrName();;
+        string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
+        IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", br2));
+        tran[0]->traversal();
+        IR_1.add(new IrGotoStmt(br2));
+        IR_1.add(new IrLabelLine(br1));
+        if ((int)tran.size() > 1)
+            tran[1]->traversal();
+        IR_1.add(new IrLabelLine(br2));
     }
     Node* optimize() override {
         return this;
@@ -90,7 +108,15 @@ public:
 
     }
     void traversal() override {
-
+        string loop = irTableList_1.allocLoop(), loop_begin = loop + "_begin", loop_end = loop + "_end";
+        IR_1.add(new IrLabelLine(loop_begin));
+        cond -> traversal();
+        string con = irTableList_1.getTopTemIrName();;
+        IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", loop_end));
+        block -> traversal();
+        IR_1.add(new IrLabelLine(loop_end));
+        irTableList_1.popLoop();
     }
     Node* optimize() override {
         return this;
@@ -106,7 +132,8 @@ public:
 
     }
     void traversal() override {
-
+        string loop = irTableList_1.getTopLoop();
+        IR_1.add(new IrGotoStmt(loop + "_end"));
     }
     Node* optimize() override {
         return this;
@@ -122,7 +149,8 @@ public:
 
     }
     void traversal() override {
-
+        string loop = irTableList_1.getTopLoop();
+        IR_1.add(new IrGotoStmt(loop + "_begin"));
     }
     Node* optimize() override {
         return this;
@@ -147,7 +175,12 @@ public:
 
     }
     void traversal() override {
-
+        if (returnExp == nullptr) {
+            IR_1.add(new IrReturnStmt());
+        } else {
+            returnExp->traversal();
+            IR_1.add(new IrReturnStmt(irTableList_1.getTopTemIrName()));
+        }
     }
     Node* optimize() override {
         return this;
@@ -191,12 +224,21 @@ public:
 
     }
     void traversal() override {
-
+        for (int i = 0; i < (int)form.size(); ++ i) {
+            if (form[i] != "") {
+                IR_1.add(new IrPrintString(form[i]));
+            }
+            if (i < (int)(*exp).size()) {
+                (*exp)[i]->traversal();
+                IR_1.add(new IrPrintInteger(to_string(irTableList_1.getTemNumber())));
+            }
+        }
     }
     Node* optimize() override {
         return this;
     }
 };
+
 class NullStmt: public Node {
 public:
     NullStmt() {

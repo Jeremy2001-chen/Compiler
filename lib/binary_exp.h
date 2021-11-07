@@ -13,6 +13,8 @@
 #include <utility>
 #include "../type.h"
 
+extern IR IR_1;
+extern IrTableList irTableList_1;
 class BinaryExp: public Node{
 protected:
     Node* ch[2] = {nullptr, nullptr};
@@ -43,6 +45,23 @@ public:
         Number* number = new Number(op(lchConst->getValue(), rchConst->getValue()));
         return number;
     }
+    void traversal() override {
+        string target, left, right;
+        if (lch->getClassType() == VariableType && lch->getSize() == 1)
+            left = irTableList_1.getIrName(((Variable*)lch)->getName());
+        else {
+            lch -> traversal();
+            left = irTableList_1.getTopTemIrName();
+        }
+        if (rch->getClassType() == VariableType && rch->getSize() == 1)
+            right =irTableList_1.getIrName(((Variable*)rch)->getName());
+        else {
+            rch -> traversal();
+            right = irTableList_1.getTopTemIrName();
+        }
+        target = irTableList_1.allocTem();
+        IR_1.add(new IrBinaryOp(target, left, sign, right));
+    }
 };
 
 class MulExp: public BinaryExp{
@@ -56,11 +75,6 @@ public:
         cout << "MulExp check correct!" << endl;
         /*lch.check();
         rch.check();*/
-    }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
     }
     int op(int l, int r) override {
         switch (sign[0]) {
@@ -84,11 +98,6 @@ public:
         /*lch.check();
         rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
-    }
     int op(int l, int r) override {
         switch (sign[0]) {
             case '+': return l + r;
@@ -109,11 +118,6 @@ public:
         cout << "RelExp check correct!" << endl;
         /*lch.check();
         rch.check();*/
-    }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
     }
     int op(int l, int r) override {
         if (sign == "<") return (l < r);
@@ -136,11 +140,6 @@ public:
         lch.check();
         rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
-    }
     int op(int l, int r) override {
         switch(sign[0]) {
             case '=': return l == r;
@@ -162,11 +161,6 @@ public:
         /*lch.check();
         rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
-    }
     int op(int l, int r) override {
         return (l && r);
     }
@@ -184,17 +178,15 @@ public:
         /*lch.check();
         rch.check();*/
     }
-    void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
-    }
     int op(int l, int r) override {
         return (l || r);
     }
 };
 
-class AssignExp: public BinaryExp{
+class AssignExp: public Node{
+private:
+    Node* ch[2] = {nullptr, nullptr};
+    string sign;
 public:
     AssignExp() {
         sign = ":=";
@@ -207,12 +199,49 @@ public:
         rch.check();*/
     }
     void traversal() override {
-        cout << sign << endl;
-        lch->traversal();
-        rch->traversal();
+        string target, offset, left, right("%0");
+        if (lch->getClassType() == VariableType && lch->getSize() == 1) {
+            target = irTableList_1.getIrName(((Variable*)lch)->getName());
+            if (lch->getType() != 0) {
+                ((Variable*)lch)->getOffsetTree()->traversal();
+                offset = irTableList_1.getTopTemIrName();
+            }
+        }
+        else {
+            cout << "assign error!" << endl;
+            exit(10);
+        }
+        if (rch -> getClassType() == ReadValueType) {
+            IR_1.add(new IrReadInteger(target));
+        } else {
+            if (rch->getClassType() == VariableType && rch->getSize() == 1 && rch->getType() == 0)
+                left = irTableList_1.getIrName(((Variable*)rch)->getName());
+            else {
+                rch -> traversal();
+                left = irTableList_1.getTopTemIrName();
+            }
+            if (offset.empty())
+                IR_1.add(new IrBinaryOp(target, left, "+", right));
+            else
+                IR_1.add(new IrArrayAssign(target, offset, left));
+        }
     }
-    int op(int l, int r) override {
-        return 1;
+    void setLch(Node* Lch) {
+        if (lch)
+            size -= lch->getSize();
+        lch = Lch;
+        if (lch)
+            size += lch->getSize();
+    }
+    void setRch(Node* Rch) {
+        if (rch)
+            size -= rch->getSize();
+        rch = Rch;
+        if (rch)
+            size += rch->getSize();
+    }
+    Node* optimize() override {
+        return this;
     }
 };
 #endif //COMPILER_BINARY_EXP_H

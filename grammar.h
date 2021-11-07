@@ -22,6 +22,7 @@ class Grammar{
 private:
     Lexical lexical;
     Word currentWord;
+    Node* root;
     SymbolTable symbolTable;
     int whileCnt = 0;
     int wordIndex = 0, totalWord;
@@ -199,7 +200,7 @@ private:
         }
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
-        variableDecl = new VariableDecl(name, offsetTree,
+        variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, true, currentLine);
 
         addLine("<ConstDef>");
@@ -348,7 +349,7 @@ private:
         }
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
-        variableDecl = new VariableDecl(name, offsetTree,
+        variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, false, currentLine);
         addLine("<VarDef>");
         return variableDecl;
@@ -448,7 +449,7 @@ private:
         symbolTable.addLayer();
         for (auto &para: (*param)) {
             //cout << "param: " << para->getName() << endl;
-            VariableDecl* variableDecl = new VariableDecl(para->getName(), para->getOffset(), nullptr,
+            VariableDecl* variableDecl = new VariableDecl(para->getName(), nullptr, para->getOffset(), nullptr,
                                                           para->getType(), para->getConstType(), para->getLine());
             symbolTable.insertVarTable(para->getName(), variableDecl, para->getConstType(), para->getLine());
         }
@@ -1372,8 +1373,8 @@ public:
         lexical = Lexical(article);
         totalWord = lexical.totalWordCount();
         currentWord = lexical.getWord(0);
-        Node* state = checkCompUnit();
-        if (state == nullptr) {
+        root = checkCompUnit();
+        if (root == nullptr) {
             cout << "error when decode" << endl;
             exit(1);
         }
@@ -1382,6 +1383,10 @@ public:
             cout << "Current word: " << currentWord.getValue() << endl;
             exit(1);
         }
+    }
+
+    Node* getRoot() {
+        return root;
     }
 };
 
