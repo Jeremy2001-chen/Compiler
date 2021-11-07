@@ -13,7 +13,7 @@
 #include "node.h"
 
 extern IR IR_1;
-extern IrTableList irTableList_1;
+
 class ConstValue: public Node{
 protected:
     int value;
@@ -61,6 +61,7 @@ private:
     int offset;
     Node* offsetTree;
     Node* valueTree = nullptr;
+    bool isArray;
 public:
     Variable(string _name, Node* _offsetTree, int _type, bool _const) {
         name = std::move(_name);
@@ -74,7 +75,7 @@ public:
         Const = _const;
         classType = VariableType;
     }
-    Variable(string _name, Node* _offsetTree, int _type, Node* _valueTree, bool _const) {
+    Variable(string _name, Node* _offsetTree, int _type, Node* _valueTree, bool _const, bool _isArray) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
             offsetTree = new Number(0);
@@ -97,18 +98,19 @@ public:
         }
         Const = _const;
         classType = VariableType;
+        isArray = _isArray;
     }
     void check() override {
         cout << "Variable check correct!" << endl;
     }
     void traversal() override {
-        string var = irTableList_1.allocTem();
-        string irName = irTableList_1.getIrName(var);
-        if (type == 0)
+        string irName = irTableList_1.getIrName(name);
+        if (!isArray) {
+            string var = irTableList_1.allocTem();
             IR_1.add(new IrBinaryOp(var, irName, "+", "%0"));
-        else {
+        } else {
             offsetTree -> traversal();
-            string last = irTableList_1.getTopTemIrName();
+            string last = irTableList_1.getTopTemIrName(), var = irTableList_1.allocTem();
             IR_1.add(new IrArrayGet(var, irName, last));
         }
     }
@@ -119,6 +121,10 @@ public:
 
     Node* getOffsetTree() {
         return offsetTree;
+    }
+
+    bool getIsArray() {
+        return isArray;
     }
 };
 
@@ -136,8 +142,8 @@ public:
     VariableDecl(string _name, vector<Node*>* set, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
-            offsetTree = new Number(1);
-            offset = 1;
+            offsetTree = new Number(0);
+            offset = 0;
         } else {
             offsetTree = getOffset(_offsetTree);
             offset = ((Number*)offsetTree)->getValue();
@@ -175,13 +181,20 @@ public:
                     IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
                 else {
                     (*value)[0] -> traversal();
-                    string tem = to_string(irTableList_1.getTemNumber());
+                    string tem = irTableList_1.getTopTemIrName();
                     IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));
                 }
             } else {
                 IR_1.add(new IrArrayDefine(Const, irName, to_string(size)));
+                if (!value->empty()) {
+                    for (int i = 0; i < (*value).size(); ++ i) {
+                        (*value)[i] -> traversal();
+                        IR_1.add(new IrArrayAssign(irTableList_1.getIrName(name), to_string(i), irTableList_1.getTopTemIrName()));
+                    }
+                }
             }
         }
+
         /*cout << name << "[0]~" << name << "[" << offset - 1 << "] has declare!" << endl;
         for (auto &node: value) {
             node.traversal();

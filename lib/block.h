@@ -48,9 +48,8 @@ public:
     }
     void traversal() override {
         irTableList_1.intoBlock();
-        for (auto &blockIt: blockItem) {
+        for (auto &blockIt: blockItem)
             blockIt->traversal();
-        }
         irTableList_1.popBlock();
     }
     Node* optimize() override {
@@ -81,7 +80,7 @@ public:
         string con = irTableList_1.getTopTemIrName();;
         string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
         IR_1.add(new IrCmpStmt(con, "%0"));
-        IR_1.add(new IrBranchStmt("beq", br2));
+        IR_1.add(new IrBranchStmt("beq", br1));
         tran[0]->traversal();
         IR_1.add(new IrGotoStmt(br2));
         IR_1.add(new IrLabelLine(br1));
@@ -115,6 +114,7 @@ public:
         IR_1.add(new IrCmpStmt(con, "%0"));
         IR_1.add(new IrBranchStmt("beq", loop_end));
         block -> traversal();
+        IR_1.add(new IrGotoStmt(loop_begin));
         IR_1.add(new IrLabelLine(loop_end));
         irTableList_1.popLoop();
     }
@@ -166,7 +166,7 @@ public:
         type = -1;
         classType = ReturnStmtType;
     }
-    ReturnStmt(Node* exp) {
+    explicit ReturnStmt(Node* exp) {
         returnExp = exp;
         type = exp->getType();
         classType = ReturnStmtType;
@@ -213,6 +213,7 @@ public:
             if (i < len - 2 && format[i] == '%' && format[i+1] == 'd') {
                 form.push_back(tmp);
                 tmp = "";
+                i ++;
             } else {
                 tmp += format[i];
             }
@@ -225,12 +226,12 @@ public:
     }
     void traversal() override {
         for (int i = 0; i < (int)form.size(); ++ i) {
-            if (form[i] != "") {
+            if (!form[i].empty()) {
                 IR_1.add(new IrPrintString(form[i]));
             }
             if (i < (int)(*exp).size()) {
                 (*exp)[i]->traversal();
-                IR_1.add(new IrPrintInteger(to_string(irTableList_1.getTemNumber())));
+                IR_1.add(new IrPrintInteger(irTableList_1.getTopTemIrName()));
             }
         }
     }

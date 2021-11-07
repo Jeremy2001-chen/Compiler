@@ -79,7 +79,7 @@ public:
             nameCount[_name] = 1;
             irName = (layer == 0 ? "@" : "%") + _name;
         } else {
-            irName = (layer == 0 ? "@" : "%") + _name + " " + to_string(nameCount[_name]);
+            irName = (layer == 0 ? "@" : "%") + _name + "_" + to_string(nameCount[_name]);
             nameCount[_name] ++;
         }
         bool isGlobal = (layer == 0);

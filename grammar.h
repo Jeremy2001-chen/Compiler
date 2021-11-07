@@ -213,8 +213,6 @@ private:
         Node* exp = checkConstExp();
         if (exp != nullptr) {
             list->push_back(exp);
-            cout << "const var traversal: " << endl;
-            exp->traversal();
             addLine("<ConstInitVal>");
             return list;
         }
@@ -361,8 +359,6 @@ private:
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
             list->push_back(addExp);
-            cout << "var traversal: " << endl;
-            addExp->traversal();
             addLine("<InitVal>");
             return list;
         }
@@ -376,11 +372,8 @@ private:
         move();
         vector<Node*>* initValList = checkInitVal();
         if (initValList != nullptr)  {
-            for (auto &val: *initValList) {
+            for (auto &val: *initValList)
                 list->push_back(val);
-                cout << "var traversal: " << endl;
-                val->traversal();
-            }
             startIndex = wordIndex;
             while (startIndex < totalWord) { //','
                 if (!currentWord.checkType("COMMA")) { //','
@@ -392,11 +385,8 @@ private:
                     setIndex(startIndex);
                     break;
                 }
-                for (auto &val: *initValList) {
+                for (auto &val: *initValList)
                     list->push_back(val);
-                    cout << "var traversal: " << endl;
-                    val->traversal();
-                }
                 startIndex = wordIndex;
             }
         }
@@ -1014,7 +1004,7 @@ private:
         /* calculate the offset */
         Node* offset = nullptr, *setValue = nullptr;
         if ((int)addList.size() == 0) {
-            offset = new Number(1);
+            offset = new Number(0);
             setValue = table ? ((VariableDecl*)table->getAstNode())->getPosValue(0) : nullptr;
         }
         else if((int)addList.size() == 1) {
@@ -1034,6 +1024,7 @@ private:
             addExp->setRch(addList[1]);
             offset = addExp->optimize();
             if (table && offset->getConstType() && offset->getSize() == 1) {
+                cout << "R: " << name << " " << ((Number*)defOffset) -> getValue() << " " << ((VariableDecl*)table->getAstNode())->getOffsetTree() << endl;
                 Number* number = (Number*)offset;
                 setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
             } else {
@@ -1041,7 +1032,8 @@ private:
             }
         }
 
-        Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag);
+        cout << name << " " << offset << endl;
+        Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag, beginType > 0);
         addLine("<LVal>");
         return variable;
     }

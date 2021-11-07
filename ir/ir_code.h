@@ -48,7 +48,7 @@ public:
     }
 
     string toString() override {
-        return target + " = " + source[0] + " " + sign + " " + source[1];
+        return target + " = " + sign + " " + source;
     }
 
     void toMips() override {
@@ -395,7 +395,7 @@ public:
     }
 
     string toString() override {
-        return "printInt \"" + str + "\"";
+        return "printStr \"" + str + "\"";
     }
 
     void toMips() override {

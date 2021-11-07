@@ -47,13 +47,13 @@ public:
     }
     void traversal() override {
         string target, left, right;
-        if (lch->getClassType() == VariableType && lch->getSize() == 1)
+        if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
             left = irTableList_1.getIrName(((Variable*)lch)->getName());
         else {
             lch -> traversal();
             left = irTableList_1.getTopTemIrName();
         }
-        if (rch->getClassType() == VariableType && rch->getSize() == 1)
+        if (rch->getClassType() == VariableType && rch->getSize() == 1 && ((Variable*)rch) -> getIsArray() == 0)
             right =irTableList_1.getIrName(((Variable*)rch)->getName());
         else {
             rch -> traversal();
@@ -202,7 +202,7 @@ public:
         string target, offset, left, right("%0");
         if (lch->getClassType() == VariableType && lch->getSize() == 1) {
             target = irTableList_1.getIrName(((Variable*)lch)->getName());
-            if (lch->getType() != 0) {
+            if (((Variable*)lch)->getIsArray() != 0) {
                 ((Variable*)lch)->getOffsetTree()->traversal();
                 offset = irTableList_1.getTopTemIrName();
             }
@@ -211,19 +211,30 @@ public:
             cout << "assign error!" << endl;
             exit(10);
         }
+        string tem = (offset.empty() ? target : irTableList_1.allocTem());
         if (rch -> getClassType() == ReadValueType) {
-            IR_1.add(new IrReadInteger(target));
-        } else {
-            if (rch->getClassType() == VariableType && rch->getSize() == 1 && rch->getType() == 0)
-                left = irTableList_1.getIrName(((Variable*)rch)->getName());
-            else {
-                rch -> traversal();
-                left = irTableList_1.getTopTemIrName();
+            IR_1.add(new IrReadInteger(tem));
+        } else if (rch -> getClassType() == NumberType) {
+            IR_1.add(new IrNumberAssign(tem, to_string(((ConstValue*)rch) -> getValue())));
+        } else if (rch -> getClassType() == VariableType) {
+            Variable* rt = (Variable*) rch;
+            string rtName = irTableList_1.getIrName(rt -> getName());
+            if (rt -> getIsArray()) {
+                Node* offset = rt -> getOffsetTree();
+                offset -> traversal();
+                string off = irTableList_1.getTopTemIrName();
+                IR_1.add(new IrArrayGet(tem, rtName, off));
+            } else {
+                IR_1.add(new IrBinaryOp(tem, rtName, "+", "%0"));
             }
-            if (offset.empty())
-                IR_1.add(new IrBinaryOp(target, left, "+", right));
-            else
-                IR_1.add(new IrArrayAssign(target, offset, left));
+        } else {
+            rch -> traversal();
+            IR_1.add(new IrBinaryOp(tem, irTableList_1.getTopTemIrName(), "+", "%0"));
+        }
+
+
+        if (!offset.empty()) {
+            IR_1.add(new IrArrayAssign(target, offset, tem));
         }
     }
     void setLch(Node* Lch) {

@@ -58,7 +58,7 @@ public:
 
     void traversal() override {
         string target, source;
-        if (lch->getClassType() == VariableType && lch->getSize() == 1)
+        if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
             source = irTableList_1.getIrName(((Variable*)lch)->getName());
         else {
             lch -> traversal();

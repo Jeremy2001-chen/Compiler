@@ -36,14 +36,11 @@ public:
     FunFParam(string _name, Node* _offsetTree, int _type, int _line) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
-            offset = 1;
-            offsetTree = new Number(1);
+            offset = 0;
+            offsetTree = new Number(0);
         } else {
             offsetTree = _offsetTree->optimize();
-            if (offsetTree->getClassType() == NumberType) {
-                offset = ((ConstValue*)offsetTree)->getValue();
-                offsetTree = nullptr;
-            }
+            offset = ((ConstValue*)offsetTree)->getValue();
         }
         type = _type;
         classType = FunFParamType;
@@ -176,25 +173,37 @@ public:
                 rp -> traversal();
                 IR_1.add(new IrPushVariable(irTableList_1.getTopTemIrName()));
             } else {
-                if (rp -> getClassType() == VariableType && rp -> getType() > 0) {
+                if (rp -> getClassType() == VariableType && ((Variable*)rp) -> getIsArray()) {
                     Variable* var = (Variable*)rp;
                     string irName = irTableList_1.getIrName(var -> getName());
                     Node* offset = var -> getOffsetTree();
                     if (offset -> getClassType() == VariableType && offset -> getSize() == 1) {
                         string irNameOff = irTableList_1.getIrName(((Variable*)offset) -> getName());
-                        IR_1.add(new IrPushArray(irName, irNameOff));
+                        if (rp -> getType() > 0)
+                            IR_1.add(new IrPushArray(irName, irNameOff));
+                        else {
+                            string tem = irTableList_1.allocTem();
+                            IR_1.add(new IrArrayGet(tem, irName, irNameOff));
+                            IR_1.add(new IrPushVariable(tem));
+                        }
                     } else {
                         offset -> traversal();
-                        IR_1.add(new IrPushArray(irName, irTableList_1.getTopTemIrName()));
+                        string last = irTableList_1.getTopTemIrName();
+                        if (rp -> getType() > 0)
+                            IR_1.add(new IrPushArray(irName, last));
+                        else {
+                            string tem = irTableList_1.allocTem();
+                            IR_1.add(new IrArrayGet(tem, irName, last));
+                            IR_1.add(new IrPushVariable(tem));
+                        }
                     }
-                } else if (rp -> getClassType() == VariableType && rp -> getType() == 0) {
+                } else if (rp -> getClassType() == VariableType) {
                     Variable* var = (Variable*)rp;
                     string irName = irTableList_1.getIrName(var -> getName());
                     IR_1.add(new IrPushVariable(irName));
                 } else {
                     rp -> traversal();
-                    string tem = irTableList_1.allocTem();
-                    IR_1.add(new IrPushVariable(tem));
+                    IR_1.add(new IrPushVariable(irTableList_1.getTopTemIrName()));
                 }
             }
         }

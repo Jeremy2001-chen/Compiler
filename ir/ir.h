@@ -23,6 +23,7 @@ public:
     }
 
     void add(IrCode* irCode) {
+        cout << "New line~~~~~~~: " << irCode->toString() << endl;
         irList.push_back(irCode);
     }
 };
