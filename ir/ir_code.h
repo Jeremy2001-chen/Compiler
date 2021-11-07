@@ -6,6 +6,7 @@
 #define COMPILER_IR_CODE_H
 
 #include <cstring>
+#include <utility>
 using namespace std;
 
 class IrCode {
@@ -20,10 +21,10 @@ private:
     string sign;
 public:
     IrBinaryOp(string _t, string _sc0, string _sign, string _sc1) {
-        target = _t;
-        source[0] = _sc0;
-        source[1] = _sc1;
-        sign = _sign;
+        target = std::move(_t);
+        source[0] = std::move(_sc0);
+        source[1] = std::move(_sc1);
+        sign = std::move(_sign);
     }
 
     string toString() override {
@@ -59,7 +60,7 @@ class IrLabelLine: public IrCode {
 private:
     string label;
 public:
-    IrLabelLine(string _label) {
+    explicit IrLabelLine(string _label) {
         label = std::move(_label);
     }
 
@@ -77,8 +78,8 @@ private:
     string type, name;
 public:
     IrFunDefine(string _type, string _name) {
-        type = _type;
-        name = _name;
+        type = std::move(_type);
+        name = std::move(_name);
     }
 
     string toString() override {
@@ -95,8 +96,8 @@ private:
     string type, name;
 public:
     IrParaDefine(string _type, string _name) {
-        type = _type;
-        name = _name;
+        type = std::move(_type);
+        name = std::move(_name);
     }
 
     string toString() override {
@@ -112,8 +113,8 @@ class IrPushVariable: public IrCode {
 private:
     string name;
 public:
-    IrPushVariable(string _name) {
-        name = _name;
+    explicit IrPushVariable(string _name) {
+        name = std::move(_name);
     }
 
     string toString() override {
@@ -130,8 +131,8 @@ private:
     string name, offset;
 public:
     IrPushArray(string _name, string _offset) {
-        name = _name;
-        offset = _offset;
+        name = std::move(_name);
+        offset = std::move(_offset);
     }
 
     string toString() override {
@@ -147,8 +148,8 @@ class IrCallFunction: public IrCode {
 private:
     string name;
 public:
-    IrCallFunction(string _name) {
-        name = _name;
+    explicit IrCallFunction(string _name) {
+        name = std::move(_name);
     }
 
     string toString() override {
@@ -168,8 +169,8 @@ public:
         source = "";
     }
 
-    IrReturnStmt(string _sc) {
-        source = _sc;
+    explicit IrReturnStmt(string _sc) {
+        source = std::move(_sc);
     }
 
     string toString() override {
@@ -185,8 +186,8 @@ class IrReturnValStmt: public IrCode {
 private:
     string target;
 public:
-    IrReturnValStmt(string _tar) {
-        target = _tar;
+    explicit IrReturnValStmt(string _tar) {
+        target = std::move(_tar);
     }
 
     string toString() override {
@@ -205,8 +206,8 @@ private:
 public:
     IrVarDefineWithAssign(bool _is, string _na, string _va) {
         isConst = _is;
-        name = _na;
-        value = _va;
+        name = std::move(_na);
+        value = std::move(_va);
     }
 
     string toString() override {
@@ -226,7 +227,7 @@ private:
 public:
     IrVarDefineWithOutAssign(bool _is, string _na) {
         isConst = _is;
-        name = _na;
+        name = std::move(_na);
     }
 
     string toString() override {
@@ -244,8 +245,8 @@ private:
     string source[2];
 public:
     IrCmpStmt(string sc0, string sc1) {
-        source[0] = sc0;
-        source[1] = sc1;
+        source[0] = std::move(sc0);
+        source[1] = std::move(sc1);
     }
 
     string toString() override {
@@ -279,8 +280,8 @@ class IrGotoStmt: public IrCode {
 private:
     string label;
 public:
-    IrGotoStmt(string _label) {
-        label = _label;
+    explicit IrGotoStmt(string _label) {
+        label = std::move(_label);
     }
 
     string toString() override {
@@ -318,9 +319,9 @@ private:
     string target, offset, source;
 public:
     IrArrayAssign(string _ta, string _off, string _sc) {
-        target = _ta;
-        offset = _off;
-        source = _sc;
+        target = std::move(_ta);
+        offset = std::move(_off);
+        source = std::move(_sc);
     }
 
     string toString() override {
@@ -355,8 +356,8 @@ class IrReadInteger: public IrCode {
 private:
     string target;
 public:
-    IrReadInteger(string _ta) {
-        target = _ta;
+    explicit IrReadInteger(string _ta) {
+        target = std::move(_ta);
     }
 
     string toString() override {
@@ -372,8 +373,8 @@ class IrPrintInteger: public IrCode {
 private:
     string source;
 public:
-    IrPrintInteger(string _sc) {
-        source = _sc;
+    explicit IrPrintInteger(string _sc) {
+        source = std::move(_sc);
     }
 
     string toString() override {
@@ -389,8 +390,8 @@ class IrPrintString: public IrCode {
 private:
     string str;
 public:
-    IrPrintString(string _str) {
-        str = _str;
+    explicit IrPrintString(string _str) {
+        str = std::move(_str);
     }
 
     string toString() override {
@@ -407,12 +408,25 @@ private:
     string target, number;
 public:
     IrNumberAssign(string _ta, string _num) {
-        target = _ta;
-        number = _num;
+        target = std::move(_ta);
+        number = std::move(_num);
     }
 
     string toString() override {
         return target + " = " + number;
+    }
+
+    void toMips() override {
+
+    }
+};
+
+class IrExit: public IrCode {
+public:
+    IrExit() = default;
+
+    string toString() override {
+        return "exit";
     }
 
     void toMips() override {

@@ -40,7 +40,8 @@ public:
         for (auto var: declList) {
             var->traversal();
         }
-        IR_1.add(new IrGotoStmt("main"));
+        IR_1.add(new IrCallFunction("main"));
+        IR_1.add(new IrExit());
         for (auto fun: funList) {
             fun->traversal();
         }
