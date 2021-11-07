@@ -185,13 +185,23 @@ public:
                     IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));
                 }
             } else {
-                IR_1.add(new IrArrayDefine(Const, irName, to_string(size)));
                 if (!value->empty()) {
-                    for (int i = 0; i < (*value).size(); ++ i) {
-                        (*value)[i] -> traversal();
-                        IR_1.add(new IrArrayAssign(irTableList_1.getIrName(name), to_string(i), irTableList_1.getTopTemIrName()));
+                    auto* va = new vector<int>();
+                    for (auto i: *value) {
+                        if (i->getClassType() == NumberType) {
+                            va->push_back(((Number*)i) -> getValue());
+                        } else
+                            va->push_back(0);
                     }
-                }
+                    IR_1.add(new IrArrayDefineWithAssign(Const, irName, va));
+                    for (int i = 0; i < (*value).size(); ++ i) {
+                        if ((*value)[i]->getClassType() != NumberType) {
+                            (*value)[i] -> traversal();
+                            IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
+                        }
+                    }
+                } else
+                    IR_1.add(new IrArrayDefineWithOutAssign(Const, irName, to_string(size)));
             }
         }
 

@@ -10,9 +10,14 @@
 using namespace std;
 
 class IrCode {
+protected:
+    int codeType;
 public:
     virtual string toString() = 0;
     virtual void toMips() = 0;
+    int getCodeType() const {
+        return codeType;
+    }
 };
 
 class IrBinaryOp: public IrCode {
@@ -25,6 +30,7 @@ public:
         source[0] = std::move(_sc0);
         source[1] = std::move(_sc1);
         sign = std::move(_sign);
+        codeType = IrBinaryOpType;
     }
 
     string toString() override {
@@ -45,6 +51,7 @@ public:
         target = std::move(_te);
         sign = std::move(_sign);
         source = std::move(_sc);
+        codeType = IrUnaryOpType;
     }
 
     string toString() override {
@@ -62,6 +69,7 @@ private:
 public:
     explicit IrLabelLine(string _label) {
         label = std::move(_label);
+        codeType = IrLabelLineType;
     }
 
     string toString() override {
@@ -80,6 +88,7 @@ public:
     IrFunDefine(string _type, string _name) {
         type = std::move(_type);
         name = std::move(_name);
+        codeType = IrFunDefineType;
     }
 
     string toString() override {
@@ -98,6 +107,7 @@ public:
     IrParaDefine(string _type, string _name) {
         type = std::move(_type);
         name = std::move(_name);
+        codeType = IrParaDefineType;
     }
 
     string toString() override {
@@ -115,6 +125,7 @@ private:
 public:
     explicit IrPushVariable(string _name) {
         name = std::move(_name);
+        codeType = IrPushVariableType;
     }
 
     string toString() override {
@@ -133,6 +144,7 @@ public:
     IrPushArray(string _name, string _offset) {
         name = std::move(_name);
         offset = std::move(_offset);
+        codeType = IrPushArrayType;
     }
 
     string toString() override {
@@ -150,6 +162,7 @@ private:
 public:
     explicit IrCallFunction(string _name) {
         name = std::move(_name);
+        codeType = IrCallFunctionType;
     }
 
     string toString() override {
@@ -167,6 +180,7 @@ private:
 public:
     IrReturnStmt() {
         source = "";
+        codeType = IrReturnStmtType;
     }
 
     explicit IrReturnStmt(string _sc) {
@@ -188,6 +202,7 @@ private:
 public:
     explicit IrReturnValStmt(string _tar) {
         target = std::move(_tar);
+        codeType = IrReturnValStmtType;
     }
 
     string toString() override {
@@ -208,6 +223,7 @@ public:
         isConst = _is;
         name = std::move(_na);
         value = std::move(_va);
+        codeType = IrVarDefineWithAssignType;
     }
 
     string toString() override {
@@ -228,6 +244,7 @@ public:
     IrVarDefineWithOutAssign(bool _is, string _na) {
         isConst = _is;
         name = std::move(_na);
+        codeType = IrVarDefineWithOutAssignType;
     }
 
     string toString() override {
@@ -247,6 +264,7 @@ public:
     IrCmpStmt(string sc0, string sc1) {
         source[0] = std::move(sc0);
         source[1] = std::move(sc1);
+        codeType = IrCmpStmtType;
     }
 
     string toString() override {
@@ -265,6 +283,7 @@ public:
     IrBranchStmt(string _type, string _name) {
         type = std::move(_type);
         name = std::move(_name);
+        codeType = IrBranchStmtType;
     }
 
     string toString() override {
@@ -282,6 +301,7 @@ private:
 public:
     explicit IrGotoStmt(string _label) {
         label = std::move(_label);
+        codeType = IrGotoStmtType;
     }
 
     string toString() override {
@@ -293,20 +313,47 @@ public:
     }
 };
 
-class IrArrayDefine: public IrCode {
+class IrArrayDefineWithOutAssign: public IrCode {
 private:
     bool isConst;
     string name, offset;
 public:
-    IrArrayDefine(bool _is, string _na, string _off) {
+    IrArrayDefineWithOutAssign(bool _is, string _na, string _off) {
         isConst = _is;
         name = std::move(_na);
         offset = std::move(_off);
+        codeType = IrArrayDefineWithOutAssignType;
     }
 
     string toString() override {
         string tmp = (isConst ? "const " : "");
         return tmp + "arr int " + name + "[" + offset + "]";
+    }
+
+    void toMips() override {
+
+    }
+};
+
+class IrArrayDefineWithAssign: public IrCode {
+private:
+    bool isConst;
+    string name;
+    vector<int>* value;
+public:
+    IrArrayDefineWithAssign(bool _is, string _na, vector<int>* var) {
+        isConst = _is;
+        name = std::move(_na);
+        value = var;
+        codeType = IrArrayDefineWithAssignType;
+    }
+
+    string toString() override {
+        string tmp = (isConst ? "const " : "");
+        tmp = tmp + "arr int " + name + "[" + to_string((*value).size()) + "] =";
+        for (int i : *value)
+            tmp += " " + to_string(i);
+        return tmp;
     }
 
     void toMips() override {
@@ -322,6 +369,7 @@ public:
         target = std::move(_ta);
         offset = std::move(_off);
         source = std::move(_sc);
+        codeType = IrArrayAssignType;
     }
 
     string toString() override {
@@ -341,6 +389,7 @@ public:
         target = std::move(_ta);
         source = std::move(_sc);
         offset = std::move(_off);
+        codeType = IrArrayGetType;
     }
 
     string toString() override {
@@ -358,6 +407,7 @@ private:
 public:
     explicit IrReadInteger(string _ta) {
         target = std::move(_ta);
+        codeType = IrReadIntegerType;
     }
 
     string toString() override {
@@ -375,6 +425,7 @@ private:
 public:
     explicit IrPrintInteger(string _sc) {
         source = std::move(_sc);
+        codeType = IrPrintIntegerType;
     }
 
     string toString() override {
@@ -392,6 +443,7 @@ private:
 public:
     explicit IrPrintString(string _str) {
         str = std::move(_str);
+        codeType = IrPrintStringType;
     }
 
     string toString() override {
@@ -400,6 +452,10 @@ public:
 
     void toMips() override {
 
+    }
+
+    string getStr() {
+        return str;
     }
 };
 
@@ -410,6 +466,7 @@ public:
     IrNumberAssign(string _ta, string _num) {
         target = std::move(_ta);
         number = std::move(_num);
+        codeType = IrNumberAssignType;
     }
 
     string toString() override {
@@ -423,7 +480,9 @@ public:
 
 class IrExit: public IrCode {
 public:
-    IrExit() = default;
+    IrExit() {
+        codeType = IrExitType;
+    }
 
     string toString() override {
         return "exit";

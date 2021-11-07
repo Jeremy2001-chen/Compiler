@@ -26,6 +26,10 @@ public:
         cout << "New line~~~~~~~: " << irCode->toString() << endl;
         irList.push_back(irCode);
     }
+
+    list <IrCode*> getIrList() {
+        return irList;
+    }
 };
 
 #endif //COMPILER_IR_H
