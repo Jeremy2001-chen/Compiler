@@ -188,14 +188,14 @@ public:
                 if (!value->empty()) {
                     auto* va = new vector<int>();
                     for (auto i: *value) {
-                        if (i->getClassType() == NumberType) {
-                            va->push_back(((Number*)i) -> getValue());
+                        if (i -> getConstType()) {
+                            va->push_back(((ConstValue*)i) -> getValue());
                         } else
                             va->push_back(0);
                     }
                     IR_1.add(new IrArrayDefineWithAssign(Const, irName, va));
                     for (int i = 0; i < (*value).size(); ++ i) {
-                        if ((*value)[i]->getClassType() != NumberType) {
+                        if (!(*value)[i]-> getConstType()) {
                             (*value)[i] -> traversal();
                             IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
                         }
