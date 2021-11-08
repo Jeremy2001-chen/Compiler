@@ -62,7 +62,9 @@ public:
         if (!checkDecl(_name, "fun")) {
             output.addError(new NameRedefineError(line, _name));
         } else {
+#ifdef DEBUG
             cout << "add to Table: " << _name << " " << "fun" << endl;
+#endif
             Table* tableItem = new Table(_name, "fun", _node->getType(), _node->getConstType(), _node, layer, line);
             if (tableSize == maxSize) {
                 list.push_back(tableItem);
@@ -78,7 +80,9 @@ public:
         if (!checkDecl(_name, "var")) {
             output.addError(new NameRedefineError(line, _name));
         } else {
+#ifdef DEBUG
             cout << "add to Table: " << _name << " " << "var" << endl;
+#endif
             Table* tableItem = new Table(_name, "var", _node->getType(), isConst, _node, layer, line);
             if (tableSize == maxSize) {
                 list.push_back(tableItem);
@@ -131,7 +135,9 @@ public:
         int newSize = tableSize;
         for(int i = tableSize - 1; i >= 0; -- i)
             if (list[i]->getLayer() == layer) {
+#ifdef DEBUG
                 cout << "remove: " << list[i]->getName() << " " << list[i]->getKind() << endl;
+#endif
                 newSize -= 1;
             }
         tableSize = newSize;

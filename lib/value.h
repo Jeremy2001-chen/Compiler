@@ -123,7 +123,7 @@ public:
         return offsetTree;
     }
 
-    bool getIsArray() {
+    bool getIsArray() const {
         return isArray;
     }
 };

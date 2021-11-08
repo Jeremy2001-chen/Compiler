@@ -225,15 +225,18 @@ public:
 
     }
     void traversal() override {
-        for (int i = 0; i < (int)form.size(); ++ i) {
-            if (!form[i].empty()) {
-                IR_1.add(new IrPrintString(form[i]));
-            }
+        vector<IrCode*> temp;
+        for (int i = (int)form.size() - 1; i >= 0; -- i) {
             if (i < (int)(*exp).size()) {
                 (*exp)[i]->traversal();
-                IR_1.add(new IrPrintInteger(irTableList_1.getTopTemIrName()));
+                temp.push_back(new IrPrintInteger(irTableList_1.getTopTemIrName()));
+            }
+            if (!form[i].empty()) {
+                temp.push_back(new IrPrintString(form[i]));
             }
         }
+        for (int i = (int)temp.size() - 1; i >= 0; -- i)
+            IR_1.add(temp[i]);
     }
     Node* optimize() override {
         return this;

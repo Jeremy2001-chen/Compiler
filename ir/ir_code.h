@@ -188,6 +188,8 @@ public:
     }
 
     string toString() override {
+        if (source.empty())
+            return "ret";
         return "ret " + source;
     }
 
