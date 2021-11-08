@@ -201,7 +201,7 @@ private:
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
-                                        valueList, type, true, currentLine);
+                                        valueList, type, true, currentLine, symbolTable.getLayer() == 0);
 
         addLine("<ConstDef>");
         return variableDecl;
@@ -348,7 +348,7 @@ private:
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
-                                        valueList, type, false, currentLine);
+                                        valueList, type, false, currentLine, symbolTable.getLayer() == 0);
         addLine("<VarDef>");
         return variableDecl;
     }
@@ -440,7 +440,7 @@ private:
         for (auto &para: (*param)) {
             //cout << "param: " << para->getName() << endl;
             VariableDecl* variableDecl = new VariableDecl(para->getName(), nullptr, para->getOffset(), nullptr,
-                                                          para->getType(), para->getConstType(), para->getLine());
+                                                          para->getType(), para->getConstType(), para->getLine(), symbolTable.getLayer() == 0);
             symbolTable.insertVarTable(para->getName(), variableDecl, para->getConstType(), para->getLine());
         }
         Block* block = checkBlock();

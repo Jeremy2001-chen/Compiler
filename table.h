@@ -56,7 +56,7 @@ class SymbolTable {
 private:
     vector<Table*> list;
     int tableSize = 0, maxSize = 0;
-    int layer;
+    int layer = 0;
 public:
     void insertFunTable(const string& _name, Node* _node, int line) {
         if (!checkDecl(_name, "fun")) {
