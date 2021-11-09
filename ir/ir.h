@@ -29,8 +29,8 @@ public:
         irList.push_back(irCode);
     }
 
-    list <IrCode*> getIrList() {
-        return irList;
+    list <IrCode*>* getIrList() {
+        return &irList;
     }
 };
 

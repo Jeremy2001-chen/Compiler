@@ -11,7 +11,7 @@ using namespace std;
 
 class IrCode {
 protected:
-    int codeType;
+    IrType codeType;
 public:
     virtual string toString() = 0;
     virtual void toMips() = 0;
@@ -233,6 +233,14 @@ public:
         return tmp + "var int " + name + " = " + value;
     }
 
+    string getName() const {
+        return name;
+    }
+
+    int getValue() const {
+        return atoi(value.c_str());
+    }
+
     void toMips() override {
 
     }
@@ -252,6 +260,10 @@ public:
     string toString() override {
         string tmp = (isConst ? "const " : "");
         return tmp + "var int " + name;
+    }
+
+    string getName() const {
+        return name;
     }
 
     void toMips() override {
@@ -332,6 +344,14 @@ public:
         return tmp + "arr int " + name + "[" + offset + "]";
     }
 
+    string getName() {
+        return name;
+    }
+
+    int getSize() const {
+        return atoi(offset.c_str());
+    }
+
     void toMips() override {
 
     }
@@ -341,21 +361,35 @@ class IrArrayDefineWithAssign: public IrCode {
 private:
     bool isConst;
     string name;
-    vector<int>* value;
+    int size;
+    vector<int>* values;
 public:
-    IrArrayDefineWithAssign(bool _is, string _na, vector<int>* var) {
+    IrArrayDefineWithAssign(bool _is, string _na, int _size, vector<int>* var) {
         isConst = _is;
         name = std::move(_na);
-        value = var;
+        values = var;
+        size = _size;
         codeType = IrArrayDefineWithAssignType;
     }
 
     string toString() override {
         string tmp = (isConst ? "const " : "");
-        tmp = tmp + "arr int " + name + "[" + to_string((*value).size()) + "] =";
-        for (int i : *value)
+        tmp = tmp + "arr int " + name + "[" + to_string((*values).size()) + "] =";
+        for (int i : *values)
             tmp += " " + to_string(i);
         return tmp;
+    }
+
+    string getName() {
+        return name;
+    }
+
+    int getSize() const {
+        return size;
+    }
+
+    vector<int>* getValues() {
+        return values;
     }
 
     void toMips() override {
@@ -376,6 +410,14 @@ public:
 
     string toString() override {
         return target + "[" + offset + "] = " + source;
+    }
+
+    string getTarget() {
+        return target;
+    }
+
+    string getOffset() {
+        return offset;
     }
 
     void toMips() override {

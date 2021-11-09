@@ -3,6 +3,7 @@
 #include "lexical.h"
 #include "grammar.h"
 #include "ir/ir.h"
+#include "mips/mips.h"
 
 using namespace std;
 
@@ -10,10 +11,12 @@ ifstream fin("testfile.txt");
 ofstream fout("output.txt");
 ofstream eout("error.txt");
 ofstream iout("ir.txt");
+ofstream mout("mips.txt");
 
 Output output;
 string input;
 IR IR_1;
+Mips *mips;
 
 void read() {
     string s;
@@ -27,7 +30,8 @@ void print(string outString) {
     //cout << outString << endl;
     //fout << outString << endl;
     //eout << outString << endl;
-    iout << outString << endl;
+    //iout << outString << endl;
+    mout << outString << endl;
 }
 
 int main() {
@@ -36,8 +40,10 @@ int main() {
     Grammar grammar = Grammar(input);
     Node* root = grammar.getRoot();
     root -> traversal();
-    print(IR_1.toString());
+    mips = new Mips(IR_1);
     //print(output.to_string());
     //print(lexical.to_string());
+    print(IR_1.toString());
+    print((*mips).toString());
     return 0;
 }

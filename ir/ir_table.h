@@ -77,7 +77,7 @@ public:
         auto it = nameCount.find(_name);
         if (it == nameCount.end()) {
             nameCount[_name] = 1;
-            irName = (layer == 0 ? "@" : "%") + _name;
+            irName = (layer == 0 ? "@" : "%") + _name + "_0";
         } else {
             irName = (layer == 0 ? "@" : "%") + _name + "_" + to_string(nameCount[_name]);
             nameCount[_name] ++;

@@ -63,4 +63,23 @@ enum IrType{
     IrNumberAssignType,
     IrExitType
 };
+
+enum MipsType{
+    MipsAddType,
+    MipsAddIType,
+    MipsLoadType,
+    MipsStoreType,
+    MipsLabelType,
+    MIpsStringDefType,
+    MipsGlobalVarDefType,
+    MipsBranchType,
+    MipsJLabelType,
+    MipsJRegisterType,
+    MipsLiType,
+    MipsLaType,
+    MipsSyscallType,
+    MipsNoteType,
+    MipsSegmentType
+};
+
 #endif //COMPILER_TYPE_H

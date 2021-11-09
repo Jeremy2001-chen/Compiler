@@ -195,7 +195,7 @@ public:
                             } else
                                 va->push_back(0);
                         }
-                        IR_1.add(new IrArrayDefineWithAssign(Const, irName, va));
+                        IR_1.add(new IrArrayDefineWithAssign(Const, irName, size, va));
                         for (int i = 0; i < (*value).size(); ++ i) {
                             if (!(*value)[i]-> getConstType()) {
                                 (*value)[i] -> traversal();
