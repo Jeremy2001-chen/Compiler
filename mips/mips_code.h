@@ -25,7 +25,7 @@ public:
 /* add $s0 $s0 $s1 */
 class MipsAdd : public MipsCode {
 public:
-    MipsAdd(string _tar, string _s0, string _op, string _s1) {
+    MipsAdd(string _op, string _tar, string _s0, string _s1) {
         target = std::move(_tar);
         source[0] = std::move(_s0);
         op = std::move(_op);
@@ -43,7 +43,7 @@ class MipsAddI : public MipsCode {
 private:
     string imm;
 public:
-    MipsAddI(string _tar, string _s0, string _op, string _imm) {
+    MipsAddI(string _op, string _tar, string _s0, string _imm) {
         target = std::move(_tar);
         source[0] = std::move(_s0);
         source[1] = "";
@@ -54,6 +54,37 @@ public:
 
     string toString() override {
         return op + " " + target + " " + source[0] + " " + imm;
+    }
+};
+
+/* mul $s0 $s1 */
+class MipsMul : public MipsCode {
+public:
+    MipsMul(string _op, string _s0, string _s1) {
+        target = "";
+        op = std::move(_op);
+        source[0] = std::move(_s0);
+        source[1] = std::move(_s1);
+        type = MipsMulType;
+    }
+
+    string toString() override {
+        return op + " " + source[0] + " " + source[1];
+    }
+};
+
+/* mfhi $s0 $s1 */
+class MipsMF : public MipsCode {
+public:
+    MipsMF(string _op, string _s0) {
+        op = std::move(_op);
+        target = source[1] = "";
+        source[0] = std::move(_s0);
+        type = MipsMFType;
+    }
+
+    string toString() override {
+        return op + " " + source[0];
     }
 };
 

@@ -181,9 +181,13 @@ public:
                 if ((*value).empty())
                     IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
                 else {
+                    /*(*value)[0] -> traversal();
+                    string tem = irTableList_1.getTopTemIrName();
+                    IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));*/
+                    IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
                     (*value)[0] -> traversal();
                     string tem = irTableList_1.getTopTemIrName();
-                    IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));
+                    IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
                 }
             } else {
                 if (!value->empty()) {

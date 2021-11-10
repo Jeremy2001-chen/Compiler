@@ -11,7 +11,8 @@
 
 class IR {
 private:
-    list <IrCode*> irList;
+    vector <IrCode*> irList;
+    int globalDeclEnd;
 public:
     IR() = default;
     string toString() {
@@ -29,7 +30,15 @@ public:
         irList.push_back(irCode);
     }
 
-    list <IrCode*>* getIrList() {
+    void setGlobalDeclEnd() {
+        globalDeclEnd = (int)irList.size();
+    }
+
+    int getGlobalDeclEnd() const {
+        return globalDeclEnd;
+    }
+
+    vector <IrCode*>* getIrList() {
         return &irList;
     }
 };

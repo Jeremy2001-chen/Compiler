@@ -4,6 +4,8 @@
 #include "grammar.h"
 #include "ir/ir.h"
 #include "mips/mips.h"
+#include "mips/mips_table.h"
+#include "ir/ir_code.h"
 
 using namespace std;
 
@@ -16,7 +18,7 @@ ofstream mout("mips.txt");
 Output output;
 string input;
 IR IR_1;
-Mips *mips;
+Mips *mips; MipsTable* mipsTable; MipsOutput* mipsOutput;
 
 void read() {
     string s;
@@ -40,10 +42,12 @@ int main() {
     Grammar grammar = Grammar(input);
     Node* root = grammar.getRoot();
     root -> traversal();
-    mips = new Mips(IR_1);
+    print(IR_1.toString());
+    mipsTable = new MipsTable();
+    mipsOutput = new MipsOutput();
+    mips = new Mips(IR_1, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());
-    print(IR_1.toString());
-    print((*mips).toString());
+    print(mipsOutput -> toString());
     return 0;
 }

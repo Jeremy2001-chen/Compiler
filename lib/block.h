@@ -79,8 +79,8 @@ public:
         cond[0]->traversal();
         string con = irTableList_1.getTopTemIrName();;
         string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
-        IR_1.add(new IrCmpStmt(con, "%0"));
-        IR_1.add(new IrBranchStmt("beq", br1));
+        //IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", con, "%0", br1));
         tran[0]->traversal();
         IR_1.add(new IrGotoStmt(br2));
         IR_1.add(new IrLabelLine(br1));
@@ -111,8 +111,8 @@ public:
         IR_1.add(new IrLabelLine(loop_begin));
         cond -> traversal();
         string con = irTableList_1.getTopTemIrName();;
-        IR_1.add(new IrCmpStmt(con, "%0"));
-        IR_1.add(new IrBranchStmt("beq", loop_end));
+        //IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", con, "%0", loop_end));
         block -> traversal();
         IR_1.add(new IrGotoStmt(loop_begin));
         IR_1.add(new IrLabelLine(loop_end));

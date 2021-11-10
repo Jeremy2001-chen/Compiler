@@ -61,12 +61,15 @@ enum IrType{
     IrPrintIntegerType,
     IrPrintStringType,
     IrNumberAssignType,
+    IrFunEndType,
     IrExitType
 };
 
 enum MipsType{
     MipsAddType,
     MipsAddIType,
+    MipsMulType,
+    MipsMFType,
     MipsLoadType,
     MipsStoreType,
     MipsLabelType,
