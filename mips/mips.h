@@ -29,8 +29,9 @@ public:
     }
 
     void init_data() {
+        cout << globalDeclEnd << endl;
         mipsCode->push_back(new MipsSegment("data"));
-        int line = 0;
+        int line = 0, count = 0;
         for (auto code: *irList) {
             if (code->getCodeType() == IrArrayDefineWithAssignType) {
                 IrArrayDefineWithAssign* array = (IrArrayDefineWithAssign*)code;
@@ -53,25 +54,48 @@ public:
                 string name = IRNameTran(var->getName());
                 mipsCode->push_back(new MipsGlobalVarDef(name, nullptr));
                 mipsTable->addGlobalTable(var->getName(), 4);
+            } else if (code->getCodeType() == IrNumberAssignType) {
+                IrNumberAssign* var = (IrNumberAssign*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrBinaryOpType) {
+                IrBinaryOp* var = (IrBinaryOp*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrUnaryOpType) {
+                IrUnaryOp* var = (IrUnaryOp*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
             }
             line = line + 1;
-            if (line > globalDeclEnd)
+            if (line >= globalDeclEnd)
                 break;
         }
+        mipsOutput -> push_back(new MipsGlobalVarDef("__global_var_all", count, nullptr));
         for (auto code: *irList) {
             if (code->getCodeType() == IrPrintStringType) {
                 IrPrintString* str = (IrPrintString*)code;
                 mipsTable->putString(str->getStr());
             }
         }
+        mipsTable->setDataAlign();
     }
 
     void init_text() {
         mipsCode-> push_back(new MipsSegment("text"));
-        int count = 0, line = 0;
         for (int i = 0; i < (*irList).size(); ++ i) {
             IrCode* code = (*irList)[i];
-            if (line <= globalDeclEnd) {
+            cout << i << " " << code->getCodeType() << " " << IrFunDefineType << endl;
+            if (i < globalDeclEnd) {
                 if (code->getCodeType() == IrArrayDefineWithAssignType ||
                 code->getCodeType() == IrArrayDefineWithOutAssignType ||
                 code->getCodeType() == IrVarDefineWithAssignType ||
@@ -83,10 +107,12 @@ public:
                 if (code->getCodeType() == IrFunDefineType) {
                     code->toMips();
                     int j = i + 1, spMove = 0;
+                    cout << "Fun: " << i << endl;
                     while (j < (*irList).size()) {
                         IrCode* codeN = (*irList)[j];
                         if (codeN->getCodeType() == IrFunEndType)
                             break;
+                        cout << "hello: " << j << endl;
                         spMove = spMove + (codeN -> defVar() << 2);
                         j = j + 1;
                     }

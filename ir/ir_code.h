@@ -88,6 +88,10 @@ public:
         mipsTable -> funInitStack(target, 1);
         return 1;
     }
+
+    string getTarget() const {
+        return target;
+    }
 };
 
 class IrUnaryOp: public IrCode {
@@ -123,6 +127,10 @@ public:
     int defVar() override {
         mipsTable -> funInitStack(target, 1);
         return 1;
+    }
+
+    string getTarget() const {
+        return target;
     }
 };
 
@@ -308,7 +316,7 @@ public:
         if (!source.empty())
             mipsTable -> getRegFromMem("$v0", source);
         int cnt = mipsTable -> getTopParaCnt();
-        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt << 2)));
+        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt)));
         mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
     }
 
@@ -336,7 +344,8 @@ public:
     }
 
     int defVar() override {
-        return 0;
+        mipsTable -> funInitStack(target, 1);
+        return 1;
     }
 };
 
@@ -696,7 +705,7 @@ public:
         mipsOutput -> push_back(new MipsNote(toString()));
         string label = mipsTable -> getLabel(str);
         mipsOutput -> push_back(new MipsLa("la", "$a0", label));
-        mipsOutput -> push_back(new MipsAddI("addi", "$v0", "$v0", "4"));
+        mipsOutput -> push_back(new MipsAddI("addi", "$v0", "$0", "4"));
         mipsOutput -> push_back(new MipsSyscall());
     }
 
@@ -732,6 +741,10 @@ public:
     int defVar() override {
         mipsTable -> funInitStack(target, 1);
         return 1;
+    }
+
+    string getTarget() const {
+        return target;
     }
 };
 

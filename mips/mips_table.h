@@ -56,6 +56,10 @@ public:
         paraCnt.push(0);
     }
 
+    void setDataAlign() {
+        data = (data % 4 == 0 ? data : data + 4 - data % 4);
+    }
+
     void putString(const string& str) {
         auto it = stringToLabel.find(str);
         if (it == stringToLabel.end()) {

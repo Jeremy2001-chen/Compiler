@@ -51,7 +51,6 @@ public:
             fun->traversal();
         }
         mainFun->traversal();
-        IR_1.add(new IrFunEnd(0));
     }
     Node* optimize() override {
         return this;

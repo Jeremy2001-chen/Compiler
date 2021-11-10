@@ -113,7 +113,7 @@ public:
         irTableList_1.setBlock(-1);
         IR_1.add(new IrParaDefine("reg", "$ra"));
         funBlock->traversal();
-        //IR_1.add(new IrFunEnd((*param).size()));
+        IR_1.add(new IrFunEnd((*param).size()));
         /*cout << "Function : " << name << endl;
         for (auto para: param) {
             para.traversal();
