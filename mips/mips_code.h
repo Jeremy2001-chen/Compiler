@@ -29,6 +29,8 @@ public:
         target = std::move(_tar);
         source[0] = std::move(_s0);
         op = std::move(_op);
+        if (op == "add" || op == "sub")
+            op += "u";
         source[1] = std::move(_s1);
         type = MipsAddType;
     }
@@ -48,6 +50,8 @@ public:
         source[0] = std::move(_s0);
         source[1] = "";
         op = std::move(_op);
+        if (op == "addi" || op == "subi")
+            op += "u";
         imm = std::move(_imm);
         type = MipsAddIType;
     }

@@ -260,7 +260,7 @@ public:
             tar = offset;
         else {
             mipsTable -> getRegFromMem("$t0", offset);
-            mipsOutput -> push_back(new MipsAdd("sll", "$t0", "$t0", "2"));
+            mipsOutput -> push_back(new MipsAddI("sll", "$t0", "$t0", "2"));
             tar = "$t0";
         }
         mipsTable -> getRegFromAddress("$t1", name, tar);
