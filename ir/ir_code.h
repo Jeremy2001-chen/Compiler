@@ -241,23 +241,31 @@ public:
 class IrPushArray: public IrCode {
 private:
     string name;
-    int offset;
+    string offset;
 public:
     IrPushArray(string _name, string _offset) {
         name = std::move(_name);
-        offset = atoi(_offset.c_str());
+        offset = _offset;
         codeType = IrPushArrayType;
     }
 
     string toString() override {
-        return "push array " + name + "[" + to_string(offset) + "]";
+        return "push array " + name + "[" + offset + "]";
     }
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromAddress("$t0", name, offset);
+        string tar;
+        if (offset[0] >= '0' && offset[0] <= '9')
+            tar = offset;
+        else {
+            mipsTable -> getRegFromMem("$t0", offset);
+            mipsOutput -> push_back(new MipsAdd("sll", "$t0", "$t0", "2"));
+            tar = "$t0";
+        }
+        mipsTable -> getRegFromAddress("$t1", name, tar);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)), "$sp"));
+        mipsOutput -> push_back(new MipsStore("sw", "$t1", to_string(-(off << 2)), "$sp"));
     }
 
     int defVar() override {

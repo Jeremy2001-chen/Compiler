@@ -54,7 +54,14 @@ public:
                 string name = IRNameTran(var->getName());
                 mipsCode->push_back(new MipsGlobalVarDef(name, nullptr));
                 mipsTable->addGlobalTable(var->getName(), 4);
-            } else if (code->getCodeType() == IrNumberAssignType) {
+            }
+            line = line + 1;
+            if (line >= globalDeclEnd)
+                break;
+        }
+        line = 0;
+        for (auto code: *irList) {
+            if (code->getCodeType() == IrNumberAssignType) {
                 IrNumberAssign* var = (IrNumberAssign*)code;
                 string name = IRNameTran(var->getTarget());
                 if (name[0] >= '0' && name[0] <= '9') {

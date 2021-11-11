@@ -149,7 +149,7 @@ public:
     }
 
     void addGlobalTable(const string& name, int size) {
-        //cout << "global : " << name << " " << size << endl;
+        cout << "global : " << name << " " << data << endl;
         table.emplace_back(name, layer, data, 0, false);
         data += size;
     }
@@ -290,16 +290,42 @@ public:
             mipsOutput->push_back(new MipsAddI("subi", "$sp", "$sp", to_string(-det)));
     }
 
-    void getRegFromAddress(const string& reg, const string& name, int offset) {
+    void getRegFromAddress(const string& reg, const string& name, const string& offset) {
         int index = checkTable(name);
         if (index == -1)
             exit(999);
-        if (getTabelItemTem(index)) {
-            int imm = getTabelItemAdd(index) - sp + (offset << 2);
-            mipsOutput->push_back(new MipsAddI("addi", reg, "$sp", to_string(imm)));
+        if (table[index].getTemporary()) {
+            if (table[index].getIsAddress()) {
+                if (offset[0] >= '0' && offset[0] <= '9') {
+                    int imm = getTabelItemAdd(index) - sp, off = (atoi(offset.c_str()) << 2);
+                    mipsOutput->push_back(new MipsAddI("addi", "$t9", "$sp", to_string(imm)));
+                    mipsOutput->push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput->push_back(new MipsAddI("addi", reg, "$t9", to_string(off)));
+                } else {
+                    int imm = getTabelItemAdd(index) - sp;
+                    mipsOutput->push_back(new MipsAddI("addi", "$t9", "$sp", to_string(imm)));
+                    mipsOutput->push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput->push_back(new MipsAddI("add", reg, "$t9", offset));
+                }
+            }
+            else {
+                if (offset[0] >= '0' && offset[0] <= '9') {
+                    int imm = getTabelItemAdd(index) - sp + (atoi(offset.c_str()) << 2);
+                    mipsOutput->push_back(new MipsAddI("addi", reg, "$sp", to_string(imm)));
+                } else {
+                    int imm = getTabelItemAdd(index) - sp;
+                    mipsOutput->push_back(new MipsAdd("add", "$t9", "$sp", offset));
+                    mipsOutput->push_back(new MipsAddI("addi", reg, "$t9", to_string(imm)));
+                }
+            }
         } else {
-            int imm = getTabelItemAdd(index) + (offset << 2);
-            mipsOutput->push_back(new MipsAddI("addi", reg, "$0", to_string(imm)));
+            if (offset[0] >= '0' && offset[0] <= '9') {
+                int imm = getTabelItemAdd(index) + (atoi(offset.c_str()) << 2);
+                mipsOutput->push_back(new MipsAddI("addi", reg, "$0", to_string(imm)));
+            } else {
+                int imm = getTabelItemAdd(index);
+                mipsOutput->push_back(new MipsAddI("add", reg, offset, to_string(imm)));
+            }
         }
     }
 };
