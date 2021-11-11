@@ -85,7 +85,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 
     string getTarget() const {
@@ -124,7 +124,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 
     string getTarget() const {
@@ -205,7 +205,10 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, 1);
+        if (type == "var" || type == "reg")
+            return mipsTable -> funInitStack(name, 1, false);
+        else
+            return mipsTable -> funInitStack(name, 1, true);
     }
 };
 
@@ -343,7 +346,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 
@@ -379,7 +382,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, 1);
+        return mipsTable -> funInitStack(name, 1, false);
     }
 };
 
@@ -408,7 +411,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, 1);
+        return mipsTable -> funInitStack(name, 1, false);
     }
 };
 
@@ -521,7 +524,7 @@ public:
 
     int defVar() override {
         int tot = atoi(offset.c_str());
-        return mipsTable -> funInitStack(name, tot);
+        return mipsTable -> funInitStack(name, tot, false);
     }
 };
 
@@ -567,7 +570,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, size);
+        return mipsTable -> funInitStack(name, size, false);
     }
 };
 
@@ -639,7 +642,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 
@@ -664,7 +667,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 
@@ -744,7 +747,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 
     string getTarget() const {

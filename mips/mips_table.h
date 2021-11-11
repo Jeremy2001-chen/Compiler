@@ -18,14 +18,15 @@ private:
     string name;
     int layer;
     int add;
-    bool temporary;
+    bool temporary, isAddress;
 
 public:
-    MipsTableItem(string _name, int _layer, int _add, bool _tem) {
+    MipsTableItem(string _name, int _layer, int _add, bool _tem, bool _isAdd) {
         name = std::move(_name);
         layer = _layer;
         add = _add;
         temporary = _tem;
+        isAddress = _isAdd;
     }
     string getName() {
         return name;
@@ -38,6 +39,9 @@ public:
     }
     bool getTemporary() const {
         return temporary;
+    }
+    bool getIsAddress() const {
+        return isAddress;
     }
 };
 
@@ -86,17 +90,17 @@ public:
         paraCnt.push(size);
     }
 
-    int funInitStack(const string& name, int size) {
+    int funInitStack(const string& name, int size, bool _isAdd) {
         for (int i = (int)table.size() - 1; i >= 0; -- i) {
-            cout << i << " " << table[i].getLayer() << endl;
+            //cout << i << " " << table[i].getLayer() << endl;
             if (table[i].getLayer() < layer)
                 break;
             if (table[i].getName() == name) {
                 return 0;
             }
         }
-        cout << "check : " << name << " " << size << endl;
-        addTemporaryTable(name, size << 2);
+        //cout << "check : " << name << " " << size << endl;
+        addTemporaryTable(name, size << 2, _isAdd);
         return size;
     }
 
@@ -111,7 +115,7 @@ public:
 
     void setLayer(int det) {
         if (det < 0) {
-            sp += (paraCnt.top() << 2);
+            sp += paraCnt.top();
             paraCnt.pop();
             for (int i = (int)table.size() - 1; i >= 0; -- i)
                 if (table[i].getLayer() == layer)
@@ -146,13 +150,13 @@ public:
 
     void addGlobalTable(const string& name, int size) {
         //cout << "global : " << name << " " << size << endl;
-        table.emplace_back(name, layer, data, 0);
+        table.emplace_back(name, layer, data, 0, false);
         data += size;
     }
 
-    int addTemporaryTable(const string& name, int size) {
+    int addTemporaryTable(const string& name, int size, bool _isAdd) {
         sp -= size;
-        table.emplace_back(name, layer, sp, 1);
+        table.emplace_back(name, layer, sp, 1, _isAdd);
         return (int)table.size() - 1;
     }
 
@@ -169,20 +173,34 @@ public:
         //cout << "get arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(111);
-        if (getTabelItemTem(index)) {
+        if (table[index].getTemporary()) {
             int off = getTabelItemAdd(index) - sp;
-            if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$sp", offset));
-                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$fp"));
+            if (table[index].getIsAddress()) {
+                if (offset[0] == '$') {
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", to_string(off)));
+                    mipsOutput -> push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$t9", offset));
+                    mipsOutput -> push_back(new MipsLoad("lw", reg, "0", "$t9"));
+                } else {
+                    int of = (atoi(offset.c_str()) << 2);
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", to_string(off)));
+                    mipsOutput -> push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(of), "$t9"));
+                }
             } else {
-                off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$sp"));
+                if (offset[0] == '$') {
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", offset));
+                    mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$t9"));
+                } else {
+                    off += (atoi(offset.c_str()) << 2);
+                    mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$sp"));
+                }
             }
         } else {
             int off = getTabelItemAdd(index);
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$0", offset));
-                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$fp"));
+                mipsOutput -> push_back(new MipsAdd("add", "$t9", "$0", offset));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$t9"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
                 mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$0"));
@@ -209,7 +227,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name) {
         int index = checkTable(name);
-        cout << "set var: " << name << endl;
+        //cout << "set var: " << name << endl;
         if (index == -1)
             exit(333);
         if (getTabelItemTem(index)) {
@@ -225,29 +243,39 @@ public:
         cout << "set arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(444);
-        if (getTabelItemTem(index)) {
+        if (table[index].getTemporary()) {
             int off = getTabelItemAdd(index) - sp;
-            if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$sp", offset));
-                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$fp"));
+            if (table[index].getIsAddress()) {
+                if (offset[0] == '$') {
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", to_string(off)));
+                    mipsOutput -> push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$t9", offset));
+                    mipsOutput -> push_back(new MipsStore("sw", reg, "0", "$t9"));
+                } else {
+                    int of = (atoi(offset.c_str()) << 2);
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", to_string(off)));
+                    mipsOutput -> push_back(new MipsLoad("lw", "$t9", "0", "$t9"));
+                    mipsOutput -> push_back(new MipsStore("sw", reg, to_string(of), "$t9"));
+                }
             } else {
-                off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$sp"));
+                if (offset[0] == '$') {
+                    mipsOutput -> push_back(new MipsAdd("add", "$t9", "$sp", offset));
+                    mipsOutput -> push_back(new MipsStore("sw", reg, off, "$t9"));
+                } else {
+                    off += (atoi(offset.c_str()) << 2);
+                    mipsOutput -> push_back(new MipsStore("sw", reg, off, "$sp"));
+                }
             }
         } else {
             int off = getTabelItemAdd(index);
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$0", offset));
-                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$fp"));
+                mipsOutput -> push_back(new MipsAdd("add", "$t9", "$0", offset));
+                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$t9"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
                 mipsOutput -> push_back(new MipsStore("sw", reg, off, "$0"));
             }
         }
-    }
-
-    void setTopName(const string& name) {
-        addTemporaryTable(name, 4);
     }
 
     void setFunBeginSp(int det) {

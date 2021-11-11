@@ -94,7 +94,7 @@ public:
         mipsCode-> push_back(new MipsSegment("text"));
         for (int i = 0; i < (*irList).size(); ++ i) {
             IrCode* code = (*irList)[i];
-            cout << i << " " << code->getCodeType() << " " << IrFunDefineType << endl;
+            //cout << i << " " << code->getCodeType() << " " << IrFunDefineType << endl;
             if (i < globalDeclEnd) {
                 if (code->getCodeType() == IrArrayDefineWithAssignType ||
                 code->getCodeType() == IrArrayDefineWithOutAssignType ||
@@ -107,12 +107,12 @@ public:
                 if (code->getCodeType() == IrFunDefineType) {
                     code->toMips();
                     int j = i + 1, spMove = 0;
-                    cout << "Fun: " << i << endl;
+                    //cout << "Fun: " << i << endl;
                     while (j < (*irList).size()) {
                         IrCode* codeN = (*irList)[j];
                         if (codeN->getCodeType() == IrFunEndType)
                             break;
-                        cout << "hello: " << j << endl;
+                        //cout << "hello: " << j << endl;
                         spMove = spMove + (codeN -> defVar() << 2);
                         j = j + 1;
                     }
