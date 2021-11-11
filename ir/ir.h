@@ -41,6 +41,10 @@ public:
     vector <IrCode*>* getIrList() {
         return &irList;
     }
+
+    int getIrSize() {
+        return (int)irList.size();
+    }
 };
 
 #endif //COMPILER_IR_H

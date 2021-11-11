@@ -229,6 +229,7 @@ public:
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> getRegFromMem("$t0", name);
         int off = mipsTable -> getPushCnt();
+        cout << "push error: " << off << endl;
         mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)) , "$sp"));
     }
 
@@ -285,6 +286,7 @@ public:
         mipsOutput -> push_back(new MipsStore("sw", "$ra", to_string(-(off << 2)), "$sp"));
         mipsOutput -> push_back(new MipsJLabel("jal", name));
         mipsOutput -> push_back(new MipsStore("lw", "$ra", to_string(-(off << 2)), "$sp"));
+        mipsTable -> setPushCnt(-(varCnt + 1));
     }
 
     int defVar() override {
@@ -764,7 +766,6 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> setLayer(-1);
-        mipsTable -> setPushCnt(-(cnt + 1));
     }
 
     int defVar() override {

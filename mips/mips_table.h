@@ -130,6 +130,7 @@ public:
     }
 
     void addGlobalTable(const string& name, int size) {
+        cout << "global : " << name << " " << size << endl;
         table.emplace_back(name, layer, data, 0);
         data += size;
     }

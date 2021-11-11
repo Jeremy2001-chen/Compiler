@@ -37,14 +37,9 @@ public:
 
     }
     void traversal() override {
-        bool set = false;
-        for (auto var: declList) {
+        for (auto var: declList)
             var->traversal();
-            if (!set && var->getType() != VariableDeclType) {
-                IR_1.setGlobalDeclEnd();
-                set = true;
-            }
-        }
+        IR_1.setGlobalDeclEnd();
         IR_1.add(new IrCallFunction("main", 0));
         IR_1.add(new IrExit());
         for (auto fun: funList) {

@@ -42,7 +42,7 @@ int main() {
     Grammar grammar = Grammar(input);
     Node* root = grammar.getRoot();
     root -> traversal();
-    print(IR_1.toString());
+    //print(IR_1.toString());
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
     mips = new Mips(IR_1, mipsTable, mipsOutput);
