@@ -86,8 +86,18 @@ public:
         paraCnt.push(size);
     }
 
-    void funInitStack(const string& name, int size) {
+    int funInitStack(const string& name, int size) {
+        for (int i = (int)table.size() - 1; i >= 0; -- i) {
+            cout << i << " " << table[i].getLayer() << endl;
+            if (table[i].getLayer() < layer)
+                break;
+            if (table[i].getName() == name) {
+                return 0;
+            }
+        }
+        cout << "check : " << name << " " << size << endl;
         addTemporaryTable(name, size << 2);
+        return size;
     }
 
     void setPushCnt(int x) {
@@ -103,6 +113,11 @@ public:
         if (det < 0) {
             sp += (paraCnt.top() << 2);
             paraCnt.pop();
+            for (int i = (int)table.size() - 1; i >= 0; -- i)
+                if (table[i].getLayer() == layer)
+                    table.pop_back();
+                else
+                    break;
         } else {
             paraCnt.push(0);
         }
@@ -130,7 +145,7 @@ public:
     }
 
     void addGlobalTable(const string& name, int size) {
-        cout << "global : " << name << " " << size << endl;
+        //cout << "global : " << name << " " << size << endl;
         table.emplace_back(name, layer, data, 0);
         data += size;
     }
@@ -151,7 +166,7 @@ public:
 
     void getRegFromMem(const string& reg, const string& name, const string& offset) {
         int index = checkTable(name);
-        cout << "get arr: " << name << " " << offset << endl;
+        //cout << "get arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(111);
         if (getTabelItemTem(index)) {
@@ -179,7 +194,7 @@ public:
             return ;
         }
         int index = checkTable(name);
-        cout << "get var: " << name << endl;
+        //cout << "get var: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {

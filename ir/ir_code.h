@@ -85,8 +85,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(target, 1);
-        return 1;
+        return mipsTable -> funInitStack(target, 1);
     }
 
     string getTarget() const {
@@ -119,14 +118,13 @@ public:
             mipsOutput -> push_back(new MipsAdd("sub", "$t1", "$0", "$t0"));
             mipsTable -> setRegToMem("$t1", target);
         } else if (sign == "!") {
-            mipsOutput -> push_back(new MipsAddI("sne", "$t1", "$0", "$t0"));
+            mipsOutput -> push_back(new MipsAddI("seq", "$t1", "$0", "$t0"));
             mipsTable -> setRegToMem("$t1", target);
         }
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(target, 1);
-        return 1;
+        return mipsTable -> funInitStack(target, 1);
     }
 
     string getTarget() const {
@@ -207,8 +205,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(name, 1);
-        return 1;
+        return mipsTable -> funInitStack(name, 1);
     }
 };
 
@@ -346,8 +343,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(target, 1);
-        return 1;
+        return mipsTable -> funInitStack(target, 1);
     }
 };
 
@@ -383,8 +379,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(name, 1);
-        return 1;
+        return mipsTable -> funInitStack(name, 1);
     }
 };
 
@@ -413,8 +408,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(name, 1);
-        return 1;
+        return mipsTable -> funInitStack(name, 1);
     }
 };
 
@@ -527,8 +521,7 @@ public:
 
     int defVar() override {
         int tot = atoi(offset.c_str());
-        mipsTable -> funInitStack(name, tot);
-        return tot;
+        return mipsTable -> funInitStack(name, tot);
     }
 };
 
@@ -574,8 +567,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(name, size);
-        return size;
+        return mipsTable -> funInitStack(name, size);
     }
 };
 
@@ -660,8 +652,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(target, 1);
-        return 1;
+        return mipsTable -> funInitStack(target, 1);
     }
 };
 
@@ -741,8 +732,7 @@ public:
     }
 
     int defVar() override {
-        mipsTable -> funInitStack(target, 1);
-        return 1;
+        return mipsTable -> funInitStack(target, 1);
     }
 
     string getTarget() const {
