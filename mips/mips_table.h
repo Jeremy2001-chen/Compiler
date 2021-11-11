@@ -172,18 +172,20 @@ public:
         if (getTabelItemTem(index)) {
             int off = getTabelItemAdd(index) - sp;
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(off), offset));
+                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$sp", offset));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$fp"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(off), "$0"));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$sp"));
             }
         } else {
             int off = getTabelItemAdd(index);
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(off), offset));
+                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$0", offset));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$fp"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(off), "$0"));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$0"));
             }
         }
     }
@@ -226,18 +228,20 @@ public:
         if (getTabelItemTem(index)) {
             int off = getTabelItemAdd(index) - sp;
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsStore("lw", reg, to_string(off), offset));
+                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$sp", offset));
+                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$fp"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsStore("lw", reg, to_string(off), "$0"));
+                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$sp"));
             }
         } else {
             int off = getTabelItemAdd(index);
             if (offset[0] == '$') {
-                mipsOutput -> push_back(new MipsStore("lw", reg, to_string(off), offset));
+                mipsOutput -> push_back(new MipsAdd("add", "$fp", "$0", offset));
+                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$fp"));
             } else {
                 off += (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsStore("lw", reg, to_string(off), "$0"));
+                mipsOutput -> push_back(new MipsStore("sw", reg, off, "$0"));
             }
         }
     }

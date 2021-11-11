@@ -28,12 +28,12 @@ void read() {
     }
 }
 
-void print(string outString) {
+void print(string outString, ofstream &ofs) {
     //cout << outString << endl;
     //fout << outString << endl;
     //eout << outString << endl;
     //iout << outString << endl;
-    mout << outString << endl;
+    ofs << outString << endl;
 }
 
 int main() {
@@ -42,12 +42,12 @@ int main() {
     Grammar grammar = Grammar(input);
     Node* root = grammar.getRoot();
     root -> traversal();
-    //print(IR_1.toString());
+    print(IR_1.toString(), iout);
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
     mips = new Mips(IR_1, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());
-    print(mipsOutput -> toString());
+    print(mipsOutput -> toString(), mout);
     return 0;
 }

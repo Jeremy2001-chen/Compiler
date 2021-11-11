@@ -69,9 +69,9 @@ public:
         } else if (sign == ">") {
             mipsOutput -> push_back(new MipsAdd("sgt", "$t2", "$t0", "$t1"));
         } else if (sign == ">=") {
-            mipsOutput -> push_back(new MipsAdd("slt", "$t2", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("sge", "$t2", "$t0", "$t1"));
         } else if (sign == "<=") {
-            mipsOutput -> push_back(new MipsAdd("sgt", "$t2", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("sle", "$t2", "$t0", "$t1"));
         } else if (sign == "==") {
             mipsOutput -> push_back(new MipsAdd("seq", "$t2", "$t1", "$t0"));
         } else if (sign == "!=") {
@@ -597,7 +597,13 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> getRegFromMem("$t0", source);
-        mipsTable -> setRegToMem("$t0", target, offset);
+        if (offset[0] >= '0' && offset[0] <= '9')
+            mipsTable -> setRegToMem("$t0", target, offset);
+        else {
+            mipsTable -> getRegFromMem("$t1", offset);
+            mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
+            mipsTable -> setRegToMem("$t0", target, "$t1");
+        }
     }
 
     int defVar() override {
@@ -622,12 +628,18 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source, offset);
+        if (offset[0] >= '0' && offset[0] <= '9')
+            mipsTable -> setRegToMem("$t0", target, to_string(atoi(offset.c_str()) << 2));
+        else {
+            mipsTable -> getRegFromMem("$t1", offset);
+            mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
+            mipsTable -> getRegFromMem("$t0", source, "$t1");
+        }
         mipsTable -> setRegToMem("$t0", target);
     }
 
     int defVar() override {
-        return 0;
+        return mipsTable -> funInitStack(target, 1);
     }
 };
 
