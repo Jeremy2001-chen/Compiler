@@ -46,21 +46,63 @@ public:
         return number;
     }
     void traversal() override {
-        string target, left, right;
-        if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
-            left = irTableList_1.getIrName(((Variable*)lch)->getName());
-        else {
-            lch -> traversal();
-            left = irTableList_1.getTopTemIrName();
+        if (classType == AddExpType || classType == MulType || classType == RelExpType || classType == EqExpType) {
+            string target, left, right;
+            if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
+                left = irTableList_1.getIrName(((Variable*)lch)->getName());
+            else {
+                lch -> traversal();
+                left = irTableList_1.getTopTemIrName();
+            }
+            if (rch->getClassType() == VariableType && rch->getSize() == 1 && ((Variable*)rch) -> getIsArray() == 0)
+                right =irTableList_1.getIrName(((Variable*)rch)->getName());
+            else {
+                rch -> traversal();
+                right = irTableList_1.getTopTemIrName();
+            }
+            target = irTableList_1.allocTem();
+            IR_1.add(new IrBinaryOp(target, left, sign, right));
+        } else {
+            string target, left, right;
+            if (lch->getClassType() == VariableType && lch->getSize() == 1 && ((Variable*)lch) -> getIsArray() == 0)
+                left = irTableList_1.getIrName(((Variable*)lch)->getName());
+            else {
+                lch -> traversal();
+                left = irTableList_1.getTopTemIrName();
+            }
+            string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
+            switch(sign[0]) {
+                case '&':
+                    IR_1.add(new IrBranchStmt("beq", left, "%0", br1));
+                    break;
+                case '|':
+                    IR_1.add(new IrBranchStmt("bgt", left, "%0", br1));
+                    break;
+                default: exit(-2);
+            }
+            if (rch->getClassType() == VariableType && rch->getSize() == 1 && ((Variable*)rch) -> getIsArray() == 0)
+                right = irTableList_1.getIrName(((Variable*)rch)->getName());
+            else {
+                rch -> traversal();
+                right = irTableList_1.getTopTemIrName();
+            }
+            switch(sign[0]) {
+                case '&':
+                    IR_1.add(new IrBranchStmt("beq", right, "%0", br1));
+                    break;
+                case '|':
+                    IR_1.add(new IrBranchStmt("bgt", right, "%0", br1));
+                    break;
+                default: exit(-2);
+            }
+            string num[2] = {sign[0] == '&' ? "1" : "0", sign[0] == '&' ? "0" : "1"};
+            target = irTableList_1.allocTem();
+            IR_1.add(new IrNumberAssign(target, num[0]));
+            IR_1.add(new IrGotoStmt(br2));
+            IR_1.add(new IrLabelLine(br1));
+            IR_1.add(new IrNumberAssign(target, num[1]));
+            IR_1.add(new IrLabelLine(br2));
         }
-        if (rch->getClassType() == VariableType && rch->getSize() == 1 && ((Variable*)rch) -> getIsArray() == 0)
-            right =irTableList_1.getIrName(((Variable*)rch)->getName());
-        else {
-            rch -> traversal();
-            right = irTableList_1.getTopTemIrName();
-        }
-        target = irTableList_1.allocTem();
-        IR_1.add(new IrBinaryOp(target, left, sign, right));
     }
 };
 
