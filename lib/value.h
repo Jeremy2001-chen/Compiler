@@ -123,7 +123,7 @@ public:
         return offsetTree;
     }
 
-    bool getIsArray() {
+    bool getIsArray() const {
         return isArray;
     }
 };
@@ -131,15 +131,15 @@ public:
 class VariableDecl: public Node {
 private:
     string name;
-    int offset;
+    int offset, size;
     Node* offsetTree;
     vector<Node*>* value;
-    int size;
+    bool isGlobal;
 public:
     Node* optimize() override {
         return this;
     }
-    VariableDecl(string _name, vector<Node*>* set, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line) {
+    VariableDecl(string _name, vector<Node*>* set, Node* _offsetTree, vector<Node*>* _value, int _type, bool _const, int _line, bool _isGlobal) {
         name = std::move(_name);
         if (_offsetTree == nullptr) {
             offsetTree = new Number(0);
@@ -169,6 +169,7 @@ public:
         line = _line;
         type = _type;
         classType = VariableDeclType;
+        isGlobal = _isGlobal;
     }
     void check() override {
         cout << "Variable Declaration check correct!" << endl;
@@ -180,18 +181,40 @@ public:
                 if ((*value).empty())
                     IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
                 else {
+                    /*(*value)[0] -> traversal();
+                    string tem = irTableList_1.getTopTemIrName();
+                    IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));*/
+                    IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
                     (*value)[0] -> traversal();
                     string tem = irTableList_1.getTopTemIrName();
-                    IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));
+                    IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
                 }
             } else {
-                IR_1.add(new IrArrayDefine(Const, irName, to_string(size)));
                 if (!value->empty()) {
-                    for (int i = 0; i < (*value).size(); ++ i) {
-                        (*value)[i] -> traversal();
-                        IR_1.add(new IrArrayAssign(irTableList_1.getIrName(name), to_string(i), irTableList_1.getTopTemIrName()));
+                    if (isGlobal) {
+                        auto* va = new vector<int>();
+                        for (auto i: *value) {
+                            if (i -> getConstType()) {
+                                va->push_back(((ConstValue*)i) -> getValue());
+                            } else
+                                va->push_back(0);
+                        }
+                        IR_1.add(new IrArrayDefineWithAssign(Const, irName, size, va));
+                        for (int i = 0; i < (*value).size(); ++ i) {
+                            if (!(*value)[i]-> getConstType()) {
+                                (*value)[i] -> traversal();
+                                IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
+                            }
+                        }
+                    } else {
+                        IR_1.add(new IrArrayDefineWithOutAssign(Const, irName, to_string(size)));
+                        for (int i = 0; i < (*value).size(); ++ i) {
+                            (*value)[i] -> traversal();
+                            IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
+                        }
                     }
-                }
+                } else
+                    IR_1.add(new IrArrayDefineWithOutAssign(Const, irName, to_string(size)));
             }
         }
 

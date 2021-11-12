@@ -37,4 +37,52 @@ enum ClassType{
     NullStmtType
 };
 
+enum IrType{
+    IrBinaryOpType,
+    IrUnaryOpType,
+    IrLabelLineType,
+    IrFunDefineType,
+    IrParaDefineType,
+    IrPushVariableType,
+    IrPushArrayType,
+    IrCallFunctionType,
+    IrReturnStmtType,
+    IrReturnValStmtType,
+    IrVarDefineWithAssignType,
+    IrVarDefineWithOutAssignType,
+    IrCmpStmtType,
+    IrBranchStmtType,
+    IrGotoStmtType,
+    IrArrayDefineWithOutAssignType,
+    IrArrayDefineWithAssignType,
+    IrArrayAssignType,
+    IrArrayGetType,
+    IrReadIntegerType,
+    IrPrintIntegerType,
+    IrPrintStringType,
+    IrNumberAssignType,
+    IrFunEndType,
+    IrExitType
+};
+
+enum MipsType{
+    MipsAddType,
+    MipsAddIType,
+    MipsMulType,
+    MipsMFType,
+    MipsLoadType,
+    MipsStoreType,
+    MipsLabelType,
+    MIpsStringDefType,
+    MipsGlobalVarDefType,
+    MipsBranchType,
+    MipsJLabelType,
+    MipsJRegisterType,
+    MipsLiType,
+    MipsLaType,
+    MipsSyscallType,
+    MipsNoteType,
+    MipsSegmentType
+};
+
 #endif //COMPILER_TYPE_H

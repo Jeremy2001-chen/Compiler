@@ -37,10 +37,10 @@ public:
 
     }
     void traversal() override {
-        for (auto var: declList) {
+        for (auto var: declList)
             var->traversal();
-        }
-        IR_1.add(new IrCallFunction("main"));
+        IR_1.setGlobalDeclEnd();
+        IR_1.add(new IrCallFunction("main", 0));
         IR_1.add(new IrExit());
         for (auto fun: funList) {
             fun->traversal();

@@ -11,7 +11,8 @@
 
 class IR {
 private:
-    list <IrCode*> irList;
+    vector <IrCode*> irList;
+    int globalDeclEnd;
 public:
     IR() = default;
     string toString() {
@@ -23,8 +24,26 @@ public:
     }
 
     void add(IrCode* irCode) {
+#ifdef DEBUG
         cout << "New line~~~~~~~: " << irCode->toString() << endl;
+#endif
         irList.push_back(irCode);
+    }
+
+    void setGlobalDeclEnd() {
+        globalDeclEnd = (int)irList.size();
+    }
+
+    int getGlobalDeclEnd() const {
+        return globalDeclEnd;
+    }
+
+    vector <IrCode*>* getIrList() {
+        return &irList;
+    }
+
+    int getIrSize() {
+        return (int)irList.size();
     }
 };
 

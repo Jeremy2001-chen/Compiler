@@ -79,8 +79,8 @@ public:
         cond[0]->traversal();
         string con = irTableList_1.getTopTemIrName();;
         string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
-        IR_1.add(new IrCmpStmt(con, "%0"));
-        IR_1.add(new IrBranchStmt("beq", br1));
+        //IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", con, "%0", br1));
         tran[0]->traversal();
         IR_1.add(new IrGotoStmt(br2));
         IR_1.add(new IrLabelLine(br1));
@@ -111,8 +111,8 @@ public:
         IR_1.add(new IrLabelLine(loop_begin));
         cond -> traversal();
         string con = irTableList_1.getTopTemIrName();;
-        IR_1.add(new IrCmpStmt(con, "%0"));
-        IR_1.add(new IrBranchStmt("beq", loop_end));
+        //IR_1.add(new IrCmpStmt(con, "%0"));
+        IR_1.add(new IrBranchStmt("beq", con, "%0", loop_end));
         block -> traversal();
         IR_1.add(new IrGotoStmt(loop_begin));
         IR_1.add(new IrLabelLine(loop_end));
@@ -225,15 +225,18 @@ public:
 
     }
     void traversal() override {
-        for (int i = 0; i < (int)form.size(); ++ i) {
-            if (!form[i].empty()) {
-                IR_1.add(new IrPrintString(form[i]));
-            }
+        vector<IrCode*> temp;
+        for (int i = (int)form.size() - 1; i >= 0; -- i) {
             if (i < (int)(*exp).size()) {
                 (*exp)[i]->traversal();
-                IR_1.add(new IrPrintInteger(irTableList_1.getTopTemIrName()));
+                temp.push_back(new IrPrintInteger(irTableList_1.getTopTemIrName()));
+            }
+            if (!form[i].empty()) {
+                temp.push_back(new IrPrintString(form[i]));
             }
         }
+        for (int i = (int)temp.size() - 1; i >= 0; -- i)
+            IR_1.add(temp[i]);
     }
     Node* optimize() override {
         return this;

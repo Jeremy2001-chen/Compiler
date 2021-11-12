@@ -201,7 +201,7 @@ private:
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
-                                        valueList, type, true, currentLine);
+                                        valueList, type, true, currentLine, symbolTable.getLayer() == 0);
 
         addLine("<ConstDef>");
         return variableDecl;
@@ -348,7 +348,7 @@ private:
 
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
-                                        valueList, type, false, currentLine);
+                                        valueList, type, false, currentLine, symbolTable.getLayer() == 0);
         addLine("<VarDef>");
         return variableDecl;
     }
@@ -440,7 +440,7 @@ private:
         for (auto &para: (*param)) {
             //cout << "param: " << para->getName() << endl;
             VariableDecl* variableDecl = new VariableDecl(para->getName(), nullptr, para->getOffset(), nullptr,
-                                                          para->getType(), para->getConstType(), para->getLine());
+                                                          para->getType(), para->getConstType(), para->getLine(), symbolTable.getLayer() == 0);
             symbolTable.insertVarTable(para->getName(), variableDecl, para->getConstType(), para->getLine());
         }
         Block* block = checkBlock();
@@ -451,6 +451,8 @@ private:
             free(fun);
             return nullptr;
         }
+
+        block->addBlockItem(new ReturnStmt());
         fun->setBlock(block);
 
         if (fun->getType() != -1) {
@@ -1003,36 +1005,39 @@ private:
 
         /* calculate the offset */
         Node* offset = nullptr, *setValue = nullptr;
-        if ((int)addList.size() == 0) {
-            offset = new Number(0);
-            setValue = table ? ((VariableDecl*)table->getAstNode())->getPosValue(0) : nullptr;
-        }
-        else if((int)addList.size() == 1) {
-            offset = addList[0];
-            if (table && offset->getConstType() && offset->getSize() == 1) {
-                Number* number = (Number*)offset;
-                setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
-            }
-        }
-        else {
-            Node* defOffset = table ? ((VariableDecl*)table->getAstNode())->getOffsetTree() : new Number(0);
-            MulExp* mulExp = new MulExp("*");
-            mulExp->setLch(addList[0]);
-            mulExp->setRch(defOffset);
-            AddExp* addExp = new AddExp("+");
-            addExp->setLch(mulExp->optimize());
-            addExp->setRch(addList[1]);
-            offset = addExp->optimize();
-            if (table && offset->getConstType() && offset->getSize() == 1) {
-                cout << "R: " << name << " " << ((Number*)defOffset) -> getValue() << " " << ((VariableDecl*)table->getAstNode())->getOffsetTree() << endl;
-                Number* number = (Number*)offset;
-                setValue = ((VariableDecl*)table->getAstNode())->getPosValue(number->getValue());
+        if (table) {
+            VariableDecl* defVal = (VariableDecl*)table->getAstNode();
+            if (defVal -> getType() == 2) {
+                Node* defOffset = defVal -> getOffsetTree();
+                MulExp* mulExp = new MulExp("*");
+                mulExp->setLch((int)addList.size() == 0 ? new Number(0) : addList[0]);
+                mulExp->setRch(defOffset);
+                AddExp* addExp = new AddExp("+");
+                addExp->setLch(mulExp->optimize());
+                addExp->setRch((int)addList.size() == 2 ? addList[1] : new Number(0));
+                offset = addExp->optimize();
+                if (offset->getConstType() && offset->getSize() == 1) {
+                    Number* number = (Number*)offset;
+                    if ((int)addList.size() == 2)
+                        setValue = defVal -> getPosValue(number->getValue());
+                    offset = number;
+                } else
+                    constFlag = false;
+            } else if (defVal -> getType() == 1) {
+                offset = (int)addList.size() == 0 ? new Number(0) : addList[0];
+                if (offset->getConstType() && offset->getSize() == 1) {
+                    Number* number = (Number*)offset;
+                    if ((int)addList.size() == 1)
+                        setValue = defVal -> getPosValue(number->getValue());
+                    offset = number;
+                } else
+                    constFlag = false;
             } else {
-                constFlag = false;
+                offset = new Number(0);
+                setValue = defVal -> getPosValue(0);
             }
         }
 
-        cout << name << " " << offset << endl;
         Variable* variable = new Variable(name, offset, beginType-(int)addList.size(), setValue, constFlag, beginType > 0);
         addLine("<LVal>");
         return variable;

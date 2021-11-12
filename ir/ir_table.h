@@ -77,7 +77,7 @@ public:
         auto it = nameCount.find(_name);
         if (it == nameCount.end()) {
             nameCount[_name] = 1;
-            irName = (layer == 0 ? "@" : "%") + _name;
+            irName = (layer == 0 ? "@" : "%") + _name + "_0";
         } else {
             irName = (layer == 0 ? "@" : "%") + _name + "_" + to_string(nameCount[_name]);
             nameCount[_name] ++;
@@ -119,7 +119,7 @@ public:
     }
 
     string allocBranch() {
-        string branchName = to_string(branchNumber) + "_branch";
+        string branchName = "_branch__" + to_string(branchNumber) + "_chenjiyuan";
         branchNumber += 1;
         return branchName;
     }
@@ -129,7 +129,7 @@ public:
     }
 
     string allocLoop() {
-        string loopName = to_string(loopNumber) + "_loop";
+        string loopName = "_loop__" + to_string(loopNumber) + "_chenjiyuan";
         loopStack.push_back(loopName);
         loopNumber += 1;
         return loopName;
