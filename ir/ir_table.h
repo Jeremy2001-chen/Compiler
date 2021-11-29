@@ -119,7 +119,11 @@ public:
     }
 
     string allocBranch() {
+#ifdef Debug
         string branchName = "_branch__" + to_string(branchNumber) + "_chenjiyuan";
+#else
+        string branchName = "_branch__" + to_string(branchNumber) + "";
+#endif
         branchNumber += 1;
         return branchName;
     }
@@ -129,7 +133,11 @@ public:
     }
 
     string allocLoop() {
+#ifdef Debug
         string loopName = "_loop__" + to_string(loopNumber) + "_chenjiyuan";
+#else
+        string loopName = "_loop__" + to_string(loopNumber) + "";
+#endif
         loopStack.push_back(loopName);
         loopNumber += 1;
         return loopName;

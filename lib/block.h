@@ -107,14 +107,26 @@ public:
 
     }
     void traversal() override {
-        string loop = irTableList_1.allocLoop(), loop_begin = loop + "_begin", loop_end = loop + "_end";
+        /*string loop = irTableList_1.allocLoop(), loop_begin = loop + "_begin", loop_end = loop + "_end";
         IR_1.add(new IrLabelLine(loop_begin));
         cond -> traversal();
-        string con = irTableList_1.getTopTemIrName();;
+        string con = irTableList_1.getTopTemIrName();
         //IR_1.add(new IrCmpStmt(con, "%0"));
         IR_1.add(new IrBranchStmt("beq", con, "%0", loop_end));
         block -> traversal();
         IR_1.add(new IrGotoStmt(loop_begin));
+        IR_1.add(new IrLabelLine(loop_end));
+        irTableList_1.popLoop();*/
+        string loop = irTableList_1.allocLoop(), loop_begin = loop + "_begin", loop_middle = loop + "_middle", loop_end = loop + "_end";
+        cond -> traversal();
+        string con = irTableList_1.getTopTemIrName();
+        IR_1.add(new IrBranchStmt("beq", con, "%0", loop_end));
+        IR_1.add(new IrLabelLine(loop_begin));
+        block -> traversal();
+        IR_1.add(new IrLabelLine(loop_middle));
+        cond -> traversal();
+        con = irTableList_1.getTopTemIrName();
+        IR_1.add(new IrBranchStmt("bne", con, "%0", loop_begin));
         IR_1.add(new IrLabelLine(loop_end));
         irTableList_1.popLoop();
     }
@@ -150,7 +162,7 @@ public:
     }
     void traversal() override {
         string loop = irTableList_1.getTopLoop();
-        IR_1.add(new IrGotoStmt(loop + "_begin"));
+        IR_1.add(new IrGotoStmt(loop + "_middle"));
     }
     Node* optimize() override {
         return this;
