@@ -105,20 +105,28 @@ public:
         cout << "FunF check correct!" << endl;
     }
     void traversal() override {
-        IR_1.add(new IrLabelLine(name));
-        IR_1.add(new IrFunDefine(type == -1 ? "void": "int", to_string((*param).size()), name));
-        irTableList_1.setBlock(1);
-        for (int i = (int)((*param).size()) - 1 ; i >= 0; -- i)
-            (*param)[i] -> traversal();
-        irTableList_1.setBlock(-1);
-        IR_1.add(new IrParaDefine("reg", "$ra"));
-        funBlock->traversal();
-        IR_1.add(new IrFunEnd((*param).size()));
-        /*cout << "Function : " << name << endl;
-        for (auto para: param) {
-            para.traversal();
+        if (name == "main") {
+            IR_1.add(new IrLabelLine(name));
+            IR_1.add(new IrFunDefine(type == -1 ? "void": "int", to_string((*param).size()), name));
+            irTableList_1.setBlock(1);
+            funBlock->traversalMainFun();
+            IR_1.add(new IrFunEnd(0));
+        } else {
+            IR_1.add(new IrLabelLine(name));
+            IR_1.add(new IrFunDefine(type == -1 ? "void": "int", to_string((*param).size()), name));
+            irTableList_1.setBlock(1);
+            for (int i = (int)((*param).size()) - 1 ; i >= 0; -- i)
+                (*param)[i] -> traversal();
+            irTableList_1.setBlock(-1);
+            IR_1.add(new IrParaDefine("reg", "$ra"));
+            funBlock->traversal();
+            IR_1.add(new IrFunEnd((*param).size()));
+            /*cout << "Function : " << name << endl;
+            for (auto para: param) {
+                para.traversal();
+            }
+            funBlock.traversal();*/
         }
-        funBlock.traversal();*/
     }
     static string typeChange(int _type) {
         if (_type == -1)

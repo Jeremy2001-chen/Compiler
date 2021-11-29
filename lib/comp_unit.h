@@ -40,12 +40,10 @@ public:
         for (auto var: declList)
             var->traversal();
         IR_1.setGlobalDeclEnd();
-        IR_1.add(new IrCallFunction("main", 0));
-        IR_1.add(new IrExit());
+        mainFun->traversal();
         for (auto fun: funList) {
             fun->traversal();
         }
-        mainFun->traversal();
     }
     Node* optimize() override {
         return this;

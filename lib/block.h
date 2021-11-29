@@ -52,6 +52,16 @@ public:
             blockIt->traversal();
         irTableList_1.popBlock();
     }
+    void traversalMainFun() {
+        irTableList_1.intoBlock();
+        for (auto &blockIt: blockItem) {
+            if (blockIt->getClassType() == ReturnStmtType)
+                IR_1.add(new IrExit());
+            else
+                blockIt->traversal();
+        }
+        irTableList_1.popBlock();
+    }
     Node* optimize() override {
         return this;
     }
