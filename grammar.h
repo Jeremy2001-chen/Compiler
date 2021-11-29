@@ -348,6 +348,7 @@ private:
             }
         }
 
+        cout << valueList << endl;
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, false, currentLine, symbolTable.getLayer() == 0);
@@ -360,7 +361,10 @@ private:
         Node* addExp = checkExp();
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
-            list->push_back(addExp);
+            if (globalVarDecl)
+                list -> push_back(new Number(((ConstValue*)addExp)->getValue()));
+            else
+                list->push_back(addExp);
             addLine("<InitVal>");
             return list;
         }
@@ -374,8 +378,12 @@ private:
         move();
         vector<Node*>* initValList = checkInitVal();
         if (initValList != nullptr)  {
-            for (auto &val: *initValList)
-                list->push_back(val);
+            for (auto &val: *initValList) {
+                if (globalVarDecl)
+                    list -> push_back(new Number(((ConstValue*)val)->getValue()));
+                else
+                    list->push_back(val);
+            }
             startIndex = wordIndex;
             while (startIndex < totalWord) { //','
                 if (!currentWord.checkType("COMMA")) { //','
@@ -387,8 +395,12 @@ private:
                     setIndex(startIndex);
                     break;
                 }
-                for (auto &val: *initValList)
-                    list->push_back(val);
+                for (auto &val: *initValList) {
+                    if (globalVarDecl)
+                        list -> push_back(new Number(((ConstValue*)val)->getValue()));
+                    else
+                        list->push_back(val);
+                }
                 startIndex = wordIndex;
             }
         }
