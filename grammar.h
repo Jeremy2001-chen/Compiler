@@ -348,7 +348,6 @@ private:
             }
         }
 
-        cout << valueList << endl;
         Node* offsetTree = (int)offsetList->size() == 0 ? nullptr : (*offsetList)[(int)offsetList->size()-1];
         variableDecl = new VariableDecl(name, offsetList, offsetTree,
                                         valueList, type, false, currentLine, symbolTable.getLayer() == 0);

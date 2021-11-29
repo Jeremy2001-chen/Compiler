@@ -52,36 +52,36 @@ public:
         mipsTable -> getRegFromMem("$t0", source[0]);
         mipsTable -> getRegFromMem("$t1", source[1]);
         if (sign == "+")
-            mipsOutput -> push_back(new MipsAdd("add", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("add", "$t0", "$t0", "$t1"));
         else if (sign == "-")
-            mipsOutput -> push_back(new MipsAdd("sub", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sub", "$t0", "$t0", "$t1"));
         else if (sign == "*") {
             mipsOutput -> push_back(new MipsMul("mult", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mflo", "$t2"));
+            mipsOutput -> push_back(new MipsMF("mflo", "$t0"));
         } else if (sign == "/") {
             mipsOutput -> push_back(new MipsMul("div", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mflo", "$t2"));
+            mipsOutput -> push_back(new MipsMF("mflo", "$t0"));
         } else if (sign == "%") {
             mipsOutput -> push_back(new MipsMul("div", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mfhi", "$t2"));
+            mipsOutput -> push_back(new MipsMF("mfhi", "$t0"));
         } else if (sign == "<") {
-            mipsOutput -> push_back(new MipsAdd("slt", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("slt", "$t0", "$t0", "$t1"));
         } else if (sign == ">") {
-            mipsOutput -> push_back(new MipsAdd("sgt", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sgt", "$t0", "$t0", "$t1"));
         } else if (sign == ">=") {
-            mipsOutput -> push_back(new MipsAdd("sge", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sge", "$t0", "$t0", "$t1"));
         } else if (sign == "<=") {
-            mipsOutput -> push_back(new MipsAdd("sle", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sle", "$t0", "$t0", "$t1"));
         } else if (sign == "==") {
-            mipsOutput -> push_back(new MipsAdd("seq", "$t2", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("seq", "$t0", "$t1", "$t0"));
         } else if (sign == "!=") {
-            mipsOutput -> push_back(new MipsAdd("sne", "$t2", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("sne", "$t0", "$t1", "$t0"));
         } else if (sign == "&&") {
-            mipsOutput -> push_back(new MipsAdd("and", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("and", "$t0", "$t0", "$t1"));
         } else if (sign == "||") {
-            mipsOutput -> push_back(new MipsAdd("or", "$t2", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("or", "$t0", "$t0", "$t1"));
         }
-        mipsTable -> setRegToMem("$t2", target);
+        mipsTable -> setRegToMem("$t0", target);
     }
 
     int defVar() override {
@@ -115,11 +115,11 @@ public:
         if (sign == "+") {
             mipsTable -> setRegToMem("$t0", target);
         } else if (sign == "-") {
-            mipsOutput -> push_back(new MipsAdd("sub", "$t1", "$0", "$t0"));
-            mipsTable -> setRegToMem("$t1", target);
+            mipsOutput -> push_back(new MipsAdd("sub", "$t0", "$0", "$t0"));
+            mipsTable -> setRegToMem("$t0", target);
         } else if (sign == "!") {
-            mipsOutput -> push_back(new MipsAddI("seq", "$t1", "$0", "$t0"));
-            mipsTable -> setRegToMem("$t1", target);
+            mipsOutput -> push_back(new MipsAddI("seq", "$t0", "$0", "$t0"));
+            mipsTable -> setRegToMem("$t0", target);
         }
     }
 
@@ -229,7 +229,6 @@ public:
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> getRegFromMem("$t0", name);
         int off = mipsTable -> getPushCnt();
-        cout << "push error: " << off << endl;
         mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)) , "$sp"));
     }
 
@@ -263,9 +262,9 @@ public:
             mipsOutput -> push_back(new MipsAddI("sll", "$t0", "$t0", "2"));
             tar = "$t0";
         }
-        mipsTable -> getRegFromAddress("$t1", name, tar);
+        mipsTable -> getRegFromAddress("$t0", name, tar);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", "$t1", to_string(-(off << 2)), "$sp"));
+        mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)), "$sp"));
     }
 
     int defVar() override {
@@ -612,6 +611,7 @@ public:
         return offset;
     }
 
+    //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> getRegFromMem("$t0", source);
@@ -644,6 +644,7 @@ public:
         return target + " = " + source + "[" + offset + "]";
     }
 
+    //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         if (offset[0] >= '0' && offset[0] <= '9')
