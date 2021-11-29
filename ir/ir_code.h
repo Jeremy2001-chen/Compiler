@@ -648,13 +648,14 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         if (offset[0] >= '0' && offset[0] <= '9')
-            mipsTable -> setRegToMem("$t0", target, to_string(atoi(offset.c_str()) << 2));
+            mipsTable -> getRegFromMem("$t0", source, offset);
         else {
             mipsTable -> getRegFromMem("$t1", offset);
             mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
             mipsTable -> getRegFromMem("$t0", source, "$t1");
         }
         mipsTable -> setRegToMem("$t0", target);
+        cout << toString() << endl;
     }
 
     int defVar() override {

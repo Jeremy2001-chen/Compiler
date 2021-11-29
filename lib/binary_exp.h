@@ -245,8 +245,13 @@ public:
         if (lch->getClassType() == VariableType && lch->getSize() == 1) {
             target = irTableList_1.getIrName(((Variable*)lch)->getName());
             if (((Variable*)lch)->getIsArray() != 0) {
-                ((Variable*)lch)->getOffsetTree()->traversal();
-                offset = irTableList_1.getTopTemIrName();
+                Node* offTree = ((Variable*)lch)->getOffsetTree();
+                if (offTree->getClassType() == NumberType) {
+                    offset = to_string(((Number*)offTree)->getValue());
+                } else {
+                    ((Variable*)lch)->getOffsetTree()->traversal();
+                    offset = irTableList_1.getTopTemIrName();
+                }
             }
         }
         else {
@@ -263,8 +268,13 @@ public:
             string rtName = irTableList_1.getIrName(rt -> getName());
             if (rt -> getIsArray()) {
                 Node* offset = rt -> getOffsetTree();
-                offset -> traversal();
-                string off = irTableList_1.getTopTemIrName();
+                string off;
+                if (offset -> getClassType() == NumberType) {
+                    off = to_string(((Number*)offset)->getValue());
+                } else {
+                    offset -> traversal();
+                    off = irTableList_1.getTopTemIrName();
+                }
                 IR_1.add(new IrArrayGet(tem, rtName, off));
             } else {
                 IR_1.add(new IrBinaryOp(tem, rtName, "+", "%0"));
@@ -273,7 +283,6 @@ public:
             rch -> traversal();
             IR_1.add(new IrBinaryOp(tem, irTableList_1.getTopTemIrName(), "+", "%0"));
         }
-
 
         if (!offset.empty()) {
             IR_1.add(new IrArrayAssign(target, offset, tem));

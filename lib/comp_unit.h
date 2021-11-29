@@ -15,6 +15,8 @@
 extern IR IR_1;
 extern IR IR_1;
 extern IrTableList irTableList_1;
+
+bool inMainFun = false;
 class CompUnit: public Node {
 private:
     vector<VariableDecl*> declList;
@@ -40,7 +42,9 @@ public:
         for (auto var: declList)
             var->traversal();
         IR_1.setGlobalDeclEnd();
+        inMainFun = true;
         mainFun->traversal();
+        inMainFun = false;
         for (auto fun: funList) {
             fun->traversal();
         }

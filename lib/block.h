@@ -52,16 +52,6 @@ public:
             blockIt->traversal();
         irTableList_1.popBlock();
     }
-    void traversalMainFun() {
-        irTableList_1.intoBlock();
-        for (auto &blockIt: blockItem) {
-            if (blockIt->getClassType() == ReturnStmtType)
-                IR_1.add(new IrExit());
-            else
-                blockIt->traversal();
-        }
-        irTableList_1.popBlock();
-    }
     Node* optimize() override {
         return this;
     }
@@ -179,6 +169,7 @@ public:
     }
 };
 
+extern bool inMainFun;
 class ReturnStmt: public Node {
 private:
     Node* returnExp;
@@ -197,11 +188,15 @@ public:
 
     }
     void traversal() override {
-        if (returnExp == nullptr) {
-            IR_1.add(new IrReturnStmt());
+        if (inMainFun) {
+            IR_1.add(new IrExit());
         } else {
-            returnExp->traversal();
-            IR_1.add(new IrReturnStmt(irTableList_1.getTopTemIrName()));
+            if (returnExp == nullptr) {
+                IR_1.add(new IrReturnStmt());
+            } else {
+                returnExp->traversal();
+                IR_1.add(new IrReturnStmt(irTableList_1.getTopTemIrName()));
+            }
         }
     }
     Node* optimize() override {

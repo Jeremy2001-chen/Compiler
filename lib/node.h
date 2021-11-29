@@ -36,7 +36,7 @@ public:
     void setType(int _type) {
         type = _type;
     }
-    int getSize() {
+    int getSize() const {
         return size;
     }
 };
