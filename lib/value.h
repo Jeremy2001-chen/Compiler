@@ -110,8 +110,14 @@ public:
             string var = irTableList_1.allocTem();
             IR_1.add(new IrBinaryOp(var, irName, "+", "%0"));
         } else {
-            offsetTree -> traversal();
-            string last = irTableList_1.getTopTemIrName(), var = irTableList_1.allocTem();
+            string last;
+            if (offsetTree->getClassType() == NumberType) {
+                last = to_string(((Number*)offsetTree)->getValue());
+            } else {
+                offsetTree -> traversal();
+                last = irTableList_1.getTopTemIrName();
+            }
+            string var = irTableList_1.allocTem();
             IR_1.add(new IrArrayGet(var, irName, last));
         }
     }
