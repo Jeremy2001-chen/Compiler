@@ -39,7 +39,7 @@ public:
     }
     virtual int op(int, int) = 0;
     Node* optimize() override {
-        if (!lch -> getConstType() || !rch -> getConstType())
+        if (!globalVarDecl && (!lch -> getConstType() || !rch -> getConstType()))
             return this;
         ConstValue* lchConst = (ConstValue*)lch, *rchConst = (ConstValue*)rch;
         Number* number = new Number(op(lchConst->getValue(), rchConst->getValue()));

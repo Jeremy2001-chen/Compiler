@@ -11,6 +11,8 @@
 #include "value.h"
 
 #define lch ch[0]
+extern bool globalVarDecl;
+
 class SingleExp: public Node {
 protected:
     Node* ch[1] = {nullptr};
@@ -36,7 +38,7 @@ public:
     }
     virtual int op(int) = 0;
     Node* optimize() override {
-        if (!lch -> getConstType())
+        if (!globalVarDecl && !lch -> getConstType())
             return this;
         ConstValue* lchConst = (ConstValue*)lch;
         Number* number = new Number(op(lchConst->getValue()));

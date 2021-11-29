@@ -659,6 +659,10 @@ public:
     int defVar() override {
         return mipsTable -> funInitStack(target, 1, false);
     }
+
+    string getTarget() {
+        return target;
+    }
 };
 
 class IrReadInteger: public IrCode {

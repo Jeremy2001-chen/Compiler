@@ -54,7 +54,8 @@ public:
                 string name = IRNameTran(var->getName());
                 mipsCode->push_back(new MipsGlobalVarDef(name, nullptr));
                 mipsTable->addGlobalTable(var->getName(), 4);
-            }
+            } else
+                cout << line << " " << code->getCodeType() << endl;
             line = line + 1;
             if (line >= globalDeclEnd)
                 break;
@@ -77,6 +78,13 @@ public:
                 }
             } else if (code->getCodeType() == IrUnaryOpType) {
                 IrUnaryOp* var = (IrUnaryOp*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrArrayGetType) {
+                IrArrayGet* var = (IrArrayGet*)code;
                 string name = IRNameTran(var->getTarget());
                 if (name[0] >= '0' && name[0] <= '9') {
                     count ++;

@@ -13,6 +13,7 @@
 #include "node.h"
 
 extern IR IR_1;
+extern bool globalVarDecl;
 
 class ConstValue: public Node{
 protected:
@@ -197,6 +198,7 @@ public:
                 if (!value->empty()) {
                     if (isGlobal) {
                         auto* va = new vector<int>();
+                        /*
                         for (auto i: *value) {
                             if (i -> getConstType()) {
                                 va->push_back(((ConstValue*)i) -> getValue());
@@ -210,6 +212,11 @@ public:
                                 IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
                             }
                         }
+                        */
+                        for (auto i: *value) {
+                            va->push_back(((Number*)i) -> getValue());
+                        }
+                        IR_1.add(new IrArrayDefineWithAssign(Const, irName, size, va));
                     } else {
                         IR_1.add(new IrArrayDefineWithOutAssign(Const, irName, to_string(size)));
                         for (int i = 0; i < (*value).size(); ++ i) {

@@ -17,6 +17,7 @@
 #include "error.h"
 
 extern Output output;
+bool globalVarDecl = false;
 
 class Grammar{
 private:
@@ -51,6 +52,7 @@ private:
 
     CompUnit* checkCompUnit(){
         CompUnit* compUnit = new CompUnit();
+        globalVarDecl = true;
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             DeclStmt* variableDeclList = checkDecl();
@@ -63,7 +65,7 @@ private:
                 break;
             }
         }
-
+        globalVarDecl = false;
         while (startIndex < totalWord) {
             FunF* funF = checkFuncDef();
             if (funF != nullptr) {
