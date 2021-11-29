@@ -184,10 +184,14 @@ public:
                     /*(*value)[0] -> traversal();
                     string tem = irTableList_1.getTopTemIrName();
                     IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));*/
-                    IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
-                    (*value)[0] -> traversal();
-                    string tem = irTableList_1.getTopTemIrName();
-                    IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
+                    if ((*value)[0]->getClassType() == NumberType) {
+                        IR_1.add(new IrVarDefineWithAssign(Const, irName, ((Number*)(*value)[0])->getValue()));
+                    } else {
+                        IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
+                        (*value)[0] -> traversal();
+                        string tem = irTableList_1.getTopTemIrName();
+                        IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
+                    }
                 }
             } else {
                 if (!value->empty()) {

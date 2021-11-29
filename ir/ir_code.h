@@ -370,6 +370,13 @@ public:
         codeType = IrVarDefineWithAssignType;
     }
 
+    IrVarDefineWithAssign(bool _is, string _na, int _va) {
+        isConst = _is;
+        name = std::move(_na);
+        value = to_string(_va);
+        codeType = IrVarDefineWithAssignType;
+    }
+
     string toString() override {
         string tmp = (isConst ? "const " : "");
         return tmp + "var int " + name + " = " + value;
