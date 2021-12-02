@@ -29,7 +29,7 @@ public:
     }
 
     void init_data() {
-        cout << globalDeclEnd << endl;
+        //cout << globalDeclEnd << endl;
         mipsCode->push_back(new MipsSegment("data"));
         int line = 0, count = 0;
         for (auto code: *irList) {
@@ -55,7 +55,8 @@ public:
                 mipsCode->push_back(new MipsGlobalVarDef(name, nullptr));
                 mipsTable->addGlobalTable(var->getName(), 4);
             } else
-                cout << line << " " << code->getCodeType() << endl;
+                ;
+                //cout << line << " " << code->getCodeType() << endl;
             line = line + 1;
             if (line >= globalDeclEnd)
                 break;

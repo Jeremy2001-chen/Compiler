@@ -41,7 +41,7 @@ public:
     }
 
     void link(int s, int t) {
-        //cout << "link : " << s << " " << t << endl;
+        cout << "link : " << s << " " << t << endl;
         edges[s] -> push_back(t);
     }
 
@@ -102,7 +102,34 @@ public:
             bfs(i);
         for (int i = 0; i < point; ++ i)
             getDF(i);
-        //debug();
+        debug();
+    }
+
+    vector<int>* getPhi(vector<int>* block) {
+        for (int i = 0; i < point; ++ i)
+            flag[i] = false;
+        queue<int> Q;
+        vector<int>* ans = new vector<int>();
+        for (auto b: *block) {
+            for (auto c: (*df[b])) {
+                if (!flag[c]) {
+                    Q.push(c);
+                    ans->push_back(c);
+                    flag[c] = true;
+                }
+            }
+        }
+        while (!Q.empty()) {
+            int now = Q.front(); Q.pop();
+            for (auto c: (*df[now])) {
+                if (!flag[c]) {
+                    Q.push(c);
+                    ans->push_back(c);
+                    flag[c] = true;
+                }
+            }
+        }
+        return ans;
     }
 };
 #endif //COMPILER_GRAPH_H

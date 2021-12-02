@@ -24,9 +24,17 @@ public:
             MyList* run = fStmt;
             for (int i = 1; i < (*codes).size(); ++ i) {
                 eStmt = new MyList((*codes)[i]);
-                run->setNext(eStmt);
+                run -> linkNext(eStmt);
                 run = eStmt;
             }
+        }
+        MyList* start = fStmt;
+        while (start != nullptr) {
+            IrCode* code = start->getCode();
+            string target = code->getTarget();
+            if (!target.empty())
+                names.insert(target);
+            start = start->getNext();
         }
     }
 
@@ -38,6 +46,20 @@ public:
             start = start->getNext();
         }
         return ret;
+    }
+
+    set<string>* getNameSet() {
+        return &names;
+    }
+
+    void addIrCode(IrCode* irCode) {
+        MyList* list = new MyList(irCode);
+        if (fStmt == nullptr) {
+            eStmt = fStmt = list;
+        } else {
+            eStmt -> linkNext(list);
+            list = eStmt;
+        }
     }
 };
 
@@ -51,6 +73,8 @@ private:
     vector<int> belong;
     vector<int> endBlocks;
     string name;
+
+    map<string, int> funNames;
 
     Graph* graph;
 public:
@@ -139,6 +163,45 @@ public:
             graph->link(c, N - 1);
 
         graph->ssaInit();
+
+        for (int i = 0; i < N; ++ i) {
+            auto* set = (*blocks)[i]->getNameSet();
+            for (const auto& value: *set) {
+                if (funNames.find(value) == funNames.end()) {
+                    funNames[value] = 1;
+                } else {
+                    funNames[value] = funNames[value] + 1;
+                }
+            }
+        }
+
+        for (auto it = funNames.begin(); it != funNames.end(); ) {
+            if (it -> second == 1)
+                funNames.erase(it++);
+            else
+                it++;
+        }
+
+        /*
+        for (auto it = funNames.begin(); it != funNames.end(); it++) {
+            cout << "var: " << (*it).first << endl;
+        }
+         */
+
+        for (auto it = funNames.begin(); it != funNames.end(); it++) {
+            string var = (*it).first;
+            vector<int>* tem = new vector<int>();
+            for (int i = 0; i < N; ++ i) {
+                auto* set = (*blocks)[i]->getNameSet();
+                if (set -> find(var) != set -> end())
+                    tem -> push_back(i);
+            }
+            vector<int>* result = graph -> getPhi(tem);
+            for (auto c: *result) {
+                IrPhi* phi = new IrPhi(var);
+                (*blocks)[c] -> addIrCode(phi);
+            }
+        }
     }
 
     void test() {

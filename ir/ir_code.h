@@ -32,6 +32,12 @@ public:
     string getTarget() const {
         return target;
     }
+    void setTarget(string _tar) {
+        target = std::move(_tar);
+    }
+    void setSource(string _so, int index) {
+        source[index] = std::move(_so);
+    }
 };
 
 class IrBinaryOp: public IrCode {
@@ -668,7 +674,7 @@ public:
             mipsTable -> getRegFromMem("$t0", source[0], "$t1");
         }
         mipsTable -> setRegToMem("$t0", target);
-        cout << toString() << endl;
+        //cout << toString() << endl;
     }
 
     int defVar() override {
@@ -809,20 +815,56 @@ public:
     }
 };
 
-        class IrExit: public IrCode {
-        public:
-            IrExit() {
-                codeType = IrExitType;
-            }
+class IrExit: public IrCode {
+public:
+    IrExit() {
+        codeType = IrExitType;
+    }
 
-            string toString() override {
-                return "exit";
+    string toString() override {
+        return "exit";
     }
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsOutput -> push_back(new MipsLi("li", "$v0", to_string(10)));
         mipsOutput -> push_back(new MipsSyscall());
+    }
+
+    int defVar() override {
+        return 0;
+    }
+};
+
+class IrPhi: public IrCode {
+private:
+    string name;
+    vector<string>* from;
+public:
+    IrPhi(string _name) {
+        codeType = IrPhiType;
+        name = std::move(_name);
+        target = name;
+        from = new vector<string>();
+    }
+
+    void putVar(string var) {
+        from -> push_back(var);
+    }
+
+    void toMips() override {
+
+    }
+
+    string toString() override {
+        string ret = target + " = Fai(";
+        if (from -> size() > 0) {
+            ret = ret + (*from)[0];
+            for (int i = 1; i < from -> size(); ++ i)
+                ret = ret + ", " + (*from)[i];
+        }
+        ret += ")";
+        return ret;
     }
 
     int defVar() override {
