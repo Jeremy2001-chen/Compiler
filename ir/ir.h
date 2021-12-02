@@ -5,13 +5,14 @@
 #ifndef COMPILER_IR_H
 #define COMPILER_IR_H
 
-#include <list>
 #include <cstring>
 #include "ir_code.h"
+#include "ir_fun.h"
+#include "../list/mylist.h"
 
 class IR {
 private:
-    vector <IrCode*> irList;
+    vector <IrCode*> irList; //origin IR code
     int globalDeclEnd;
 public:
     IR() = default;
@@ -47,4 +48,38 @@ public:
     }
 };
 
+class IrNew {
+private:
+    vector <IrCode*> irDecl;
+    vector <IrFun*> irFun;
+public:
+    IrNew(IR* ir) {
+        vector <IrCode*>* list = ir -> getIrList();
+        int decl = ir -> getGlobalDeclEnd();
+        vector<IrCode*> *funCode = nullptr;
+        for (int i = decl; i < (*list).size(); ++ i) {
+            if (((*list)[i]) -> getCodeType() == IrFunDefineType) {
+                if (funCode != nullptr) {
+                    IrFun* fun = new IrFun(funCode);
+                    irFun.push_back(fun);
+                    funCode = new vector<IrCode*>();
+                } else
+                    funCode = new vector<IrCode*>();
+            }
+            (*funCode).push_back((*list)[i]);
+        }
+        if (funCode != nullptr) {
+            IrFun* fun = new IrFun(funCode);
+            irFun.push_back(fun);
+        }
+    }
+
+    string toString() {
+        string ret;
+        for (auto a: irFun) {
+            ret += a -> toString() + "\n";
+        }
+        return ret;
+    }
+};
 #endif //COMPILER_IR_H

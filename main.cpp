@@ -45,9 +45,11 @@ int main() {
     print(IR_1.toString(), iout);
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
-    mips = new Mips(IR_1, mipsTable, mipsOutput);
+    IrNew *irNew = new IrNew(&IR_1);
+    print(irNew -> toString(), iout);
+    //mips = new Mips(IR_1, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());
-    print(mipsOutput -> toString(), mout);
+    //print(mipsOutput -> toString(), mout);
     return 0;
 }

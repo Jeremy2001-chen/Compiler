@@ -105,8 +105,8 @@ public:
         cout << "FunF check correct!" << endl;
     }
     void traversal() override {
-        IR_1.add(new IrLabelLine(name));
         IR_1.add(new IrFunDefine(type == -1 ? "void": "int", to_string((*param).size()), name));
+        IR_1.add(new IrLabelLine(name));
         irTableList_1.setBlock(1);
         for (int i = (int)((*param).size()) - 1 ; i >= 0; -- i)
             (*param)[i] -> traversal();

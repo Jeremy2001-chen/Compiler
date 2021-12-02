@@ -153,6 +153,10 @@ public:
     int defVar() override {
         return 0;
     }
+
+    string getLabel() const {
+        return label;
+    }
 };
 
 class IrFunDefine: public IrCode {
@@ -182,6 +186,10 @@ public:
 
     int defVar() override {
         return 0;
+    }
+
+    string getName() const {
+        return name;
     }
 };
 
@@ -482,6 +490,10 @@ public:
     int defVar() override {
         return 0;
     }
+
+    string getLabel() const {
+        return label;
+    }
 };
 
 class IrGotoStmt: public IrCode {
@@ -504,6 +516,10 @@ public:
 
     int defVar() override {
         return 0;
+    }
+
+    string getLabel() const {
+        return label;
     }
 };
 
