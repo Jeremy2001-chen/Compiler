@@ -13,6 +13,7 @@
 class IrBlock {
 private:
     vector<IrCode*>* codes;
+    set<string> names;
     MyList* fStmt, *eStmt;
 public:
     IrBlock(vector<IrCode*>* _code) {

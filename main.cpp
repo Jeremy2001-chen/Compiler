@@ -47,10 +47,10 @@ int main() {
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
     IrNew *irNew = new IrNew(&IR_1);
-    print(irNew -> toString(), nout);
-    //mips = new Mips(IR_1, mipsTable, mipsOutput);
+    //print(irNew -> toString(), nout);
+    mips = new Mips(IR_1, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());
-    //print(mipsOutput -> toString(), mout);
+    print(mipsOutput -> toString(), mout);
     return 0;
 }

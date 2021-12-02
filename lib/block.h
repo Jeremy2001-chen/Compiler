@@ -77,7 +77,7 @@ public:
     }
     void traversal() override {
         cond[0]->traversal();
-        string con = irTableList_1.getTopTemIrName();;
+        string con = irTableList_1.getTopTemIrName();
         string br1 = irTableList_1.allocBranch(), br2 = irTableList_1.allocBranch();
         //IR_1.add(new IrCmpStmt(con, "%0"));
         IR_1.add(new IrBranchStmt("beq", con, "%0", br1));

@@ -149,7 +149,7 @@ public:
     }
 
     void addGlobalTable(const string& name, int size) {
-        cout << "global : " << name << " " << data << endl;
+        //cout << "global : " << name << " " << data << endl;
         table.emplace_back(name, layer, data, 0, false);
         data += size;
     }
@@ -227,7 +227,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name) {
         int index = checkTable(name);
-        cout << "set var: " << name << endl;
+        //cout << "set var: " << name << endl;
         if (index == -1)
             exit(333);
         if (getTabelItemTem(index)) {
@@ -240,7 +240,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name, const string& offset) {
         int index = checkTable(name);
-        cout << "set arr: " << name << " " << offset << endl;
+        //cout << "set arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(444);
         if (table[index].getTemporary()) {

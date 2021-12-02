@@ -120,8 +120,9 @@ public:
                     code->toMips();
             } else {
                 if (code->getCodeType() == IrFunDefineType) {
+                    (*irList)[i+1]->toMips();
                     code->toMips();
-                    int j = i + 1, spMove = 0;
+                    int j = i + 2, spMove = 0;
                     //cout << "Fun: " << i << endl;
                     while (j < (*irList).size()) {
                         IrCode* codeN = (*irList)[j];
@@ -133,6 +134,7 @@ public:
                     }
                     mipsOutput -> push_back(new MipsAddI("subi", "$sp", "$sp", to_string(spMove)));
                     mipsTable -> setStack(spMove);
+                    i ++;
                 } else
                     code->toMips();
             }
