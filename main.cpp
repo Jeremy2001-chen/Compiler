@@ -14,6 +14,7 @@ ofstream fout("output.txt");
 ofstream eout("error.txt");
 ofstream iout("ir.txt");
 ofstream mout("mips.txt");
+ofstream nout("ir_new.txt");
 
 Output output;
 string input;
@@ -46,7 +47,7 @@ int main() {
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
     IrNew *irNew = new IrNew(&IR_1);
-    print(irNew -> toString(), iout);
+    print(irNew -> toString(), nout);
     //mips = new Mips(IR_1, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());

@@ -136,6 +136,8 @@ public:
             graph->link(i, i + 1);
         for (auto c: endBlocks)
             graph->link(c, N - 1);
+
+        graph->ssaInit();
     }
 
     void test() {
