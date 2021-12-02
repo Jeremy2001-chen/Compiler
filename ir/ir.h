@@ -48,12 +48,14 @@ public:
     }
 };
 
+map <string, int> globalNameCount; //for ssa to rename
 class IrNew {
 private:
     vector <IrCode*> irDecl;
     vector <IrFun*> irFun;
 public:
     IrNew(IR* ir) {
+        globalNameCount.clear();
         vector <IrCode*>* list = ir -> getIrList();
         int decl = ir -> getGlobalDeclEnd();
         vector<IrCode*> *funCode = nullptr;

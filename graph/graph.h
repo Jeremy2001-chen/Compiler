@@ -131,5 +131,9 @@ public:
         }
         return ans;
     }
+
+    vector<int>* getOutBlock(int x) {
+        return edges[x];
+    }
 };
 #endif //COMPILER_GRAPH_H

@@ -10,15 +10,22 @@
 #include "../list/mylist.h"
 #include "../graph/graph.h"
 
+extern map<string, int> globalNameCount;
+
 class IrBlock {
 private:
     vector<IrCode*>* codes;
-    set<string> names;
+    set<string>* names;
     MyList* fStmt, *eStmt;
+    map<string, string>* finalNames;
+    map<string, MyList*>* paiList;
 public:
     IrBlock(vector<IrCode*>* _code) {
         fStmt = eStmt = nullptr;
         codes = _code;
+        paiList = new map<string, MyList*>();
+        finalNames = new map<string, string>();
+        names = new set<string>();
         if (!(*codes).empty()) {
             fStmt = new MyList((*codes)[0]);
             MyList* run = fStmt;
@@ -33,7 +40,7 @@ public:
             IrCode* code = start->getCode();
             string target = code->getTarget();
             if (!target.empty())
-                names.insert(target);
+                names -> insert(target);
             start = start->getNext();
         }
     }
@@ -49,17 +56,70 @@ public:
     }
 
     set<string>* getNameSet() {
-        return &names;
+        return names;
     }
 
-    void addIrCode(IrCode* irCode) {
+    void addIrCodeBack(IrCode* irCode) {
         MyList* list = new MyList(irCode);
         if (fStmt == nullptr) {
             eStmt = fStmt = list;
         } else {
             eStmt -> linkNext(list);
-            list = eStmt;
+            eStmt = list;
         }
+        if (irCode->getCodeType() == IrPhiType) {
+            (*paiList)[irCode->getTarget()] = list;
+        }
+    }
+
+    void addIrCodeFront(IrCode* irCode) {
+        MyList* list = new MyList(irCode);
+        if (fStmt == nullptr) {
+            eStmt = fStmt = list;
+        } else {
+            list -> linkNext(fStmt);
+            fStmt = list;
+        }
+        if (irCode->getCodeType() == IrPhiType) {
+            (*paiList)[irCode->getTarget()] = list;
+        }
+    }
+
+    void ssaReName() {
+        MyList* start = fStmt;
+        while (start != nullptr) {
+            IrCode* code = start->getCode();
+            for (int i = 0; i < 2; ++ i) {
+                string sc = code->getSource(i);
+                if (sc.empty() || sc == "%0" || sc[0] == '@') continue;
+                if (globalNameCount.find(sc) == globalNameCount.end()) {
+                    cout << "error in IR, can't find : " << sc << endl;
+                    exit(7654321);
+                }
+                int cnt = globalNameCount[sc];
+                string newName = sc + "_" + to_string(cnt);
+                code->setSource(i, newName);
+            }
+            string target = code->getTarget();
+            if (!target.empty() && target[0] != '@') {
+                if (globalNameCount.find(target) == globalNameCount.end())
+                    globalNameCount[target] = 1;
+                else
+                    globalNameCount[target] = globalNameCount[target] + 1;
+                int cnt = globalNameCount[target];
+                string newName = target + "_" + to_string(cnt);
+                code->setTarget(newName);
+            }
+            start = start->getNext();
+        }
+        for (const string& name: *names) {
+            string newName = name + "_" + to_string(globalNameCount[name]);
+            (*finalNames)[name] = newName;
+        }
+    }
+
+    map<string, MyList*>* getPhiList() {
+        return paiList;
     }
 };
 
@@ -188,8 +248,8 @@ public:
         }
          */
 
-        for (auto it = funNames.begin(); it != funNames.end(); it++) {
-            string var = (*it).first;
+        for (auto & funName : funNames) {
+            string var = funName.first;
             vector<int>* tem = new vector<int>();
             for (int i = 0; i < N; ++ i) {
                 auto* set = (*blocks)[i]->getNameSet();
@@ -199,7 +259,23 @@ public:
             vector<int>* result = graph -> getPhi(tem);
             for (auto c: *result) {
                 IrPhi* phi = new IrPhi(var);
-                (*blocks)[c] -> addIrCode(phi);
+                (*blocks)[c] -> addIrCodeFront(phi);
+            }
+        }
+
+        //SSA Re Name
+        for (int i = 0; i < N; ++ i)
+            (*blocks)[i]->ssaReName();
+
+        //Remove Phi
+        //todo: how to remove the phi points
+        for (int i = 0; i < N; ++ i) {
+            vector<int>* out = graph -> getOutBlock(i);
+            for (auto c: *out) {
+                auto* phiList = (*blocks)[i] -> getPhiList();
+                for (auto t: *phiList) {
+
+                }
             }
         }
     }

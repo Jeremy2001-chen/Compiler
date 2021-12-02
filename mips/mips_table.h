@@ -214,7 +214,7 @@ public:
             return ;
         }
         int index = checkTable(name);
-        //cout << "get var: " << name << endl;
+        cout << "get var: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {

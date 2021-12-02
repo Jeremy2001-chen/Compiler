@@ -35,8 +35,11 @@ public:
     void setTarget(string _tar) {
         target = std::move(_tar);
     }
-    void setSource(string _so, int index) {
+    void setSource(int index, string _so) {
         source[index] = std::move(_so);
+    }
+    string getSource(int index) {
+        return source[index];
     }
 };
 
@@ -207,7 +210,7 @@ public:
     }
 
     string toString() override {
-        return "para " + type + " " + name;
+        return "para " + type + " " + target;
     }
 
     void toMips() override {
@@ -217,9 +220,9 @@ public:
 
     int defVar() override {
         if (type == "var" || type == "reg")
-            return mipsTable -> funInitStack(name, 1, false);
+            return mipsTable -> funInitStack(target, 1, false);
         else
-            return mipsTable -> funInitStack(name, 1, true);
+            return mipsTable -> funInitStack(target, 1, true);
     }
 };
 
@@ -384,17 +387,18 @@ public:
     IrVarDefineWithAssign(bool _is, string _na, int _va) {
         isConst = _is;
         name = std::move(_na);
+        target = name;
         value = to_string(_va);
         codeType = IrVarDefineWithAssignType;
     }
 
     string toString() override {
         string tmp = (isConst ? "const " : "");
-        return tmp + "var int " + name + " = " + value;
+        return tmp + "var int " + target + " = " + value;
     }
 
     string getName() const {
-        return name;
+        return target;
     }
 
     int getValue() const {
@@ -404,11 +408,11 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsOutput -> push_back(new MipsLi("li", "$t0", value));
-        mipsTable -> setRegToMem("$t0", name);
+        mipsTable -> setRegToMem("$t0", target);
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, 1, false);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 
@@ -426,11 +430,11 @@ public:
 
     string toString() override {
         string tmp = (isConst ? "const " : "");
-        return tmp + "var int " + name;
+        return tmp + "var int " + target;
     }
 
     string getName() const {
-        return name;
+        return target;
     }
 
     void toMips() override {
@@ -438,7 +442,7 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(name, 1, false);
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 
@@ -838,13 +842,11 @@ public:
 
 class IrPhi: public IrCode {
 private:
-    string name;
     vector<string>* from;
 public:
     IrPhi(string _name) {
         codeType = IrPhiType;
-        name = std::move(_name);
-        target = name;
+        target = std::move(_name);
         from = new vector<string>();
     }
 
@@ -868,7 +870,7 @@ public:
     }
 
     int defVar() override {
-        return 0;
+        return mipsTable -> funInitStack(target, 1, false);
     }
 };
 #endif //COMPILER_IR_CODE_H
