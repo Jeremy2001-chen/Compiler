@@ -31,7 +31,8 @@ public:
     }
     void linkNext(MyList* _next) {
         next = _next;
-        _next->setPrev(this);
+        if (_next != nullptr)
+            _next->setPrev(this);
     }
     void linkPrev(MyList* _prev) {
         prev = _prev;

@@ -182,7 +182,7 @@ public:
         }
 
         for (auto it = funNames.begin(); it != funNames.end(); ) {
-            if (it -> second == 1)
+            if (it -> second == 1 || it->first[0] == '@')
                 funNames.erase(it++);
             else
                 it++;

@@ -62,7 +62,8 @@ public:
         for (auto c: *edges) {
             map<string, MyList*>* phi = c->getPhiList();
             for (auto &it : *phi) {
-                ((IrPhi*)it.second->getCode())->putVar((*names)[it.first], id);
+                if (!(*names)[it.first].empty())
+                    ((IrPhi*)it.second->getCode())->putVar((*names)[it.first], id);
             }
         }
         for (auto c: *ch)

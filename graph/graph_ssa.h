@@ -22,7 +22,8 @@ public:
     GraphSSA(vector<IrCode*>* list) {
         codes = new vector<IrPhiAssign*>();
         for (auto code: *list) {
-            cout << code->toString() << endl;
+            assert(code -> getCodeType() == IrPhiAssignType);
+            cout << "before : " << code ->toString() << endl;
             IrPhiAssign* assign = (IrPhiAssign*)code;
             codes -> push_back(assign);
         }
@@ -30,11 +31,13 @@ public:
             string name = code->getSource(0);
             if (nameMap.find(name) == nameMap.end()) {
                 names.push_back(name);
+                cout << "local : " << name << " " << cnt << endl;
                 nameMap[name] = cnt ++;
             }
             name = code -> getTarget();
             if (nameMap.find(name) == nameMap.end()) {
                 names.push_back(name);
+                cout << "local : " << name << " " << cnt << endl;
                 nameMap[name] = cnt ++;
             }
         }
@@ -50,6 +53,10 @@ public:
 
     void link(int s, int t) {
         cout << "small link : " << s << " " << t << endl;
+        if (out[s] != -1) {
+            assert(out[s] == t);
+            return ;
+        }
         out[s] = t;
         degree[t] ++;
     }
@@ -71,6 +78,8 @@ public:
                 int to = out[now];
                 if (to == -1)
                     continue;
+                if (names[to].empty())
+                    cout << names[now] << " " << to << endl;
                 ret -> push_back(new IrMove(names[now], names[to], 0));
                 degree[to] --;
                 if (degree[to] == 0)
@@ -80,6 +89,7 @@ public:
             auto it = leftPoint.begin();
             string tem = irTableList_1.allocTemForSSA("_0");
             int to = out[*it];
+            if (to == -1) continue;
             ret -> push_back(new IrMove(tem, names[to], 1));
             temp -> push_back(new IrMove(names[*it], tem, 0));
             degree[to] --;

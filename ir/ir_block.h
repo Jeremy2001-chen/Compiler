@@ -118,7 +118,7 @@ public:
             IrCode* code = start->getCode();
             for (int i = 0; i < 2; ++ i) {
                 string sc = code->getSource(i);
-                if (sc.empty() || sc == "%0" || sc[0] == '@') continue;
+                if (sc.empty() || sc == "%0" || sc[0] != '%') continue;
                 if (finalNames -> find(sc) == finalNames -> end()) {
                     cout << "error in IR, can't find : " << sc << endl;
                     exit(7654321);
@@ -184,15 +184,19 @@ public:
         if (eStmt == nullptr)
             return ir;
         MyList* end = eStmt;
+        bool change = false;
         if (eStmt -> getCode() ->getCodeType() == IrBranchStmtType ||
             eStmt -> getCode() ->getCodeType() == IrGotoStmtType ||
             eStmt -> getCode() ->getCodeType() == IrExitType ||
             eStmt -> getCode() ->getCodeType() == IrReturnStmtType)
             end = end -> getPrev();
+        else
+            change = true;
         while (end != nullptr && end -> getCode() -> getCodeType() == IrPhiAssignType) {
             ir -> push_back(end -> getCode());
             end = end -> removeToPrev();
         }
+        if (change) eStmt = end;
         return ir;
     }
 

@@ -205,12 +205,15 @@ public:
     IrParaDefine(string _type, string _name) {
         type = std::move(_type);
         name = std::move(_name);
-        target = name;
+        if (type == "var" || type == "reg")
+            target = name;
         codeType = IrParaDefineType;
     }
 
     string toString() override {
-        return "para " + type + " " + target;
+        if (type == "var" || type == "reg")
+            return "para " + type + " " + target;
+        return "para " + type + " " + name;
     }
 
     void toMips() override {
@@ -222,7 +225,7 @@ public:
         if (type == "var" || type == "reg")
             return mipsTable -> funInitStack(target, 1, false);
         else
-            return mipsTable -> funInitStack(target, 1, true);
+            return mipsTable -> funInitStack(name, 1, true);
     }
 };
 
@@ -232,16 +235,17 @@ private:
 public:
     explicit IrPushVariable(string _name) {
         name = std::move(_name);
+        source[0] = name;
         codeType = IrPushVariableType;
     }
 
     string toString() override {
-        return "push var " + name;
+        return "push var " + source[0];
     }
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", name);
+        mipsTable -> getRegFromMem("$t0", source[0]);
         int off = mipsTable -> getPushCnt();
         mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)) , "$sp"));
     }
@@ -259,20 +263,21 @@ public:
     IrPushArray(string _name, string _offset) {
         name = std::move(_name);
         offset = _offset;
+        source[0] = offset;
         codeType = IrPushArrayType;
     }
 
     string toString() override {
-        return "push array " + name + "[" + offset + "]";
+        return "push array " + name + "[" + source[0] + "]";
     }
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string tar;
-        if (offset[0] >= '0' && offset[0] <= '9')
-            tar = offset;
+        if (source[0][0] >= '0' && source[0][0] <= '9')
+            tar = source[0];
         else {
-            mipsTable -> getRegFromMem("$t0", offset);
+            mipsTable -> getRegFromMem("$t0", source[0]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t0", "$t0", "2"));
             tar = "$t0";
         }
@@ -616,33 +621,34 @@ public:
 class IrArrayAssign: public IrCode {
 private:
     //string target, offset, source;
-    string offset;
+    string name, offset;
 public:
     IrArrayAssign(string _ta, string _off, string _sc) {
-        target = std::move(_ta);
+        name = std::move(_ta);
         offset = std::move(_off);
+        source[1] = offset;
         source[0] = std::move(_sc);
         codeType = IrArrayAssignType;
     }
 
     string toString() override {
-        return target + "[" + offset + "] = " + source[0];
+        return name + "[" + source[1] + "] = " + source[0];
     }
 
     string getOffset() {
-        return offset;
+        return source[1];
     }
 
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         mipsTable -> getRegFromMem("$t0", source[0]);
-        if (offset[0] >= '0' && offset[0] <= '9')
-            mipsTable -> setRegToMem("$t0", target, offset);
+        if (source[1][0] >= '0' && source[1][0] <= '9')
+            mipsTable -> setRegToMem("$t0", name, source[1]);
         else {
-            mipsTable -> getRegFromMem("$t1", offset);
+            mipsTable -> getRegFromMem("$t1", source[1]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
-            mipsTable -> setRegToMem("$t0", target, "$t1");
+            mipsTable -> setRegToMem("$t0", name, "$t1");
         }
     }
 
@@ -654,28 +660,29 @@ public:
 class IrArrayGet: public IrCode {
 private:
     //string target, source, offset;
-    string offset;
+    string name, offset;
 public:
     IrArrayGet(string _ta, string _sc, string _off) {
         target = std::move(_ta);
-        source[0] = std::move(_sc);
+        name = std::move(_sc);
         offset = std::move(_off);
+        source[0] = offset;
         codeType = IrArrayGetType;
     }
 
     string toString() override {
-        return target + " = " + source[0] + "[" + offset + "]";
+        return target + " = " + name + "[" + source[0] + "]";
     }
 
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        if (offset[0] >= '0' && offset[0] <= '9')
-            mipsTable -> getRegFromMem("$t0", source[0], offset);
+        if (source[0][0] >= '0' && source[0][0] <= '9')
+            mipsTable -> getRegFromMem("$t0", name, source[0]);
         else {
-            mipsTable -> getRegFromMem("$t1", offset);
+            mipsTable -> getRegFromMem("$t1", source[0]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
-            mipsTable -> getRegFromMem("$t0", source[0], "$t1");
+            mipsTable -> getRegFromMem("$t0", name, "$t1");
         }
         mipsTable -> setRegToMem("$t0", target);
         //cout << toString() << endl;
@@ -916,6 +923,10 @@ public:
         codeType = IrMoveType;
         target = std::move(_ta);
         source[0] = std::move(_so);
+        if (source[0].empty()) {
+            cout << target << endl;
+            exit(6666666);
+        }
         type = _def;
     }
 
