@@ -7,14 +7,18 @@
 
 #include "../ir/ir_block.h"
 
+extern vector<bool> domFlag;
+
 class Tree{
 private:
+    vector<IrBlock*>* edges;
     vector<Tree*>* ch;
     Tree* fa;
     IrBlock* irBlock;
     int id;
 public:
-    Tree(int _id, IrBlock* block) {
+    Tree(int _id, IrBlock* block, vector<IrBlock*>* _edges) {
+        edges = _edges;
         ch = new vector<Tree*>();
         fa = nullptr;
         id = _id;
@@ -25,7 +29,7 @@ public:
         fa = _fa;
     }
 
-    int getId() {
+    int getId() const {
         return id;
     }
 
@@ -39,6 +43,27 @@ public:
 
     void insertChild(Tree* tree) {
         (*ch).push_back(tree);
+    }
+
+    void ssaReName() {
+        if (domFlag[id])
+            return ;
+        domFlag[id] = true;
+        irBlock -> ssaReName();
+        map<string, string>* names = irBlock -> getFinalNames();
+        for (auto &it : *names) {
+            for (auto c: *ch) {
+                c->irBlock->putNameIntoFinalNames(it.first, it.second);
+            }
+        }
+        for (auto c: *edges) {
+            map<string, MyList*>* phi = c->getPhiList();
+            for (auto &it : *phi) {
+                ((IrPhi*)it.second->getCode())->putVar((*names)[it.first]);
+            }
+        }
+        for (auto c: *ch)
+            c -> ssaReName();
     }
 };
 

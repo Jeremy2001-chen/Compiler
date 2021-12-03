@@ -153,5 +153,9 @@ public:
     vector<vector<int>* >* getDominate() {
         return &dominate;
     }
+
+    vector<int>* getEdges(int index) {
+        return edges[index];
+    }
 };
 #endif //COMPILER_GRAPH_H

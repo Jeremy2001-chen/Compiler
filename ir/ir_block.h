@@ -115,7 +115,7 @@ public:
                 code->setSource(i, newName);
             }
             string target = code->getTarget();
-            if (!target.empty() && target[0] != '@') {
+            if (!target.empty() && target[0] != '@' && target[0] != '$') {
                 if (globalNameCount.find(target) == globalNameCount.end())
                     globalNameCount[target] = 1;
                 else
@@ -123,17 +123,22 @@ public:
                 int cnt = globalNameCount[target];
                 string newName = target + "_" + to_string(cnt);
                 code->setTarget(newName);
+                (*finalNames)[target] = newName;
             }
             start = start->getNext();
-        }
-        for (const string& name: *names) {
-            string newName = name + "_" + to_string(globalNameCount[name]);
-            (*finalNames)[name] = newName;
         }
     }
 
     map<string, MyList*>* getPhiList() {
         return paiList;
+    }
+
+    map<string, string>* getFinalNames() {
+        return finalNames;
+    }
+
+    void putNameIntoFinalNames(const string& key, const string& value) {
+        (*finalNames)[key] = value;
     }
 
     MyList* getStartCode() {

@@ -7,12 +7,16 @@
 
 #include "tree.h"
 
+vector<bool> domFlag;
+
 class DomTree {
 private:
     Tree* root;
+    int point;
 public:
-    DomTree() {
+    DomTree(int _point) {
         root = nullptr;
+        point = _point;
     }
 
     void setRoot(Tree* _new) {
@@ -25,7 +29,15 @@ public:
             next = fa->findChild((*tran)[i]);
             fa = next;
         }
+        cout << "Link : " << fa->getId() << " to " << tree->getId() << endl;
         fa -> insertChild(tree);
+    }
+
+    void ssaReName() {
+        domFlag.resize(point);
+        for (int i = 0; i < point; ++ i)
+            domFlag[i] = false;
+        root -> ssaReName();
     }
 };
 

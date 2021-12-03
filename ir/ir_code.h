@@ -859,7 +859,7 @@ public:
     }
 
     string toString() override {
-        string ret = target + " = Fai(";
+        string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];
             for (int i = 1; i < from -> size(); ++ i)

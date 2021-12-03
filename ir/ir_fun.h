@@ -150,11 +150,15 @@ public:
                     newDom[j].push_back(i);
                 }
             }
-        domTree = new DomTree();
+        domTree = new DomTree(N);
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
                 continue;
-            Tree* tree = new Tree(i, (*blocks)[i]);
+            vector<int> *edges = graph -> getEdges(i);
+            auto* blockT = new vector<IrBlock*>();
+            for (auto edge: *edges)
+                blockT->push_back((*blocks)[edge]);
+            Tree* tree = new Tree(i, (*blocks)[i], blockT);
             if (i == 0)
                 domTree -> setRoot(tree);
             else
@@ -201,6 +205,7 @@ public:
             }
         }
 
+        domTree -> ssaReName();
         /*
         //SSA Re Name
         for (int i = 0; i < N; ++ i)
