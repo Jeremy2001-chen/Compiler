@@ -18,7 +18,7 @@ ofstream nout("ir_new.txt");
 
 Output output;
 string input;
-IR IR_1;
+IR IR_1, IR_2;
 Mips *mips; MipsTable* mipsTable; MipsOutput* mipsOutput;
 
 void read() {
@@ -47,8 +47,13 @@ int main() {
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
     IrNew *irNew = new IrNew(&IR_1);
-    print(irNew -> toString(), nout);
-    mips = new Mips(IR_1, mipsTable, mipsOutput);
+    vector<IrCode*>* temp = irNew -> toIR();
+    for (auto code: *temp)
+        IR_2.add(code);
+    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
+    //print(irNew -> toString(), nout);
+    print(IR_2.toString(), nout);
+    mips = new Mips(IR_2, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());
     print(mipsOutput -> toString(), mout);

@@ -227,7 +227,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name) {
         int index = checkTable(name);
-        //cout << "set var: " << name << endl;
+        cout << "set var: " << name << endl;
         if (index == -1)
             exit(333);
         if (getTabelItemTem(index)) {

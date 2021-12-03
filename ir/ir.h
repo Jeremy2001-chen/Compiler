@@ -35,6 +35,10 @@ public:
         globalDeclEnd = (int)irList.size();
     }
 
+    void setGlobalDeclEnd(int x) {
+        globalDeclEnd = x;
+    }
+
     int getGlobalDeclEnd() const {
         return globalDeclEnd;
     }
@@ -59,6 +63,8 @@ public:
         vector <IrCode*>* list = ir -> getIrList();
         int decl = ir -> getGlobalDeclEnd();
         vector<IrCode*> *funCode = nullptr;
+        for (int i = 0; i < decl; ++ i)
+            irDecl.push_back((*list)[i]);
         for (int i = decl; i < (*list).size(); ++ i) {
             if (((*list)[i]) -> getCodeType() == IrFunDefineType) {
                 if (funCode != nullptr) {
@@ -82,6 +88,18 @@ public:
             ret += a -> toString() + "\n";
         }
         return ret;
+    }
+
+    vector<IrCode*>* toIR() {
+        vector<IrCode*>* newIR = new vector<IrCode*>();
+        for (auto code: irDecl)
+            newIR -> push_back(code);
+        for (auto fun: irFun) {
+            vector<IrCode*>* codes = fun -> toIR();
+            for (auto code: *codes)
+                newIR -> push_back(code);
+        }
+        return newIR;
     }
 };
 #endif //COMPILER_IR_H

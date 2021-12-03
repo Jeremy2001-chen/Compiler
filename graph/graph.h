@@ -47,10 +47,11 @@ public:
 
     void bfs(int st) {
         queue<int> Q;
-        if (st > 0) Q.push(0);
+        if (st != 0) Q.push(0);
         for(int i = 1; i < point; ++ i)
             reach[i] = false;
-        reach[0] = reach[st] = true;
+        reach[0] = true;
+        if (st > 0) reach[st] = true;
         while (!Q.empty()) {
             int now = Q.front();Q.pop();
             for (auto nx: *edges[now]) {
@@ -60,9 +61,11 @@ public:
                 }
             }
         }
-        reach[st] = false;
-        for (int i = 0; i < point; ++ i)
-            dom(st)[i] = 1 - reach[i];
+        if (st >= 0) {
+            reach[st] = false;
+            for (int i = 0; i < point; ++ i)
+                dom(st)[i] = 1 - reach[i];
+        }
     }
 
     void getDF(int st) {

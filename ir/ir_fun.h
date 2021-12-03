@@ -19,13 +19,15 @@ private:
     MyList* fStmt, *eStmt;
     map<string, string>* finalNames;
     map<string, MyList*>* paiList;
+    int blockNum;
 public:
-    IrBlock(vector<IrCode*>* _code) {
+    IrBlock(vector<IrCode*>* _code, int id) {
         fStmt = eStmt = nullptr;
         codes = _code;
         paiList = new map<string, MyList*>();
         finalNames = new map<string, string>();
         names = new set<string>();
+        blockNum = id;
         if (!(*codes).empty()) {
             fStmt = new MyList((*codes)[0]);
             MyList* run = fStmt;
@@ -38,6 +40,12 @@ public:
         MyList* start = fStmt;
         while (start != nullptr) {
             IrCode* code = start->getCode();
+            // Remove (Ret x & Exit)
+            if (code->getCodeType() == IrReturnStmtType || code->getCodeType() == IrExitType) {
+                start -> setNext(nullptr);
+                eStmt = start;
+                break;
+            }
             string target = code->getTarget();
             if (!target.empty())
                 names -> insert(target);
@@ -121,6 +129,25 @@ public:
     map<string, MyList*>* getPhiList() {
         return paiList;
     }
+
+    MyList* getStartCode() {
+        return fStmt;
+    }
+
+    MyList* getEndCode() {
+        return fStmt;
+    }
+
+    vector<IrCode*>* toIR() {
+        vector<IrCode*>* newIR = new vector<IrCode*>();
+        MyList* start = fStmt;
+        while (start != nullptr) {
+            IrCode* code = start->getCode();
+            newIR ->push_back(code);
+            start = start -> getNext();
+        }
+        return newIR;
+    }
 };
 
 class IrFun {
@@ -177,7 +204,7 @@ public:
             if (st < pos.size() && i == pos[st]) {
                 st ++;
                 if (i > 1 && !onlyLabel) {
-                    block = new IrBlock(bCode);
+                    block = new IrBlock(bCode, block_cnt);
                     block_cnt = block_cnt + 1;
                     (*blocks).push_back(block);
                     bCode = new vector<IrCode*>();
@@ -191,34 +218,45 @@ public:
             if ((*codes)[i]->getCodeType() == IrExitType || (*codes)[i]->getCodeType() == IrReturnStmtType)
                 endBlocks.push_back(block_cnt);
         }
-        block = new IrBlock(bCode);
+        block = new IrBlock(bCode, block_cnt);
         (*blocks).push_back(block);
         unique(endBlocks.begin(), endBlocks.end());
 
         //set final block
         block_cnt ++;
         bCode = new vector<IrCode*>();
-        block = new IrBlock(bCode);
+        block = new IrBlock(bCode, block_cnt);
         (*blocks).push_back(block);
 
         int N = block_cnt + 1;
         graph = new Graph(N); // from 0 to N - 1
 
-        for (int i = 1; i < (*codes).size() - 1; ++ i) {
-            int now = belong[i];
-            if ((*codes)[i]->getCodeType() == IrGotoStmtType) {
-                auto* line = (IrGotoStmt*)(*codes)[i];
-                int target = belong[labelMp[line->getLabel()]];
-                graph->link(now, target);
-            } else if ((*codes)[i]->getCodeType() == IrBranchStmtType) {
-                auto* line = (IrBranchStmt*)(*codes)[i];
-                int target = belong[labelMp[line->getLabel()]];
-                graph->link(now, target);
+        for (int i = 0; i < N; ++ i) {
+            MyList* start = (*blocks)[i]->getStartCode();
+            while (start != nullptr) {
+                IrCode* code = start->getCode();
+                if (code -> getCodeType() == IrGotoStmtType) {
+                    auto* line = (IrGotoStmt*)code;
+                    int target = belong[labelMp[line->getLabel()]];
+                    graph -> link(i, target);
+                } else if (code -> getCodeType() == IrBranchStmtType) {
+                    auto* line = (IrBranchStmt*)code;
+                    int target = belong[labelMp[line->getLabel()]];
+                    graph->link(i, target);
+                }
+                start = start -> getNext();
+            }
+            start = (*blocks)[i] -> getEndCode();
+            if (start != nullptr && i < N - 1) {
+                IrCode* code = start->getCode();
+                if (code -> getCodeType() != IrReturnStmtType &&
+                    code -> getCodeType() != IrGotoStmtType &&
+                    code -> getCodeType() != IrExitType)
+                    graph->link(i, i + 1);
             }
         }
 
-        for (int i = 0; i < N - 2; ++ i)
-            graph->link(i, i + 1);
+        // link to end
         for (auto c: endBlocks)
             graph->link(c, N - 1);
 
@@ -248,6 +286,7 @@ public:
         }
          */
 
+        /*
         for (auto & funName : funNames) {
             string var = funName.first;
             vector<int>* tem = new vector<int>();
@@ -267,8 +306,10 @@ public:
         for (int i = 0; i < N; ++ i)
             (*blocks)[i]->ssaReName();
 
+         */
         //Remove Phi
         //todo: how to remove the phi points
+        /*
         for (int i = 0; i < N; ++ i) {
             vector<int>* out = graph -> getOutBlock(i);
             for (auto c: *out) {
@@ -278,6 +319,7 @@ public:
                 }
             }
         }
+        */
     }
 
     void test() {
@@ -299,6 +341,17 @@ public:
             ret += (*blocks)[i]->toString() + "\n";
         }
         return ret;
+    }
+
+    vector<IrCode*>* toIR() {
+        vector<IrCode*>* newIR = new vector<IrCode*>();
+        newIR ->push_back((*codes)[0]);
+        for (auto block: *blocks) {
+            vector<IrCode*>* codes = block -> toIR();
+            for (auto code: *codes)
+                newIR -> push_back(code);
+        }
+        return newIR;
     }
 };
 #endif //COMPILER_IR_FUN_H
