@@ -91,6 +91,7 @@ public:
     }
 
     vector<IrCode*>* toIR() {
+        //cout << toString() << endl;
         vector<IrCode*>* newIR = new vector<IrCode*>();
         for (auto code: irDecl)
             newIR -> push_back(code);

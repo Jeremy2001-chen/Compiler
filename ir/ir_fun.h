@@ -36,6 +36,7 @@ public:
                 run -> linkNext(eStmt);
                 run = eStmt;
             }
+            eStmt = run;
         }
         MyList* start = fStmt;
         while (start != nullptr) {
@@ -49,7 +50,7 @@ public:
             string target = code->getTarget();
             if (!target.empty())
                 names -> insert(target);
-            start = start->getNext();
+            start = start -> getNext();
         }
     }
 
@@ -135,7 +136,7 @@ public:
     }
 
     MyList* getEndCode() {
-        return fStmt;
+        return eStmt;
     }
 
     vector<IrCode*>* toIR() {
@@ -148,6 +149,13 @@ public:
         }
         return newIR;
     }
+
+    void kill() {
+        names -> clear();
+        fStmt = eStmt = nullptr;
+        finalNames -> clear();
+        paiList -> clear();
+    }
 };
 
 class IrFun {
@@ -159,6 +167,7 @@ private:
     vector<int> pos;
     vector<int> belong;
     vector<int> endBlocks;
+    vector<bool> useful;
     string name;
 
     map<string, int> funNames;
@@ -231,6 +240,8 @@ public:
         int N = block_cnt + 1;
         graph = new Graph(N); // from 0 to N - 1
 
+        useful.resize(N); // record the useful block
+
         for (int i = 0; i < N; ++ i) {
             MyList* start = (*blocks)[i]->getStartCode();
             while (start != nullptr) {
@@ -249,6 +260,7 @@ public:
             start = (*blocks)[i] -> getEndCode();
             if (start != nullptr && i < N - 1) {
                 IrCode* code = start->getCode();
+                //cout << i << " " << code->toString() << endl;
                 if (code -> getCodeType() != IrReturnStmtType &&
                     code -> getCodeType() != IrGotoStmtType &&
                     code -> getCodeType() != IrExitType)
@@ -261,6 +273,14 @@ public:
             graph->link(c, N - 1);
 
         graph->ssaInit();
+
+        vector<bool>* reach = graph->getReach();
+
+        for (int i = 0; i < N; ++ i) {
+            useful[i] = (*reach)[i];
+            if (!useful[i])
+                (*blocks)[i] -> kill();
+        }
 
         for (int i = 0; i < N; ++ i) {
             auto* set = (*blocks)[i]->getNameSet();
@@ -351,6 +371,7 @@ public:
             for (auto code: *codes)
                 newIR -> push_back(code);
         }
+        newIR->push_back(new IrFunEnd(0));
         return newIR;
     }
 };
