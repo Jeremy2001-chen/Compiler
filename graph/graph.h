@@ -20,6 +20,7 @@ private:
     vector<set<int>* > df; //DF(Y) = X dominate the prev of Y but not dominate Y
 
     vector<bool> reach;
+    vector<bool> can;
     vector<bool> flag;
 
 public:
@@ -41,7 +42,7 @@ public:
     }
 
     void link(int s, int t) {
-        //cout << "link : " << s << " " << t << endl;
+        cout << "link : " << s << " " << t << endl;
         edges[s] -> push_back(t);
     }
 
@@ -64,7 +65,10 @@ public:
         if (st >= 0) {
             reach[st] = false;
             for (int i = 0; i < point; ++ i)
-                dom(st)[i] = 1 - reach[i];
+                if (!can[i])
+                    dom(st)[i] = 0;
+                else
+                    dom(st)[i] = 1 - reach[i];
         }
     }
 
@@ -101,16 +105,18 @@ public:
     }
 
     void ssaInit() {
+        bfs(-1);
+        for (auto c: reach)
+            can.push_back(c);
         for (int i = 0; i < point; ++ i)
             bfs(i);
         for (int i = 0; i < point; ++ i)
             getDF(i);
-        //debug();
+        debug();
     }
 
     vector<bool>* getReach() {
-        bfs(-1);
-        return &reach;
+        return &can;
     }
 
     vector<int>* getPhi(vector<int>* block) {
@@ -142,6 +148,10 @@ public:
 
     vector<int>* getOutBlock(int x) {
         return edges[x];
+    }
+
+    vector<vector<int>* >* getDominate() {
+        return &dominate;
     }
 };
 #endif //COMPILER_GRAPH_H

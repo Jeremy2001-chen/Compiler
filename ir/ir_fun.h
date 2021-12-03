@@ -9,154 +9,8 @@
 #include <algorithm>
 #include "../list/mylist.h"
 #include "../graph/graph.h"
-
-extern map<string, int> globalNameCount;
-
-class IrBlock {
-private:
-    vector<IrCode*>* codes;
-    set<string>* names;
-    MyList* fStmt, *eStmt;
-    map<string, string>* finalNames;
-    map<string, MyList*>* paiList;
-    int blockNum;
-public:
-    IrBlock(vector<IrCode*>* _code, int id) {
-        fStmt = eStmt = nullptr;
-        codes = _code;
-        paiList = new map<string, MyList*>();
-        finalNames = new map<string, string>();
-        names = new set<string>();
-        blockNum = id;
-        if (!(*codes).empty()) {
-            fStmt = new MyList((*codes)[0]);
-            MyList* run = fStmt;
-            for (int i = 1; i < (*codes).size(); ++ i) {
-                eStmt = new MyList((*codes)[i]);
-                run -> linkNext(eStmt);
-                run = eStmt;
-            }
-            eStmt = run;
-        }
-        MyList* start = fStmt;
-        while (start != nullptr) {
-            IrCode* code = start->getCode();
-            // Remove (Ret x & Exit)
-            if (code->getCodeType() == IrReturnStmtType || code->getCodeType() == IrExitType) {
-                start -> setNext(nullptr);
-                eStmt = start;
-                break;
-            }
-            string target = code->getTarget();
-            if (!target.empty())
-                names -> insert(target);
-            start = start -> getNext();
-        }
-    }
-
-    string toString() {
-        MyList* start = fStmt;
-        string ret;
-        while (start != nullptr) {
-            ret += start->getCode()->toString() + "\n";
-            start = start->getNext();
-        }
-        return ret;
-    }
-
-    set<string>* getNameSet() {
-        return names;
-    }
-
-    void addIrCodeBack(IrCode* irCode) {
-        MyList* list = new MyList(irCode);
-        if (fStmt == nullptr) {
-            eStmt = fStmt = list;
-        } else {
-            eStmt -> linkNext(list);
-            eStmt = list;
-        }
-        if (irCode->getCodeType() == IrPhiType) {
-            (*paiList)[irCode->getTarget()] = list;
-        }
-    }
-
-    void addIrCodeFront(IrCode* irCode) {
-        MyList* list = new MyList(irCode);
-        if (fStmt == nullptr) {
-            eStmt = fStmt = list;
-        } else {
-            list -> linkNext(fStmt);
-            fStmt = list;
-        }
-        if (irCode->getCodeType() == IrPhiType) {
-            (*paiList)[irCode->getTarget()] = list;
-        }
-    }
-
-    void ssaReName() {
-        MyList* start = fStmt;
-        while (start != nullptr) {
-            IrCode* code = start->getCode();
-            for (int i = 0; i < 2; ++ i) {
-                string sc = code->getSource(i);
-                if (sc.empty() || sc == "%0" || sc[0] == '@') continue;
-                if (globalNameCount.find(sc) == globalNameCount.end()) {
-                    cout << "error in IR, can't find : " << sc << endl;
-                    exit(7654321);
-                }
-                int cnt = globalNameCount[sc];
-                string newName = sc + "_" + to_string(cnt);
-                code->setSource(i, newName);
-            }
-            string target = code->getTarget();
-            if (!target.empty() && target[0] != '@') {
-                if (globalNameCount.find(target) == globalNameCount.end())
-                    globalNameCount[target] = 1;
-                else
-                    globalNameCount[target] = globalNameCount[target] + 1;
-                int cnt = globalNameCount[target];
-                string newName = target + "_" + to_string(cnt);
-                code->setTarget(newName);
-            }
-            start = start->getNext();
-        }
-        for (const string& name: *names) {
-            string newName = name + "_" + to_string(globalNameCount[name]);
-            (*finalNames)[name] = newName;
-        }
-    }
-
-    map<string, MyList*>* getPhiList() {
-        return paiList;
-    }
-
-    MyList* getStartCode() {
-        return fStmt;
-    }
-
-    MyList* getEndCode() {
-        return eStmt;
-    }
-
-    vector<IrCode*>* toIR() {
-        vector<IrCode*>* newIR = new vector<IrCode*>();
-        MyList* start = fStmt;
-        while (start != nullptr) {
-            IrCode* code = start->getCode();
-            newIR ->push_back(code);
-            start = start -> getNext();
-        }
-        return newIR;
-    }
-
-    void kill() {
-        names -> clear();
-        fStmt = eStmt = nullptr;
-        finalNames -> clear();
-        paiList -> clear();
-    }
-};
+#include "ir_block.h"
+#include "../graph/dom_tree.h"
 
 class IrFun {
 private:
@@ -173,6 +27,8 @@ private:
     map<string, int> funNames;
 
     Graph* graph;
+    DomTree* domTree;
+
 public:
     explicit IrFun(vector<IrCode*>* _codes) {
         codes = _codes;
@@ -281,6 +137,30 @@ public:
             if (!useful[i])
                 (*blocks)[i] -> kill();
         }
+
+        // build dominate tree
+        vector<vector<int>* >* dom = graph -> getDominate(); //x dominate who
+        vector<vector<int> > newDom; //who dominate x, reserve for dominate tree
+        newDom.resize(N);
+        for (int i = 0; i < N; ++ i)
+            for (int j = 0; j < (*dom)[i] ->size(); ++ j) {
+                int c = (*(*dom)[i])[j];
+                if (c && i != j) {
+                    //cout << "hi: " << i << " " << j << endl;
+                    newDom[j].push_back(i);
+                }
+            }
+        domTree = new DomTree();
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            Tree* tree = new Tree(i, (*blocks)[i]);
+            if (i == 0)
+                domTree -> setRoot(tree);
+            else
+                domTree -> insert(tree, &newDom[i]);
+        }
+
 
         for (int i = 0; i < N; ++ i) {
             auto* set = (*blocks)[i]->getNameSet();
