@@ -65,11 +65,24 @@ public:
 
     void addIrCodeBack(IrCode* irCode) {
         MyList* list = new MyList(irCode);
-        if (fStmt == nullptr) {
+        if (eStmt == nullptr) {
             eStmt = fStmt = list;
         } else {
-            eStmt -> linkNext(list);
-            eStmt = list;
+            if (eStmt -> getCode() ->getCodeType() == IrBranchStmtType ||
+                eStmt -> getCode() ->getCodeType() == IrGotoStmtType ||
+                eStmt -> getCode() ->getCodeType() == IrExitType ||
+                eStmt -> getCode() ->getCodeType() == IrReturnStmtType) {
+                MyList* prev = eStmt -> getPrev();
+                list -> linkNext(eStmt);
+                if (prev == nullptr) {
+                    fStmt = list;
+                } else {
+                    prev -> linkNext(list);
+                }
+            } else {
+                eStmt -> linkNext(list);
+                eStmt = list;
+            }
         }
         if (irCode->getCodeType() == IrPhiType) {
             (*paiList)[irCode->getTarget()] = list;
@@ -106,12 +119,11 @@ public:
             for (int i = 0; i < 2; ++ i) {
                 string sc = code->getSource(i);
                 if (sc.empty() || sc == "%0" || sc[0] == '@') continue;
-                if (globalNameCount.find(sc) == globalNameCount.end()) {
+                if (finalNames -> find(sc) == finalNames -> end()) {
                     cout << "error in IR, can't find : " << sc << endl;
                     exit(7654321);
                 }
-                int cnt = globalNameCount[sc];
-                string newName = sc + "_" + to_string(cnt);
+                string newName = (*finalNames)[sc];
                 code->setSource(i, newName);
             }
             string target = code->getTarget();
@@ -165,6 +177,27 @@ public:
         fStmt = eStmt = nullptr;
         finalNames -> clear();
         paiList -> clear();
+    }
+
+    vector<IrCode*>* removePhiAssign() {
+        auto* ir = new vector<IrCode*>();
+        if (eStmt == nullptr)
+            return ir;
+        MyList* end = eStmt;
+        if (eStmt -> getCode() ->getCodeType() == IrBranchStmtType ||
+            eStmt -> getCode() ->getCodeType() == IrGotoStmtType ||
+            eStmt -> getCode() ->getCodeType() == IrExitType ||
+            eStmt -> getCode() ->getCodeType() == IrReturnStmtType)
+            end = end -> getPrev();
+        while (end != nullptr && end -> getCode() -> getCodeType() == IrPhiAssignType) {
+            ir -> push_back(end -> getCode());
+            end = end -> removeToPrev();
+        }
+        return ir;
+    }
+
+    int getBlockNum() const {
+        return blockNum;
     }
 };
 

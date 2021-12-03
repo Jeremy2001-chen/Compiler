@@ -9,8 +9,12 @@
 #include <algorithm>
 #include "../list/mylist.h"
 #include "../graph/graph.h"
+#include "../graph/graph_ssa.h"
 #include "ir_block.h"
 #include "../graph/dom_tree.h"
+#include "ir_table.h"
+
+extern IrTable IrTableList;
 
 class IrFun {
 private:
@@ -206,14 +210,44 @@ public:
         }
 
         domTree -> ssaReName();
-        /*
-        //SSA Re Name
-        for (int i = 0; i < N; ++ i)
-            (*blocks)[i]->ssaReName();
-        */
+
+        //build phi
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            auto* start = (*blocks)[i] -> getStartCode();
+            while (start != nullptr) {
+                if (start->getCode()->getCodeType() == IrLabelLineType) {
+                    start = start -> getNext();
+                } else
+                    break;
+            }
+            while (start != nullptr) {
+                if (start -> getCode() -> getCodeType() == IrPhiType) {
+                    auto* code = (IrPhi*)(start -> getCode());
+                    auto* from = code->getFrom();
+                    auto* blockNum = code->getBlockNum();
+                    for (int i = 0; i < from -> size(); ++ i) {
+                        (*blocks)[(*blockNum)[i]] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[i]));
+                    }
+                } else
+                    break;
+                start = start -> getNext();
+            }
+        }
 
         //Remove Phi
         //todo: how to remove the phi points
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            auto* phi = (*blocks)[i] -> removePhiAssign();
+            auto* graphSSA = new GraphSSA(phi);
+            auto* newCodes = graphSSA -> getNewCode();
+            for (auto g: *newCodes) {
+                (*blocks)[i] -> addIrCodeBack(g);
+            }
+        }
         /*
         for (int i = 0; i < N; ++ i) {
             vector<int>* out = graph -> getOutBlock(i);
@@ -250,7 +284,7 @@ public:
 
     vector<IrCode*>* toIR() {
         vector<IrCode*>* newIR = new vector<IrCode*>();
-        newIR ->push_back((*codes)[0]);
+        newIR -> push_back((*codes)[0]);
         for (auto block: *blocks) {
             vector<IrCode*>* codes = block -> toIR();
             for (auto code: *codes)

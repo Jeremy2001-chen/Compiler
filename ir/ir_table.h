@@ -10,7 +10,6 @@
 #include <map>
 #include "../ir/ir.h"
 #include "../ir/ir_code.h"
-#include "../ir/ir_table.h"
 
 
 using namespace std;
@@ -93,6 +92,13 @@ public:
             if (tableList[i].getName() == _name)
                 return tableList[i].getIrName();
         return {};
+    }
+
+    string allocTemForSSA(const string& suffix) {
+        addTemNumber();
+        string irName = "%" + to_string(temNumber) + suffix;
+        temRegister.push_back(irName);
+        return irName;
     }
 
     string allocTem() {

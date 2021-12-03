@@ -37,6 +37,11 @@ public:
         prev = _prev;
         _prev->setNext(this);
     }
+    MyList* removeToPrev() {
+        if (prev)
+            prev -> linkNext(next);
+        return prev;
+    }
 };
 
 #endif //COMPILER_LIST_H

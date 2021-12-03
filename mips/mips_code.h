@@ -341,7 +341,7 @@ class MipsNote: public MipsCode {
 private:
     string note;
 public:
-    MipsNote(string _note) {
+    explicit MipsNote(string _note) {
         target = source[0] = source[1] = "";
         type = MipsNoteType;
         note = std::move(_note);
@@ -358,7 +358,7 @@ class MipsSegment: public MipsCode {
 private:
     string label;
 public:
-    MipsSegment(string _label) {
+    explicit MipsSegment(string _label) {
         label = std::move(_label);
         target = source[0] = source[1] = "";
         type = MipsSegmentType;

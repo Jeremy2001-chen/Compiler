@@ -52,14 +52,17 @@ public:
         irBlock -> ssaReName();
         map<string, string>* names = irBlock -> getFinalNames();
         for (auto &it : *names) {
-            for (auto c: *ch) {
-                c->irBlock->putNameIntoFinalNames(it.first, it.second);
+            for (auto c: *edges) {
+                if (!domFlag[c->getBlockNum()]) {
+                    //cout << "update: " << id << " " << c->getBlockNum() << endl;
+                    c->putNameIntoFinalNames(it.first, it.second);
+                }
             }
         }
         for (auto c: *edges) {
             map<string, MyList*>* phi = c->getPhiList();
             for (auto &it : *phi) {
-                ((IrPhi*)it.second->getCode())->putVar((*names)[it.first]);
+                ((IrPhi*)it.second->getCode())->putVar((*names)[it.first], id);
             }
         }
         for (auto c: *ch)

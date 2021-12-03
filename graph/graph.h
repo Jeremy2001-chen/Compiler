@@ -76,7 +76,7 @@ public:
         for (int i = 0; i < point; ++ i)
             if (dom(st)[i]) {
                 for (auto nx: *edges[i]) {
-                    if (!dom(st)[nx])
+                    if (nx == st || !dom(st)[nx])
                         (*df[st]).insert(nx);
                 }
             }

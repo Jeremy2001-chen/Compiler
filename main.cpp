@@ -6,6 +6,7 @@
 #include "mips/mips.h"
 #include "mips/mips_table.h"
 #include "ir/ir_code.h"
+#include "ir/ir_new.h"
 
 using namespace std;
 
@@ -51,8 +52,8 @@ int main() {
     for (auto code: *temp)
         IR_2.add(code);
     IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
-    print(irNew -> toString(), nout);
-    //print(IR_2.toString(), nout);
+    //print(irNew -> toString(), nout);
+    print(IR_2.toString(), nout);
     mips = new Mips(IR_2, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());

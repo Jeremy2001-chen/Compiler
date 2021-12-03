@@ -843,22 +843,26 @@ public:
 class IrPhi: public IrCode {
 private:
     vector<string>* from;
+    vector<int>* blockNum;
 public:
     IrPhi(string _name) {
         codeType = IrPhiType;
         target = std::move(_name);
         from = new vector<string>();
+        blockNum = new vector<int>();
     }
 
-    void putVar(string var) {
+    void putVar(string var, int num) {
         from -> push_back(var);
+        blockNum -> push_back(num);
     }
 
     void toMips() override {
-
+        mipsOutput -> push_back(new MipsNote(toString()));
     }
 
     string toString() override {
+        return "";
         string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];
@@ -871,6 +875,67 @@ public:
 
     int defVar() override {
         return mipsTable -> funInitStack(target, 1, false);
+    }
+
+    vector<string>* getFrom() {
+        return from;
+    }
+
+    vector<int>* getBlockNum() {
+        return blockNum;
+    }
+};
+
+class IrPhiAssign: public IrCode {
+public:
+    IrPhiAssign(string _ta, string _so) {
+        codeType = IrPhiAssignType;
+        target = std::move(_ta);
+        source[0] = std::move(_so);
+    }
+
+    string toString() override {
+        string ret = target + " <- " + source[0];
+        return ret;
+    }
+
+    void toMips() override {
+        mipsOutput -> push_back(new MipsNote(toString()));
+    }
+
+    int defVar() override {
+        return 0;
+    }
+};
+
+class IrMove: public IrCode {
+private:
+    bool type;
+public:
+    IrMove(string _ta, string _so, bool _def) {
+        codeType = IrMoveType;
+        target = std::move(_ta);
+        source[0] = std::move(_so);
+        type = _def;
+    }
+
+    string toString() override {
+        //string ret = "move " + source[0] + " to " + target;
+        //string ret = "move " + target + " " + source[0];
+        string ret = target + " = + " + source[0];
+        return ret;
+    }
+
+    void toMips() override {
+        mipsOutput -> push_back(new MipsNote(toString()));
+        mipsTable -> getRegFromMem("$t0", source[0]);
+        mipsTable -> setRegToMem("$t0", target);
+    }
+
+    int defVar() override {
+        if (type)
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 #endif //COMPILER_IR_CODE_H
