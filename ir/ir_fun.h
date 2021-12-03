@@ -161,7 +161,7 @@ public:
                 domTree -> insert(tree, &newDom[i]);
         }
 
-
+        // init the name set
         for (int i = 0; i < N; ++ i) {
             auto* set = (*blocks)[i]->getNameSet();
             for (const auto& value: *set) {
@@ -186,7 +186,6 @@ public:
         }
          */
 
-        /*
         for (auto & funName : funNames) {
             string var = funName.first;
             vector<int>* tem = new vector<int>();
@@ -202,11 +201,12 @@ public:
             }
         }
 
+        /*
         //SSA Re Name
         for (int i = 0; i < N; ++ i)
             (*blocks)[i]->ssaReName();
+        */
 
-         */
         //Remove Phi
         //todo: how to remove the phi points
         /*

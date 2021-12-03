@@ -81,8 +81,18 @@ public:
         if (fStmt == nullptr) {
             eStmt = fStmt = list;
         } else {
-            list -> linkNext(fStmt);
-            fStmt = list;
+            MyList* start = fStmt;
+            while (start->getCode()->getCodeType() == IrLabelLineType) {
+                if (start -> getNext() == nullptr)
+                    break;
+                start = start -> getNext();
+            }
+            MyList* prev = start -> getPrev();
+            list -> linkNext(start);
+            if (prev != nullptr) {
+                prev -> linkNext(list);
+            } else
+                fStmt = list;
         }
         if (irCode->getCodeType() == IrPhiType) {
             (*paiList)[irCode->getTarget()] = list;
