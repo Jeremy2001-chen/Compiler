@@ -52,11 +52,7 @@ public:
     }
 
     void link(int s, int t) {
-        cout << "small link : " << s << " " << t << endl;
-        if (out[s] != -1) {
-            assert(out[s] == t);
-            return ;
-        }
+        //cout << "ssa link : " << s << " " << t << endl;
         out[s] = t;
         degree[t] ++;
     }

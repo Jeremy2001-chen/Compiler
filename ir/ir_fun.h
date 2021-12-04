@@ -27,7 +27,7 @@ public:
         var = _var;
     }
 
-    int getBlockNum() {
+    int getBlockNum() const {
         return blockNum;
     }
 
@@ -61,6 +61,7 @@ public:
         }
         IrFunDefine *funDefine = (IrFunDefine*)((*codes)[0]);
         name = funDefine->getName();
+        cout << name << endl;
         for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if ((*codes)[i]->getCodeType() == IrLabelLineType) {
                 auto* line = (IrLabelLine*)(*codes)[i];
@@ -109,7 +110,7 @@ public:
         }
         block = new IrBlock(bCode, block_cnt);
         (*blocks).push_back(block);
-        unique(endBlocks.begin(), endBlocks.end());
+        endBlocks.erase(unique(endBlocks.begin(), endBlocks.end()), endBlocks.end());
 
         //set final block
         block_cnt ++;
@@ -119,7 +120,6 @@ public:
 
         int N = block_cnt + 1;
         graph = new Graph(N); // from 0 to N - 1
-
         useful.resize(N); // record the useful block
 
         for (int i = 0; i < N; ++ i) {
@@ -143,8 +143,9 @@ public:
                 //cout << i << " " << code->toString() << endl;
                 if (code -> getCodeType() != IrReturnStmtType &&
                     code -> getCodeType() != IrGotoStmtType &&
-                    code -> getCodeType() != IrExitType)
+                    code -> getCodeType() != IrExitType) {
                     graph->link(i, i + 1);
+                }
             }
         }
 
@@ -295,10 +296,10 @@ public:
             DataFlow* now = Q.front(); Q.pop();
             int blockId = now -> getBlockNum();
             string var = now -> getVar();
-            auto* def = (*blocks)[blockId] -> getUse();
+            auto* def = (*blocks)[blockId] -> getDef();
             if (def -> find(var) != def -> end())
                 continue;
-            (*blocks)[blockId] ->putVarIntoIn(var);
+            (*blocks)[blockId] -> putVarIntoIn(var);
             auto* backEdges = graph -> getBackEdges(now -> getBlockNum());
             for (auto &to: *backEdges) {
                 if (!useful[to])
@@ -311,6 +312,33 @@ public:
                 }
             }
         }
+
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            cout << "Now in block : " << i << endl;
+            auto* in = (*blocks)[i] -> getIn();
+            auto* out = (*blocks)[i] -> getOut();
+            auto* def = (*blocks)[i] -> getDef();
+            auto* use = (*blocks)[i] -> getUse();
+            cout << "In : " << endl;
+            for (auto &c: *in)
+                cout << c << " ";
+            cout << endl;
+            cout << "Out : " << endl;
+            for (auto &c: *out)
+                cout << c << " ";
+            cout << endl;
+            cout << "Def : " << endl;
+            for (auto &c: *def)
+                cout << c << " ";
+            cout << endl;
+            cout << "Use : " << endl;
+            for (auto &c: *use)
+                cout << c << " ";
+            cout << endl;
+        }
+
         /*
         for (int i = 0; i < N; ++ i) {
             vector<int>* out = graph -> getOutBlock(i);

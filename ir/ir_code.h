@@ -329,8 +329,9 @@ public:
         codeType = IrReturnStmtType;
     }
 
-    explicit IrReturnStmt(string _sc) {
+    IrReturnStmt(string _sc) {
         source[0] = std::move(_sc);
+        codeType = IrReturnStmtType;
     }
 
     string toString() override {
@@ -869,7 +870,7 @@ public:
     }
 
     string toString() override {
-        return "";
+        //return "";
         string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];

@@ -170,7 +170,7 @@ public:
 
     void getRegFromMem(const string& reg, const string& name, const string& offset) {
         int index = checkTable(name);
-        cout << "get arr: " << name << " " << offset << endl;
+        //cout << "get arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(111);
         if (table[index].getTemporary()) {
@@ -214,7 +214,7 @@ public:
             return ;
         }
         int index = checkTable(name);
-        cout << "get var: " << name << endl;
+        //cout << "get var: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -227,7 +227,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name) {
         int index = checkTable(name);
-        cout << "set var: " << name << endl;
+        //cout << "set var: " << name << endl;
         if (index == -1)
             exit(333);
         if (getTabelItemTem(index)) {
@@ -240,7 +240,7 @@ public:
 
     void setRegToMem(const string& reg, const string& name, const string& offset) {
         int index = checkTable(name);
-        cout << "set arr: " << name << " " << offset << endl;
+        //cout << "set arr: " << name << " " << offset << endl;
         if (index == -1)
             exit(444);
         if (table[index].getTemporary()) {
