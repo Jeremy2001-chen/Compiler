@@ -76,7 +76,7 @@ public:
                     continue;
                 if (names[to].empty())
                     cout << names[now] << " " << to << endl;
-                ret -> push_back(new IrMove(names[now], names[to], 0));
+                ret -> push_back(new IrMove(names[now], names[to], false));
                 degree[to] --;
                 if (degree[to] == 0)
                     Q.push(to);
@@ -86,8 +86,8 @@ public:
             string tem = irTableList_1.allocTemForSSA("_0");
             int to = out[*it];
             if (to == -1) continue;
-            ret -> push_back(new IrMove(tem, names[to], 1));
-            temp -> push_back(new IrMove(names[*it], tem, 0));
+            ret -> push_back(new IrBinaryOp(tem, names[to], "+", "%0"));
+            temp -> push_back(new IrMove(names[*it], tem, false));
             degree[to] --;
             if (degree[to] == 0)
                 Q.push(to);
