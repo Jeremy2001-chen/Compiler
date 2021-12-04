@@ -7,6 +7,7 @@
 
 #include "ir_code.h"
 #include <algorithm>
+#include <utility>
 #include "../list/mylist.h"
 #include "../graph/graph.h"
 #include "../graph/graph_ssa.h"
@@ -15,6 +16,25 @@
 #include "ir_table.h"
 
 extern IrTable IrTableList;
+
+class DataFlow {
+private:
+    int blockNum;
+    string var;
+public:
+    DataFlow(int _block, string _var) {
+        blockNum = _block;
+        var = _var;
+    }
+
+    int getBlockNum() {
+        return blockNum;
+    }
+
+    string getVar() {
+        return var;
+    }
+};
 
 class IrFun {
 private:
@@ -230,6 +250,7 @@ public:
                     for (int i = 0; i < from -> size(); ++ i) {
                         (*blocks)[(*blockNum)[i]] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[i]));
                     }
+                    //(*blocks)[i] -> remove(start); //can't remove, for when you want to def the var, you need to use the phi point to alloc space
                 } else
                     break;
                 start = start -> getNext();
@@ -237,7 +258,6 @@ public:
         }
 
         //Remove Phi
-        //todo: how to remove the phi points
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
                 continue;
@@ -246,6 +266,49 @@ public:
             auto* newCodes = graphSSA -> getNewCode();
             for (auto g: *newCodes) {
                 (*blocks)[i] -> addIrCodeBack(g);
+            }
+        }
+
+        //Init Def & Use
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            (*blocks)[i] -> calcDef();
+            (*blocks)[i] -> calcUse();
+        }
+
+        //Start Calc In & Out
+        queue <DataFlow*> Q;
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            (*blocks)[i] -> dataFlowInit();
+            auto* def = (*blocks)[i] -> getDef();
+            auto* use = (*blocks)[i] -> getUse();
+            for (auto& c: *use) {
+                if (def -> find(c) == def -> end())
+                    Q.push(new DataFlow(i, c));
+            }
+        }
+
+        while (!Q.empty()) {
+            DataFlow* now = Q.front(); Q.pop();
+            int blockId = now -> getBlockNum();
+            string var = now -> getVar();
+            auto* def = (*blocks)[blockId] -> getUse();
+            if (def -> find(var) != def -> end())
+                continue;
+            (*blocks)[blockId] ->putVarIntoIn(var);
+            auto* backEdges = graph -> getBackEdges(now -> getBlockNum());
+            for (auto &to: *backEdges) {
+                if (!useful[to])
+                    continue;
+                auto* out = (*blocks)[to] -> getOut();
+                if (out -> find(var) == out -> end()) {
+                    (*blocks)[to] -> putVarIntoOut(var);
+                    DataFlow* next = new DataFlow(to, var);
+                    Q.push(next);
+                }
             }
         }
         /*
@@ -286,8 +349,8 @@ public:
         vector<IrCode*>* newIR = new vector<IrCode*>();
         newIR -> push_back((*codes)[0]);
         for (auto block: *blocks) {
-            vector<IrCode*>* codes = block -> toIR();
-            for (auto code: *codes)
+            vector<IrCode*>* codesN = block -> toIR();
+            for (auto code: *codesN)
                 newIR -> push_back(code);
         }
         newIR->push_back(new IrFunEnd(0));

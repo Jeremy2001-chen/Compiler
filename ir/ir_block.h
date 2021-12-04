@@ -14,6 +14,9 @@ private:
     MyList* fStmt, *eStmt;
     map<string, string>* finalNames;
     map<string, MyList*>* paiList;
+
+    set<string> *def, *use, *in, *out;
+
     int blockNum;
 public:
     IrBlock(vector<IrCode*>* _code, int id) {
@@ -179,6 +182,21 @@ public:
         paiList -> clear();
     }
 
+    void remove(MyList* code) {
+        if (code == fStmt && code == eStmt) {
+            fStmt = eStmt = nullptr;
+        } else if (code == fStmt) {
+            fStmt = code -> getNext();
+            fStmt -> setPrev(nullptr);
+        } else if (code == eStmt) {
+            eStmt = code -> getPrev();
+            eStmt -> setNext(nullptr);
+        } else {
+            MyList* prev = code -> getPrev(), *next = code -> getNext();
+            prev -> linkNext(next);
+        }
+    }
+
     vector<IrCode*>* removePhiAssign() {
         auto* ir = new vector<IrCode*>();
         if (eStmt == nullptr)
@@ -202,6 +220,71 @@ public:
 
     int getBlockNum() const {
         return blockNum;
+    }
+
+    void calcDef() {
+        def = new set<string>();
+        MyList* start = fStmt;
+        while (start != nullptr) {
+            IrCode* code = start -> getCode();
+            if (code -> getCodeType() != IrPhiType) {
+                string target = code -> getTarget();
+                if (!target.empty() && target[0] == '%')
+                    def ->insert(target);
+            } else {
+                //cout << "error, why you find phi point ?" << endl;
+                //exit(343434);
+            }
+            start = start -> getNext();
+        }
+    }
+
+    void calcUse() {
+        use = new set<string>();
+        MyList* start = fStmt;
+        while (start != nullptr) {
+            IrCode* code = start -> getCode();
+            if (code -> getCodeType() != IrPhiType) {
+                for (int i = 0; i < 2; ++ i) {
+                    string source = code -> getSource(i);
+                    if (!source.empty() && source != "%0" && source[0] == '%')
+                        use -> insert(source);
+                }
+            } else {
+                //cout << "error, why you find phi point ?" << endl;
+                //exit(434343);
+            }
+            start = start -> getNext();
+        }
+    }
+
+    void dataFlowInit() {
+        in = new set<string>;
+        out = new set<string>;
+    }
+
+    set<string>* getDef() {
+        return def;
+    }
+
+    set<string>* getUse() {
+        return use;
+    }
+
+    set<string>* getIn() {
+        return in;
+    }
+
+    set<string>* getOut() {
+        return out;
+    }
+
+    void putVarIntoIn(const string& var) {
+        in -> insert(var);
+    }
+
+    void putVarIntoOut(const string& var) {
+        out -> insert(var);
     }
 };
 

@@ -15,6 +15,7 @@ private:
     int point;
     vector<int> first;
     vector<vector<int>* > edges;
+    vector<vector<int>* > backEdges;
 
     vector<vector<int>* > dominate; //DOM(Y): X dominate Y means that every path from entry to Y all go through X
     vector<set<int>* > df; //DF(Y) = X dominate the prev of Y but not dominate Y
@@ -30,6 +31,8 @@ public:
         for (int i = 0; i < N; ++ i) {
             auto* edge = new vector<int>();
             edges.push_back(edge);
+            auto* backEdge = new vector<int>();
+            backEdges.push_back(backEdge);
         }
         reach.resize(N);
         flag.resize(N);
@@ -44,6 +47,7 @@ public:
     void link(int s, int t) {
         cout << "link : " << s << " " << t << endl;
         edges[s] -> push_back(t);
+        backEdges[t] ->push_back(s);
     }
 
     void bfs(int st) {
@@ -156,6 +160,10 @@ public:
 
     vector<int>* getEdges(int index) {
         return edges[index];
+    }
+
+    vector<int>* getBackEdges(int index) {
+        return backEdges[index];
     }
 };
 #endif //COMPILER_GRAPH_H

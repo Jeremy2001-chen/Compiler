@@ -36,7 +36,8 @@ public:
     }
     void linkPrev(MyList* _prev) {
         prev = _prev;
-        _prev->setNext(this);
+        if (_prev != nullptr)
+            _prev->setNext(this);
     }
     MyList* removeToPrev() {
         if (prev)
