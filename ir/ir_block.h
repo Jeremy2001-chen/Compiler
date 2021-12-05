@@ -77,6 +77,7 @@ public:
                 eStmt -> getCode() ->getCodeType() == IrReturnStmtType) {
                 MyList* prev = eStmt -> getPrev();
                 list -> linkNext(eStmt);
+                cout << "check !!!!! : " << blockNum << " " << list->getCode()->toString() << endl;
                 if (prev == nullptr) {
                     fStmt = list;
                 } else {
@@ -214,7 +215,11 @@ public:
             ir -> push_back(end -> getCode());
             end = end -> removeToPrev();
         }
+        if (end == nullptr) {
+            fStmt = (change) ? nullptr : eStmt;
+        }
         if (change) eStmt = end;
+        else eStmt->setPrev(end);
         return ir;
     }
 
@@ -227,14 +232,9 @@ public:
         MyList* start = fStmt;
         while (start != nullptr) {
             IrCode* code = start -> getCode();
-            if (code -> getCodeType() != IrPhiType) {
-                string target = code -> getTarget();
-                if (!target.empty() && target[0] == '%')
-                    def ->insert(target);
-            } else {
-                //cout << "error, why you find phi point ?" << endl;
-                //exit(343434);
-            }
+            string target = code -> getTarget();
+            if (!target.empty() && target[0] == '%')
+                def -> insert(target);
             start = start -> getNext();
         }
     }
@@ -250,9 +250,6 @@ public:
                     if (!source.empty() && source != "%0" && source[0] == '%')
                         use -> insert(source);
                 }
-            } else {
-                //cout << "error, why you find phi point ?" << endl;
-                //exit(434343);
             }
             start = start -> getNext();
         }
@@ -285,6 +282,10 @@ public:
 
     void putVarIntoOut(const string& var) {
         out -> insert(var);
+    }
+
+    void putVarIntoUse(const string& var) {
+        use -> insert(var);
     }
 };
 

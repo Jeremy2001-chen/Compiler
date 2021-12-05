@@ -14,6 +14,7 @@
 #include "ir_block.h"
 #include "../graph/dom_tree.h"
 #include "ir_table.h"
+#include "../list/mylist_block.h"
 
 extern IrTable IrTableList;
 
@@ -39,6 +40,9 @@ public:
 class IrFun {
 private:
     vector<IrCode*>* codes;
+    MyListBlock *fBlock, *eBlock;
+    vector<MyListBlock*>* myBlocks;
+    map<IrBlock*, MyListBlock*> blockToMy;
     vector<IrBlock*>* blocks;
 
     map<string, int> labelMp;
@@ -56,6 +60,7 @@ private:
 public:
     explicit IrFun(vector<IrCode*>* _codes) {
         codes = _codes;
+        fBlock = eBlock = nullptr;
         if ((*codes)[0]->getCodeType() != IrFunDefineType) {
             exit(19373469);
         }
@@ -82,8 +87,9 @@ public:
         }
         pos.push_back((int)(*codes).size() - 1);
         sort(pos.begin(), pos.end());
-        unique(pos.begin(), pos.end());
+        pos.erase(unique(pos.begin(), pos.end()), pos.end());
         blocks = new vector<IrBlock*>();
+        myBlocks = new vector<MyListBlock*>();
         belong.push_back(0);
         int st = 0;
         vector<IrCode*>* bCode = new vector<IrCode*>();
@@ -95,6 +101,14 @@ public:
                 st ++;
                 if (i > 1 && !onlyLabel) {
                     block = new IrBlock(bCode, block_cnt);
+                    MyListBlock* nb = new MyListBlock(block);
+                    blockToMy[block] = nb;
+                    if (fBlock == nullptr)
+                        fBlock = eBlock = nb;
+                    else {
+                        eBlock -> setNext(nb);
+                        eBlock = nb;
+                    }
                     block_cnt = block_cnt + 1;
                     (*blocks).push_back(block);
                     bCode = new vector<IrCode*>();
@@ -109,6 +123,14 @@ public:
                 endBlocks.push_back(block_cnt);
         }
         block = new IrBlock(bCode, block_cnt);
+        MyListBlock* nb = new MyListBlock(block);
+        blockToMy[block] = nb;
+        if (fBlock == nullptr)
+            fBlock = eBlock = nb;
+        else {
+            eBlock -> setNext(nb);
+            eBlock = nb;
+        }
         (*blocks).push_back(block);
         endBlocks.erase(unique(endBlocks.begin(), endBlocks.end()), endBlocks.end());
 
@@ -116,11 +138,30 @@ public:
         block_cnt ++;
         bCode = new vector<IrCode*>();
         block = new IrBlock(bCode, block_cnt);
+        nb = new MyListBlock(block);
+        blockToMy[block] = nb;
+        eBlock -> setNext(nb);
+        eBlock = nb;
         (*blocks).push_back(block);
 
         int N = block_cnt + 1;
         graph = new Graph(N); // from 0 to N - 1
         useful.resize(N); // record the useful block
+        block_cnt ++;
+
+        //now we change the labelMp to record the block of label
+        labelMp.clear();
+        for (int i = 0; i < N; ++ i) {
+            MyList* start = (*blocks)[i]->getStartCode();
+            while (start != nullptr) {
+                IrCode* code = start->getCode();
+                if (code -> getCodeType() == IrLabelLineType) {
+                    auto* line = (IrLabelLine*)code;
+                    labelMp[line -> getLabel()] = i;
+                }
+                start = start -> getNext();
+            }
+        }
 
         for (int i = 0; i < N; ++ i) {
             MyList* start = (*blocks)[i]->getStartCode();
@@ -128,11 +169,11 @@ public:
                 IrCode* code = start->getCode();
                 if (code -> getCodeType() == IrGotoStmtType) {
                     auto* line = (IrGotoStmt*)code;
-                    int target = belong[labelMp[line->getLabel()]];
+                    int target = labelMp[line->getLabel()];
                     graph -> link(i, target);
                 } else if (code -> getCodeType() == IrBranchStmtType) {
                     auto* line = (IrBranchStmt*)code;
-                    int target = belong[labelMp[line->getLabel()]];
+                    int target = labelMp[line->getLabel()];
                     graph->link(i, target);
                 }
                 start = start -> getNext();
@@ -232,50 +273,27 @@ public:
 
         domTree -> ssaReName();
 
-        //build phi
-        for (int i = 0; i < N; ++ i) {
-            if (!useful[i])
-                continue;
-            auto* start = (*blocks)[i] -> getStartCode();
-            while (start != nullptr) {
-                if (start->getCode()->getCodeType() == IrLabelLineType) {
-                    start = start -> getNext();
-                } else
-                    break;
-            }
-            while (start != nullptr) {
-                if (start -> getCode() -> getCodeType() == IrPhiType) {
-                    auto* code = (IrPhi*)(start -> getCode());
-                    auto* from = code->getFrom();
-                    auto* blockNum = code->getBlockNum();
-                    for (int i = 0; i < from -> size(); ++ i) {
-                        (*blocks)[(*blockNum)[i]] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[i]));
-                    }
-                    //(*blocks)[i] -> remove(start); //can't remove, for when you want to def the var, you need to use the phi point to alloc space
-                } else
-                    break;
-                start = start -> getNext();
-            }
-        }
-
-        //Remove Phi
-        for (int i = 0; i < N; ++ i) {
-            if (!useful[i])
-                continue;
-            auto* phi = (*blocks)[i] -> removePhiAssign();
-            auto* graphSSA = new GraphSSA(phi);
-            auto* newCodes = graphSSA -> getNewCode();
-            for (auto g: *newCodes) {
-                (*blocks)[i] -> addIrCodeBack(g);
-            }
-        }
-
         //Init Def & Use
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
                 continue;
             (*blocks)[i] -> calcDef();
             (*blocks)[i] -> calcUse();
+        }
+
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            auto* phis = (*blocks)[i] -> getPhiList();
+            for (const auto& c: *phis) {
+                IrPhi* code = (IrPhi*)c.second->getCode();
+                auto* from = code -> getFrom();
+                auto* blockNum = code -> getBlockNum();
+                for (int j = 0; j < from -> size(); ++ j) {
+                    int to = (*blockNum)[j];
+                    (*blocks)[to] -> putVarIntoUse((*from)[j]);
+                }
+            }
         }
 
         //Start Calc In & Out
@@ -313,6 +331,7 @@ public:
             }
         }
 
+        /*
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
                 continue;
@@ -337,19 +356,91 @@ public:
             for (auto &c: *use)
                 cout << c << " ";
             cout << endl;
-        }
+        }*/
 
-        /*
+        //todo: set register
+
+        cout << toString() << endl;
+        //change phi to assign
         for (int i = 0; i < N; ++ i) {
-            vector<int>* out = graph -> getOutBlock(i);
-            for (auto c: *out) {
-                auto* phiList = (*blocks)[i] -> getPhiList();
-                for (auto t: *phiList) {
-
-                }
+            if (!useful[i])
+                continue;
+            auto* start = (*blocks)[i] -> getStartCode();
+            while (start != nullptr) {
+                if (start->getCode()->getCodeType() == IrLabelLineType) {
+                    start = start -> getNext();
+                } else
+                    break;
+            }
+            while (start != nullptr) {
+                if (start -> getCode() -> getCodeType() == IrPhiType) {
+                    auto* code = (IrPhi*)(start -> getCode());
+                    auto* from = code -> getFrom();
+                    auto* blockNum = code->getBlockNum();
+                    for (int j = 0; j < from -> size(); ++ j) {
+                        int num = (*blockNum)[j];
+                        MyList* endStmt = (*blocks)[num] -> getEndCode();
+                        IrCode* endLine = endStmt -> getCode();
+                        MyList* firstStmt = (*blocks)[i] -> getStartCode();
+                        IrCode* firstLine = firstStmt -> getCode();
+                        if (endLine -> getCodeType() != IrBranchStmtType)
+                            (*blocks)[num] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[j]));
+                        else {
+                            int bel = graph -> getBlockNum(num , i);
+                            if (bel == -1) {
+                                if (firstLine -> getCodeType() != IrLabelLineType)
+                                    exit(999222);
+                                MyListBlock* nb;
+                                vector<IrCode*>* _code = new vector<IrCode*>();
+                                if (num != i - 1) {
+                                    string oldLabel = ((IrLabelLine*)firstLine) -> getLabel();
+                                    string newLabel = irTableList_1.allocBranch();
+                                    _code -> push_back(new IrLabelLine(newLabel));
+                                    IrBranchStmt* branch = (IrBranchStmt*)endLine;
+                                    branch -> setLabel(newLabel);
+                                    labelMp[newLabel] = block_cnt;
+                                    _code -> push_back(new IrGotoStmt(oldLabel));
+                                    IrBlock* block1 = new IrBlock(_code, block_cnt);
+                                    nb = new MyListBlock(block1);
+                                    eBlock -> setNext(nb);
+                                    eBlock = nb;
+                                    blocks -> push_back(block1);
+                                } else {
+                                    IrBlock* block1 = new IrBlock(_code, block_cnt);
+                                    nb = new MyListBlock(block1);
+                                    MyListBlock* prev = blockToMy[(*blocks)[num]], *next = blockToMy[(*blocks)[i]];
+                                    prev -> setNext(nb);
+                                    nb -> setNext(next);
+                                    blocks -> push_back(block1);
+                                }
+                                useful.push_back(true);
+                                bel = block_cnt;
+                                graph -> setBlockNum(num, i, bel);
+                                cout << num << " " << i << " " << bel << endl;
+                                block_cnt ++;
+                            }
+                            (*blocks)[bel] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[j]));
+                        }
+                    }
+                    //(*blocks)[i] -> remove(start); //can't remove, for when you want to def the var, you need to use the phi point to alloc space
+                } else
+                    break;
+                start = start -> getNext();
             }
         }
-        */
+
+        //Remove Phi assign
+        for (int i = 0; i < block_cnt; ++ i) {
+            if (!useful[i])
+                continue;
+            cout << "Remove Start : " << i << endl;
+            auto* phi = (*blocks)[i] -> removePhiAssign();
+            auto* graphSSA = new GraphSSA(phi);
+            auto* newCodes = graphSSA -> getNewCode();
+            for (auto g: *newCodes) {
+                (*blocks)[i] -> addIrCodeBack(g);
+            }
+        }
     }
 
     void test() {
@@ -376,10 +467,18 @@ public:
     vector<IrCode*>* toIR() {
         vector<IrCode*>* newIR = new vector<IrCode*>();
         newIR -> push_back((*codes)[0]);
-        for (auto block: *blocks) {
+
+        /*for (auto block: *blocks) {
             vector<IrCode*>* codesN = block -> toIR();
             for (auto code: *codesN)
                 newIR -> push_back(code);
+        }*/
+        MyListBlock* start = fBlock;
+        while (start != nullptr) {
+            vector<IrCode*>* codesN = start -> getBlock() -> toIR();
+            for (auto code: *codesN)
+                newIR -> push_back(code);
+            start = start -> getNext();
         }
         newIR->push_back(new IrFunEnd(0));
         return newIR;

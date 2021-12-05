@@ -52,8 +52,8 @@ int main() {
     for (auto code: *temp)
         IR_2.add(code);
     IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
-    print(irNew -> toString(), nout);
-    //print(IR_2.toString(), nout);
+    //print(irNew -> toString(), nout);
+    print(IR_2.toString(), nout);
     mips = new Mips(IR_2, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());

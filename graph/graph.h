@@ -13,7 +13,6 @@
 class Graph {
 private:
     int point;
-    vector<int> first;
     vector<vector<int>* > edges;
     vector<vector<int>* > backEdges;
 
@@ -24,10 +23,11 @@ private:
     vector<bool> can;
     vector<bool> flag;
 
+    vector<vector<int>* > newBlocks;
+
 public:
     explicit Graph(int N) {
         point = N;
-        first.resize(N);
         for (int i = 0; i < N; ++ i) {
             auto* edge = new vector<int>();
             edges.push_back(edge);
@@ -42,6 +42,40 @@ public:
             auto* dfp = new set<int>();
             df.push_back(dfp);
         }
+        for (int i = 0; i < N; ++ i) {
+            auto* block = new vector<int>(2);
+            (*block)[0] = (*block)[1] = -1;
+            newBlocks.push_back(block);
+        }
+    }
+
+    int getBlockNum(int sou, int tar) const {
+        for (int i = 0; i < edges[sou]->size(); ++ i)
+            if ((*edges[sou])[i] == tar)
+                return (*newBlocks[sou])[i];
+        cout << "error in get New Block Num : " << sou << " " << tar << endl;
+        exit(4343);
+    }
+
+    void setBlockNum(int sou, int tar, int num) {
+        for (int i = 0; i < edges[sou]->size(); ++ i) {
+            if ((*edges[sou])[i] == tar) {
+                (*newBlocks[sou])[i] = num;
+                return ;
+            }
+        }
+        cout << "error in set New Block Num : " << sou << " " << tar << " " << num << endl;
+        exit(8787);
+    }
+    void addPoint() {
+        point ++;
+        auto* edge = new vector<int>();
+        edges.push_back(edge);
+        auto* backEdge = new vector<int>();
+        backEdges.push_back(backEdge);
+
+        reach.push_back(true);
+        flag.push_back(false);
     }
 
     void link(int s, int t) {

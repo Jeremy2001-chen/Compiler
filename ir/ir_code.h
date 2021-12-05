@@ -506,8 +506,12 @@ public:
         return 0;
     }
 
-    string getLabel() const {
+    string getLabel() {
         return label;
+    }
+
+    void setLabel(string name) {
+        label = name;
     }
 };
 
@@ -516,7 +520,7 @@ private:
     string label;
 public:
     explicit IrGotoStmt(string _label) {
-        label = std::move(_label);
+        label = _label;
         codeType = IrGotoStmtType;
     }
 
@@ -870,7 +874,7 @@ public:
     }
 
     string toString() override {
-        //return "";
+        return "";
         string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];
