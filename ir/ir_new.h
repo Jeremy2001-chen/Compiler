@@ -6,25 +6,34 @@
 #define COMPILER_IR_NEW_H
 
 #include "ir_fun.h"
+#include "../mips/mips_code.h"
+
+extern MipsTable *mipsTable;
+extern MipsOutput *mipsOutput;
 
 map <string, int> globalNameCount; //for ssa to rename
 class IrNew {
 private:
     vector <IrCode*> irDecl;
     vector <IrFun*> irFun;
+    vector <IrCode*>* origin;
 public:
     IrNew(IR* ir) {
         globalNameCount.clear();
         vector <IrCode*>* list = ir -> getIrList();
+        origin = list;
         int decl = ir -> getGlobalDeclEnd();
         vector<IrCode*> *funCode = nullptr;
         for (int i = 0; i < decl; ++ i)
             irDecl.push_back((*list)[i]);
+        init_data();
+        mipsOutput -> push_back(new MipsSegment("text"));
         for (int i = decl; i < (*list).size(); ++ i) {
             if (((*list)[i]) -> getCodeType() == IrFunDefineType) {
                 if (funCode != nullptr) {
                     IrFun* fun = new IrFun(funCode);
                     irFun.push_back(fun);
+                    fun -> toMips();
                     funCode = new vector<IrCode*>();
                 } else
                     funCode = new vector<IrCode*>();
@@ -34,6 +43,7 @@ public:
         if (funCode != nullptr) {
             IrFun* fun = new IrFun(funCode);
             irFun.push_back(fun);
+            fun -> toMips();
         }
     }
 
@@ -56,6 +66,86 @@ public:
                 newIR -> push_back(code);
         }
         return newIR;
+    }
+
+    void toMips() {
+        init_data();
+        init_text();
+    }
+
+    void init_data() {
+        mipsOutput->push_back(new MipsSegment("data"));
+        int count = 0;
+        for (auto code: irDecl) {
+            if (code->getCodeType() == IrArrayDefineWithAssignType) {
+                IrArrayDefineWithAssign* array = (IrArrayDefineWithAssign*)code;
+                string name = IRNameTran(array->getName());
+                mipsOutput->push_back(new MipsGlobalVarDef(name, array->getSize(), array->getValues()));
+                mipsTable->addGlobalTable(array->getName(), 4 * array->getSize());
+            } else if (code->getCodeType() == IrArrayDefineWithOutAssignType) {
+                IrArrayDefineWithOutAssign* array = (IrArrayDefineWithOutAssign*)code;
+                string name = IRNameTran(array->getName());
+                mipsOutput->push_back(new MipsGlobalVarDef(name, array->getSize(), nullptr));
+                mipsTable->addGlobalTable(array->getName(), 4 * array->getSize());
+            } else if (code->getCodeType() == IrVarDefineWithAssignType) {
+                IrVarDefineWithAssign* var = (IrVarDefineWithAssign*)code;
+                int value = var->getValue();
+                string name = IRNameTran(var->getName());
+                mipsOutput->push_back(new MipsGlobalVarDef(name, &value));
+                mipsTable->addGlobalTable(var->getName(), 4);
+            } else if (code->getCodeType() == IrVarDefineWithOutAssignType) {
+                IrVarDefineWithOutAssign* var = (IrVarDefineWithOutAssign*)code;
+                string name = IRNameTran(var->getName());
+                mipsOutput->push_back(new MipsGlobalVarDef(name, nullptr));
+                mipsTable->addGlobalTable(var->getName(), 4);
+            }
+        }
+        for (auto code: irDecl) {
+            if (code->getCodeType() == IrNumberAssignType) {
+                IrNumberAssign* var = (IrNumberAssign*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrBinaryOpType) {
+                IrBinaryOp* var = (IrBinaryOp*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrUnaryOpType) {
+                IrUnaryOp* var = (IrUnaryOp*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            } else if (code->getCodeType() == IrArrayGetType) {
+                IrArrayGet* var = (IrArrayGet*)code;
+                string name = IRNameTran(var->getTarget());
+                if (name[0] >= '0' && name[0] <= '9') {
+                    count ++;
+                    mipsTable->addGlobalTable(var->getTarget(), 4);
+                }
+            }
+        }
+        mipsOutput -> push_back(new MipsGlobalVarDef("__global_var_all", count, nullptr));
+        for (auto code: *origin) {
+            if (code->getCodeType() == IrPrintStringType) {
+                IrPrintString* str = (IrPrintString*)code;
+                mipsTable -> putString(str->getStr());
+            }
+        }
+        mipsTable->setDataAlign();
+    }
+
+    void init_text() {
+        mipsOutput -> push_back(new MipsSegment("text"));
+        for (auto c: irFun) {
+            c -> toMips();
+        }
     }
 };
 

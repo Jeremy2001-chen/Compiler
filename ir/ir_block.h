@@ -10,6 +10,7 @@ extern map<string, int> globalNameCount;
 class IrBlock {
 private:
     vector<IrCode*>* codes;
+    vector<vector<bool>* >* kills;
     set<string>* names;
     MyList* fStmt, *eStmt;
     map<string, string>* finalNames;
@@ -289,6 +290,10 @@ public:
 
     void putVarIntoUse(const string& var) {
         use -> insert(var);
+    }
+
+    void setKill(vector<vector<bool> *>* kill) {
+        kills = kill;
     }
 };
 

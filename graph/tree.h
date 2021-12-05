@@ -77,14 +77,14 @@ public:
     }
 
     void setRegister() {
-        vector<vector<bool>* > tem;
+        vector<vector<bool>* >* tem = new vector<vector<bool>* >();
         MyList* end = irBlock -> getEndCode();
         set<string> hasKill;
         auto* out = irBlock -> getOut();
         while (end != nullptr) {
             vector<bool>* kill = new vector<bool>(IR_SOURCE);
             (*kill)[0] = (*kill)[1] = false;
-            tem.push_back(kill);
+            tem -> push_back(kill);
             IrCode* code = end -> getCode();
             if (code -> getCodeType() != IrPhiType) {
                 for (int i = 0; i < IR_SOURCE; ++ i) {
@@ -99,15 +99,16 @@ public:
             }
             end = end -> getPrev();
         }
+        irBlock -> setKill(tem);
 
         MyList* start = irBlock -> getStartCode();
-        int index = tem.size() - 1;
+        int index = tem -> size() - 1;
         while (start != nullptr) {
             IrCode* code = start -> getCode();
             if (code -> getCodeType() != IrPhiType) {
                 for (int i = 0; i < IR_SOURCE; ++ i) {
                     string source = code -> getSource(i);
-                    if ((*tem[index])[i]) {
+                    if ((*(*tem)[index])[i]) {
                         if (varToRegister -> find(source) != varToRegister -> end()) {
                             aRegister -> release((*varToRegister)[source]);
                         }

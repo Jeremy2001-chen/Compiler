@@ -107,7 +107,7 @@ public:
     }
 
     void init_text() {
-        mipsCode-> push_back(new MipsSegment("text"));
+        mipsCode -> push_back(new MipsSegment("text"));
         for (int i = 0; i < (*irList).size(); ++ i) {
             IrCode* code = (*irList)[i];
             //cout << i << " " << code->getCodeType() << " " << IrFunDefineType << endl;

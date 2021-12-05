@@ -19,6 +19,9 @@
 
 extern IrTable IrTableList;
 extern Register* aRegister;
+extern MipsOutput* mipsOutput;
+extern MipsTable* mipsTable;
+
 
 class DataFlow {
 private:
@@ -78,7 +81,7 @@ public:
             }
         }
         pos.push_back(1);
-        for (int i = 1; i < (*codes).size() - 1; ++ i) {
+        for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if ((*codes)[i]->getCodeType() == IrGotoStmtType) {
                 auto* line = (IrGotoStmt*)(*codes)[i];
                 pos.push_back(labelMp[line->getLabel()]);
@@ -100,7 +103,7 @@ public:
         IrBlock* block = nullptr;
         bool onlyLabel = true;
         int block_cnt = 0;
-        for (int i = 1; i < (*codes).size() - 1; ++ i) {
+        for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if (st < pos.size() && i == pos[st]) {
                 st ++;
                 if (i > 1 && !onlyLabel) {
@@ -390,6 +393,10 @@ public:
         varToRegister = new map<string, string>();
         domTree -> setRegister();
 
+        for (const auto& c: *varToRegister) {
+            cout << "hahahah: " << c.first << " " << c.second << endl;
+        }
+
         //cout << toString() << endl;
         //change phi to assign
         for (int i = 0; i < N; ++ i) {
@@ -458,7 +465,9 @@ public:
                 start = start -> getNext();
             }
         }
-
+        for (const auto& c: *varToRegister) {
+            cout << "wass: " << c.first << " " << c.second << endl;
+        }
         //Remove Phi assign
         for (int i = 0; i < block_cnt; ++ i) {
             if (!useful[i])
@@ -470,6 +479,9 @@ public:
             for (auto g: *newCodes) {
                 (*blocks)[i] -> addIrCodeBack(g);
             }
+        }
+        for (const auto& c: *varToRegister) {
+            cout << "gass: " << c.first << " " << c.second << endl;
         }
     }
 
@@ -497,7 +509,7 @@ public:
     vector<IrCode*>* toIR() {
         vector<IrCode*>* newIR = new vector<IrCode*>();
         newIR -> push_back((*codes)[0]);
-
+        newIR -> push_back((*codes)[1]);
         /*for (auto block: *blocks) {
             vector<IrCode*>* codesN = block -> toIR();
             for (auto code: *codesN)
@@ -512,6 +524,62 @@ public:
         }
         newIR->push_back(new IrFunEnd(0));
         return newIR;
+    }
+
+    void toMips() {
+        //def function
+        mipsTable -> setLayer(1);
+
+        (*codes)[1] -> toMips(); // name
+        int spMove = 0;
+        for (auto c: *blocks) {
+            MyList* start = c -> getStartCode();
+            while (start != nullptr) {
+                IrCode* code = start -> getCode();
+                spMove += code -> defVar();
+                start = start -> getNext();
+            }
+        }
+
+        set <string> reg;
+        for (const auto& c: *varToRegister) {
+            cout << "gogogo: " << c.first << " " << c.second << endl;
+            reg.insert(c.second);
+        }
+
+        for (const auto& c: reg) {
+            spMove += mipsTable -> funInitStack(c, 1, false);
+        }
+
+        spMove <<= 2;
+        if (spMove > 0)
+            mipsOutput -> push_back(new MipsAddI("subi", "$sp", "$sp", to_string(spMove)));
+
+        int off = 0;
+        for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+            mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
+        }
+
+        for (auto c: *blocks) {
+            MyList* start = c -> getStartCode();
+            while (start != nullptr) {
+                IrCode* code = start -> getCode();
+                code -> toMips();
+                if (code -> getCodeType() == IrReturnStmtType) {
+                    off = 0;
+                    for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+                        mipsOutput -> push_back(new MipsLoad("lw", *it, off, "$sp"));
+                    }
+                    if (spMove > 0)
+                        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(spMove)));
+                    mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
+                }
+                start = start -> getNext();
+            }
+        }
+
+        // end function
+        mipsTable -> setLayer(-1);
     }
 };
 #endif //COMPILER_IR_FUN_H

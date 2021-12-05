@@ -8,6 +8,7 @@
 #include "mips_output.h"
 
 extern MipsOutput* mipsOutput;
+extern map<string, string>* varToRegister;
 
 string IRNameTran(const string& str) {
     return str.substr(1);
@@ -168,7 +169,39 @@ public:
         return table[index].getTemporary();
     }
 
-    void getRegFromMem(const string& reg, const string& name, const string& offset) {
+    string getRegFromMemMust(const string& reg, const string& name, bool def) {
+        if (name == "%0") {
+            mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
+            return "$0";
+        }
+        if (def && varToRegister -> find(name) != varToRegister -> end()) {
+            mipsOutput -> push_back(new MipsAdd("add", reg, (*varToRegister)[name], "$0"));
+            return (*varToRegister)[name];
+        }
+        int index = checkTable(name);
+        //cout << "get var: " << name << endl;
+        if (index == -1)
+            exit(222);
+        if (getTabelItemTem(index)) {
+            int offset = getTabelItemAdd(index) - sp;
+            mipsOutput->push_back(new MipsLoad("lw", reg, offset, "$sp"));
+        } else {
+            mipsOutput->push_back(new MipsLoad("lw", reg, getTabelItemAdd(index), "$0"));
+        }
+        return reg;
+    }
+
+    string getRegFromMem(const string& reg, const string& name, const string& offset) {
+        if (varToRegister -> find(name) != varToRegister -> end()) {
+            string add = (*varToRegister)[name];
+            if (offset[0] == '$') {
+                mipsOutput -> push_back(new MipsAdd("add", "$t9", add, offset));
+                mipsOutput -> push_back(new MipsLoad("lw", reg, "0","$t9"));
+            } else {
+                mipsOutput -> push_back(new MipsLoad("lw", reg, offset, add));
+            }
+            return reg;
+        }
         int index = checkTable(name);
         //cout << "get arr: " << name << " " << offset << endl;
         if (index == -1)
@@ -206,12 +239,16 @@ public:
                 mipsOutput -> push_back(new MipsLoad("lw", reg, off, "$0"));
             }
         }
+        return reg;
     }
 
-    void getRegFromMem(const string& reg, const string& name) {
+    string getRegFromMem(const string& reg, const string& name) {
         if (name == "%0") {
-            mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
-            return ;
+            //mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
+            return "$0";
+        }
+        if (varToRegister -> find(name) != varToRegister -> end()) {
+            return (*varToRegister)[name];
         }
         int index = checkTable(name);
         //cout << "get var: " << name << endl;
@@ -223,9 +260,17 @@ public:
         } else {
             mipsOutput->push_back(new MipsLoad("lw", reg, getTabelItemAdd(index), "$0"));
         }
+        return reg;
     }
 
     void setRegToMem(const string& reg, const string& name) {
+        cout << "! : " << name << " " << (*varToRegister)[name] << endl;
+        if (varToRegister -> find(name) != varToRegister -> end()) {
+            string var = (*varToRegister)[name];
+            if (var == reg) return ;
+            mipsOutput -> push_back(new MipsAdd("add", var, reg, "$0"));
+            return ;
+        }
         int index = checkTable(name);
         //cout << "set var: " << name << endl;
         if (index == -1)
@@ -239,6 +284,16 @@ public:
     }
 
     void setRegToMem(const string& reg, const string& name, const string& offset) {
+        if (varToRegister -> find(name) != varToRegister -> end()) {
+            string add = (*varToRegister)[name];
+            if (offset[0] == '$') {
+                mipsOutput -> push_back(new MipsAdd("add", "$t9", add, offset));
+                mipsOutput -> push_back(new MipsStore("sw", reg, "0","$t9"));
+            } else {
+                mipsOutput -> push_back(new MipsStore("sw", reg, offset, add));
+            }
+            return ;
+        }
         int index = checkTable(name);
         //cout << "set arr: " << name << " " << offset << endl;
         if (index == -1)
@@ -290,7 +345,17 @@ public:
             mipsOutput->push_back(new MipsAddI("subi", "$sp", "$sp", to_string(-det)));
     }
 
-    void getRegFromAddress(const string& reg, const string& name, const string& offset) {
+    string getRegFromAddress(const string& reg, const string& name, const string& offset, bool def) {
+        if (def && varToRegister -> find(name) != varToRegister -> end()) {
+            string add = (*varToRegister)[name];
+            if (offset[0] == '$') {
+                mipsOutput -> push_back(new MipsAdd("add", reg, add, offset));
+            } else {
+                int off = (atoi(offset.c_str()) << 2);
+                mipsOutput -> push_back(new MipsAddI("sw", reg, offset, to_string(off)));
+            }
+            return reg;
+        }
         int index = checkTable(name);
         if (index == -1)
             exit(999);
@@ -327,6 +392,7 @@ public:
                 mipsOutput->push_back(new MipsAddI("add", reg, offset, to_string(imm)));
             }
         }
+        return reg;
     }
 };
 

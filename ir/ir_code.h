@@ -18,6 +18,7 @@ extern MipsOutput* mipsOutput;
 extern MipsTable* mipsTable;
 
 extern string IRNameTran(const string& str);
+extern map<string, string>* varToRegister;
 
 class IrCode {
 protected:
@@ -63,43 +64,47 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[0]);
-        mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (sign == "+")
-            mipsOutput -> push_back(new MipsAdd("add", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("add", reg2, reg0, reg1));
         else if (sign == "-")
-            mipsOutput -> push_back(new MipsAdd("sub", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sub", reg2, reg0, reg1));
         else if (sign == "*") {
-            mipsOutput -> push_back(new MipsMul("mult", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mflo", "$t0"));
+            mipsOutput -> push_back(new MipsMul("mult", reg0, reg1));
+            mipsOutput -> push_back(new MipsMF("mflo", reg2));
         } else if (sign == "/") {
-            mipsOutput -> push_back(new MipsMul("div", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mflo", "$t0"));
+            mipsOutput -> push_back(new MipsMul("div", reg0, reg1));
+            mipsOutput -> push_back(new MipsMF("mflo", reg2));
         } else if (sign == "%") {
-            mipsOutput -> push_back(new MipsMul("div", "$t0", "$t1"));
-            mipsOutput -> push_back(new MipsMF("mfhi", "$t0"));
+            mipsOutput -> push_back(new MipsMul("div", reg0, reg1));
+            mipsOutput -> push_back(new MipsMF("mfhi", reg2));
         } else if (sign == "<") {
-            mipsOutput -> push_back(new MipsAdd("slt", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("slt", reg2, reg0, reg1));
         } else if (sign == ">") {
-            mipsOutput -> push_back(new MipsAdd("sgt", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sgt", reg2, reg0, reg1));
         } else if (sign == ">=") {
-            mipsOutput -> push_back(new MipsAdd("sge", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sge", reg2, reg0, reg1));
         } else if (sign == "<=") {
-            mipsOutput -> push_back(new MipsAdd("sle", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("sle", reg2, reg0, reg1));
         } else if (sign == "==") {
-            mipsOutput -> push_back(new MipsAdd("seq", "$t0", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("seq", reg2, reg1, reg0));
         } else if (sign == "!=") {
-            mipsOutput -> push_back(new MipsAdd("sne", "$t0", "$t1", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("sne", reg2, reg1, reg0));
         } else if (sign == "&&") {
-            mipsOutput -> push_back(new MipsAdd("and", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("and", reg2, reg0, reg1));
         } else if (sign == "||") {
-            mipsOutput -> push_back(new MipsAdd("or", "$t0", "$t0", "$t1"));
+            mipsOutput -> push_back(new MipsAdd("or", reg2, reg0, reg1));
         }
-        mipsTable -> setRegToMem("$t0", target);
+        mipsTable -> setRegToMem(reg2, target);
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        else
+            return 0;
     }
 };
 
@@ -121,20 +126,24 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (sign == "+") {
-            mipsTable -> setRegToMem("$t0", target);
+            mipsTable -> setRegToMem(reg0, target);
         } else if (sign == "-") {
-            mipsOutput -> push_back(new MipsAdd("sub", "$t0", "$0", "$t0"));
-            mipsTable -> setRegToMem("$t0", target);
+            mipsOutput -> push_back(new MipsAdd("sub", reg2, "$0", "$t0"));
+            mipsTable -> setRegToMem(reg2, target);
         } else if (sign == "!") {
-            mipsOutput -> push_back(new MipsAddI("seq", "$t0", "$0", "$t0"));
-            mipsTable -> setRegToMem("$t0", target);
+            mipsOutput -> push_back(new MipsAddI("seq", reg2, "$0", "$t0"));
+            mipsTable -> setRegToMem(reg2, target);
         }
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        else
+            return 0;
     }
 };
 
@@ -216,10 +225,20 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         //mipsTable -> setTopName(name);
+        bool isAdd = (type == "arr");
+        if (varToRegister -> find(target) != varToRegister -> end()) {
+            if (isAdd)
+                mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
+            else
+                mipsTable -> getRegFromMemMust((*varToRegister)[target], target, false);
+        }
     }
-
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, true);
+        bool isAdd = (type == "arr");
+        cout << "check : " << target << endl;
+        //if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, isAdd);
+        //return 0;
     }
 };
 
@@ -239,9 +258,9 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)) , "$sp"));
+        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
     }
 
     int defVar() override {
@@ -267,17 +286,19 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
+        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
         string tar;
         if (source[1][0] >= '0' && source[1][0] <= '9')
             tar = source[0];
         else {
-            mipsTable -> getRegFromMem("$t0", source[1]);
-            mipsOutput -> push_back(new MipsAddI("sll", "$t0", "$t0", "2"));
+            reg1 = mipsTable -> getRegFromMem("$t0", source[1]);
+            mipsOutput -> push_back(new MipsAddI("sll", "$t0", reg1, "2"));
             tar = "$t0";
         }
-        mipsTable -> getRegFromAddress("$t0", source[0], tar);
+        reg0 = mipsTable -> getRegFromAddress("$t0", source[0], tar, true);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", "$t0", to_string(-(off << 2)), "$sp"));
+        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)), "$sp"));
     }
 
     int defVar() override {
@@ -337,10 +358,10 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         if (!source[0].empty())
-            mipsTable -> getRegFromMem("$v0", source[0]);
-        int cnt = mipsTable -> getTopParaCnt();
-        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt)));
-        mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
+            mipsTable -> getRegFromMemMust("$v0", source[0], true);
+//        int cnt = mipsTable -> getTopParaCnt();
+//        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt)));
+        //mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
     }
 
     int defVar() override {
@@ -367,7 +388,9 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 
@@ -407,12 +430,15 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsOutput -> push_back(new MipsLi("li", "$t0", value));
-        mipsTable -> setRegToMem("$t0", target);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+        mipsOutput -> push_back(new MipsLi("li", reg2, value));
+        mipsTable -> setRegToMem(reg2, target);
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 
@@ -442,7 +468,9 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 
@@ -489,9 +517,9 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[0]);
-        mipsTable -> getRegFromMem("$t1", source[1]);
-        mipsOutput -> push_back(new MipsBranch(type, "$t0", "$t1", label));
+        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        mipsOutput -> push_back(new MipsBranch(type, reg0, reg1, label));
     }
 
     int defVar() override {
@@ -561,6 +589,8 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
+        if (varToRegister -> find(target) != varToRegister -> end())
+            mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
     }
 
     int defVar() override {
@@ -606,6 +636,8 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
+        if (varToRegister -> find(target) != varToRegister -> end())
+            mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
         //for temporary array with assign, should not call toMips!!!
         exit(23456);
     }
@@ -640,13 +672,14 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[2]);
+        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
         if (source[1][0] >= '0' && source[1][0] <= '9')
-            mipsTable -> setRegToMem("$t0", source[0], source[1]);
+            mipsTable -> setRegToMem(reg2, source[0], source[1]);
         else {
-            mipsTable -> getRegFromMem("$t1", source[1]);
-            mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
-            mipsTable -> setRegToMem("$t0", source[0], "$t1");
+            mipsTable -> getRegFromMem(reg1, source[1]);
+            mipsOutput -> push_back(new MipsAddI("sll", "$t1", reg1, "2"));
+            mipsTable -> setRegToMem(reg2, source[0], "$t1");
         }
     }
 
@@ -676,19 +709,23 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
+        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (source[1][0] >= '0' && source[1][0] <= '9')
-            mipsTable -> getRegFromMem("$t0", source[0], source[1]);
+            reg2 = mipsTable -> getRegFromMem(reg2, source[0], source[1]);
         else {
-            mipsTable -> getRegFromMem("$t1", source[1]);
-            mipsOutput -> push_back(new MipsAddI("sll", "$t1", "$t1", "2"));
-            mipsTable -> getRegFromMem("$t0", source[0], "$t1");
+            reg1 = mipsTable -> getRegFromMem(reg1, source[1]);
+            mipsOutput -> push_back(new MipsAddI("sll", "$t1", reg1, "2"));
+            reg2 = mipsTable -> getRegFromMem(reg2, source[0], "$t1");
         }
-        mipsTable -> setRegToMem("$t0", target);
+        mipsTable -> setRegToMem(reg2, target);
         //cout << toString() << endl;
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 
     string getTarget() {
@@ -717,7 +754,9 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 
@@ -726,7 +765,7 @@ private:
     //string source;
 public:
     explicit IrPrintInteger(string _sc) {
-        source[0] = std::move(_sc);
+        source[0] = _sc;
         codeType = IrPrintIntegerType;
     }
 
@@ -736,7 +775,7 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$a0", source[0]);
+        mipsTable -> getRegFromMemMust("$a0", source[0], true);
         mipsOutput -> push_back(new MipsLi("li", "$v0", "1"));
         mipsOutput -> push_back(new MipsSyscall());
     }
@@ -793,12 +832,15 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsOutput -> push_back(new MipsLi("li", "$t0", number));
-        mipsTable -> setRegToMem("$t0", target);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+        mipsOutput -> push_back(new MipsLi("li", reg2, number));
+        mipsTable -> setRegToMem(reg2, target);
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 };
 
@@ -880,7 +922,9 @@ public:
     }
 
     int defVar() override {
-        return mipsTable -> funInitStack(target, 1, false);
+        if (varToRegister -> find(target) == varToRegister -> end())
+            return mipsTable -> funInitStack(target, 1, false);
+        return 0;
     }
 
     vector<string>* getFrom() {
@@ -907,6 +951,9 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
+        //string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+        //reg2 = mipsTable -> getRegFromMem(reg2, source[0]);
+        //mipsTable -> setRegToMem(reg2, target);
     }
 
     int defVar() override {
@@ -922,29 +969,24 @@ public:
         codeType = IrMoveType;
         target = std::move(_ta);
         source[0] = std::move(_so);
-        if (source[0].empty()) {
-            cout << target << endl;
-            exit(6666666);
-        }
         type = _def;
     }
 
     string toString() override {
-        //string ret = "move " + source[0] + " to " + target;
-        //string ret = "move " + target + " " + source[0];
         string ret = target + " = + " + source[0];
         return ret;
     }
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMem("$t0", source[0]);
-        mipsTable -> setRegToMem("$t0", target);
+        string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+        reg2 = mipsTable -> getRegFromMem(reg2, source[0]);
+        mipsTable -> setRegToMem(reg2, target);
     }
 
     int defVar() override {
-        if (type)
-            return mipsTable -> funInitStack(target, 1, false);
+        //if (type)
+        //    return mipsTable -> funInitStack(target, 1, false);
         return 0;
     }
 };
