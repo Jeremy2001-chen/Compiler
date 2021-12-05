@@ -44,6 +44,12 @@ public:
             prev -> linkNext(next);
         return prev;
     }
+
+    MyList* removeToNext() {
+        if (next)
+            next -> linkPrev(prev);
+        return next;
+    }
 };
 
 #endif //COMPILER_LIST_H

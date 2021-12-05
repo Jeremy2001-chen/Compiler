@@ -362,6 +362,28 @@ public:
                 cout << c << " ";
             cout << endl;
         }*/
+        //todo: kill not use code
+        for (int i = 0; i < N; ++ i) {
+            if (!useful[i])
+                continue;
+            auto* in = (*blocks)[i] -> getIn();
+            auto* out = (*blocks)[i] -> getOut();
+            auto* def = (*blocks)[i] -> getDef();
+            auto* use = (*blocks)[i] -> getUse();
+            auto* start = (*blocks)[i] -> getStartCode();
+            while (start != nullptr) {
+                if (start -> getCode() -> getCodeType() != IrReadIntegerType &&
+                    start -> getCode() -> getCodeType() != IrParaDefineType) {
+                    string target = start -> getCode() -> getTarget();
+                    if (!target.empty() && target[0] == '%') {
+                        if (use->find(target) == use->end() &&
+                        out->find(target) == out->end())
+                            (*blocks)[i] -> remove(start);
+                    }
+                }
+                start = start -> getNext();
+            }
+        }
 
         //todo: set register
         aRegister -> clear();
