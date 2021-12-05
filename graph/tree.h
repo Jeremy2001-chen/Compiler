@@ -82,12 +82,12 @@ public:
         set<string> hasKill;
         auto* out = irBlock -> getOut();
         while (end != nullptr) {
-            vector<bool>* kill = new vector<bool>(2);
+            vector<bool>* kill = new vector<bool>(IR_SOURCE);
             (*kill)[0] = (*kill)[1] = false;
             tem.push_back(kill);
             IrCode* code = end -> getCode();
             if (code -> getCodeType() != IrPhiType) {
-                for (int i = 0; i < 2; ++ i) {
+                for (int i = 0; i < IR_SOURCE; ++ i) {
                     string source = code -> getSource(i);
                     if (!source.empty() && source != "%0" && source[0] == '%') {
                         if (out->find(source) == out -> end() && hasKill.find(source) == hasKill.end()) {
@@ -105,7 +105,7 @@ public:
         while (start != nullptr) {
             IrCode* code = start -> getCode();
             if (code -> getCodeType() != IrPhiType) {
-                for (int i = 0; i < 2; ++ i) {
+                for (int i = 0; i < IR_SOURCE; ++ i) {
                     string source = code -> getSource(i);
                     if ((*tem[index])[i]) {
                         if (varToRegister -> find(source) != varToRegister -> end()) {

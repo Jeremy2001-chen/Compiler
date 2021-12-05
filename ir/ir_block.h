@@ -77,7 +77,6 @@ public:
                 eStmt -> getCode() ->getCodeType() == IrReturnStmtType) {
                 MyList* prev = eStmt -> getPrev();
                 list -> linkNext(eStmt);
-                cout << "check !!!!! : " << blockNum << " " << list->getCode()->toString() << endl;
                 if (prev == nullptr) {
                     fStmt = list;
                 } else {
@@ -120,17 +119,21 @@ public:
         MyList* start = fStmt;
         while (start != nullptr) {
             IrCode* code = start->getCode();
-            for (int i = 0; i < 2; ++ i) {
+            for (int i = 0; i < IR_SOURCE; ++ i) {
                 string sc = code->getSource(i);
                 if (sc.empty() || sc == "%0" || sc[0] != '%') continue;
                 if (finalNames -> find(sc) == finalNames -> end()) {
                     cout << "error in IR, can't find : " << sc << endl;
+                    cout << code -> toString() << endl;
                     exit(7654321);
                 }
                 string newName = (*finalNames)[sc];
                 code->setSource(i, newName);
             }
             string target = code->getTarget();
+            if (code -> getCodeType() == IrArrayDefineWithOutAssignType ||
+                code -> getCodeType() == IrArrayDefineWithAssignType)
+                    cout << code -> toString() << endl;
             if (!target.empty() && target[0] != '@' && target[0] != '$') {
                 if (globalNameCount.find(target) == globalNameCount.end())
                     globalNameCount[target] = 1;
@@ -245,7 +248,7 @@ public:
         while (start != nullptr) {
             IrCode* code = start -> getCode();
             if (code -> getCodeType() != IrPhiType) {
-                for (int i = 0; i < 2; ++ i) {
+                for (int i = 0; i < IR_SOURCE; ++ i) {
                     string source = code -> getSource(i);
                     if (!source.empty() && source != "%0" && source[0] == '%')
                         use -> insert(source);
