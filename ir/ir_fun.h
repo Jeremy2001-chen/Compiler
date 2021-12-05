@@ -15,8 +15,10 @@
 #include "../graph/dom_tree.h"
 #include "ir_table.h"
 #include "../list/mylist_block.h"
+#include "../mips/register.h"
 
 extern IrTable IrTableList;
+extern Register* aRegister;
 
 class DataFlow {
 private:
@@ -36,6 +38,8 @@ public:
         return var;
     }
 };
+
+map<string, string>* varToRegister;
 
 class IrFun {
 private:
@@ -281,6 +285,7 @@ public:
             (*blocks)[i] -> calcUse();
         }
 
+        //Work for the Phi Point
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
                 continue;
@@ -359,8 +364,11 @@ public:
         }*/
 
         //todo: set register
+        aRegister -> clear();
+        varToRegister = new map<string, string>();
+        domTree -> setRegister();
 
-        cout << toString() << endl;
+        //cout << toString() << endl;
         //change phi to assign
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
@@ -433,7 +441,7 @@ public:
         for (int i = 0; i < block_cnt; ++ i) {
             if (!useful[i])
                 continue;
-            cout << "Remove Start : " << i << endl;
+            //cout << "Remove Start : " << i << endl;
             auto* phi = (*blocks)[i] -> removePhiAssign();
             auto* graphSSA = new GraphSSA(phi);
             auto* newCodes = graphSSA -> getNewCode();

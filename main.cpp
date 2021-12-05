@@ -2,11 +2,9 @@
 #include <fstream>
 #include "lexical.h"
 #include "grammar.h"
-#include "ir/ir.h"
 #include "mips/mips.h"
-#include "mips/mips_table.h"
-#include "ir/ir_code.h"
 #include "ir/ir_new.h"
+#include "mips/register.h"
 
 using namespace std;
 
@@ -21,6 +19,7 @@ Output output;
 string input;
 IR IR_1, IR_2;
 Mips *mips; MipsTable* mipsTable; MipsOutput* mipsOutput;
+Register* aRegister;
 
 void read() {
     string s;
@@ -47,6 +46,7 @@ int main() {
     print(IR_1.toString(), iout);
     mipsTable = new MipsTable();
     mipsOutput = new MipsOutput();
+    aRegister = new Register();
     IrNew *irNew = new IrNew(&IR_1);
     vector<IrCode*>* temp = irNew -> toIR();
     for (auto code: *temp)

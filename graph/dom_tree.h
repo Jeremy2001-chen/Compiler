@@ -39,6 +39,11 @@ public:
             domFlag[i] = false;
         root -> ssaReName();
     }
+
+    void setRegister() {
+        root -> setRegister();
+    }
+
 };
 
 #endif //COMPILER_DOM_TREE_H
