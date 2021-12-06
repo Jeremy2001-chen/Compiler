@@ -1,68 +1,106 @@
 //
-// Created by chenjiyuan3 on 2021/11/9.
+// Created by chenjiyuan3 on 2021/12/4.
 //
 
-#ifndef COMPILER_MIPS_H
-#define COMPILER_MIPS_H
+#ifndef COMPILER_IR_NEW_H
+#define COMPILER_IR_NEW_H
 
-#include <utility>
+#include "ir_fun.h"
+#include "../mips/mips_code.h"
 
-#include "mips_code.h"
-#include "mips_table.h"
-#include "mips_output.h"
+extern MipsTable *mipsTable;
+extern MipsOutput *mipsOutput;
 
-class Mips{
+map <string, int> globalNameCount; //for ssa to rename
+class IrNew {
 private:
-    vector <IrCode*>* irList;
-    MipsTable *mipsTable;
-    MipsOutput* mipsCode;
-    int globalDeclEnd = 0;
-
+    vector <IrCode*> irDecl;
+    vector <IrFun*> irFun;
+    vector <IrCode*>* origin;
 public:
-    Mips(IR _ir, MipsTable* _table, MipsOutput* _output) {
-        irList = _ir.getIrList();
-        mipsTable = _table;
-        globalDeclEnd = _ir.getGlobalDeclEnd();
-        mipsCode = _output;
+    IrNew(IR* ir) {
+        globalNameCount.clear();
+        vector <IrCode*>* list = ir -> getIrList();
+        origin = list;
+        int decl = ir -> getGlobalDeclEnd();
+        vector<IrCode*> *funCode = nullptr;
+        for (int i = 0; i < decl; ++ i)
+            irDecl.push_back((*list)[i]);
+        init_data();
+        mipsOutput -> push_back(new MipsSegment("text"));
+        for (int i = decl; i < (*list).size(); ++ i) {
+            if (((*list)[i]) -> getCodeType() == IrFunDefineType) {
+                if (funCode != nullptr) {
+                    IrFun* fun = new IrFun(funCode);
+                    irFun.push_back(fun);
+                    fun -> toMips();
+                    funCode = new vector<IrCode*>();
+                } else
+                    funCode = new vector<IrCode*>();
+            }
+            (*funCode).push_back((*list)[i]);
+        }
+        if (funCode != nullptr) {
+            IrFun* fun = new IrFun(funCode);
+            irFun.push_back(fun);
+            fun -> toMips();
+        }
+    }
+
+    string toString() {
+        string ret;
+        for (auto a: irFun) {
+            ret += a -> toString() + "\n";
+        }
+        return ret;
+    }
+
+    vector<IrCode*>* toIR() {
+        //cout << toString() << endl;
+        vector<IrCode*>* newIR = new vector<IrCode*>();
+        for (auto code: irDecl)
+            newIR -> push_back(code);
+        for (auto fun: irFun) {
+            vector<IrCode*>* codes = fun -> toIR();
+            for (auto code: *codes)
+                newIR -> push_back(code);
+        }
+        return newIR;
+    }
+
+    void toMips() {
         init_data();
         init_text();
     }
 
     void init_data() {
-        //cout << globalDeclEnd << endl;
-        mipsCode->push_back(new MipsSegment("data"));
-        int line = 0, count = 0;
-        for (auto code: *irList) {
+        mipsOutput->push_back(new MipsSegment("data"));
+        int count = 0;
+        for (auto code: irDecl) {
             if (code->getCodeType() == IrArrayDefineWithAssignType) {
                 IrArrayDefineWithAssign* array = (IrArrayDefineWithAssign*)code;
                 string name = IRNameTran(array->getName());
-                mipsCode->push_back(new MipsGlobalVarDef(name, array->getSize(), array->getValues()));
+                mipsOutput->push_back(new MipsGlobalVarDef(name, array->getSize(), array->getValues()));
                 mipsTable->addGlobalTable(array->getName(), 4 * array->getSize());
             } else if (code->getCodeType() == IrArrayDefineWithOutAssignType) {
                 IrArrayDefineWithOutAssign* array = (IrArrayDefineWithOutAssign*)code;
                 string name = IRNameTran(array->getName());
-                mipsCode->push_back(new MipsGlobalVarDef(name, array->getSize(), nullptr));
+                mipsOutput->push_back(new MipsGlobalVarDef(name, array->getSize(), nullptr));
                 mipsTable->addGlobalTable(array->getName(), 4 * array->getSize());
             } else if (code->getCodeType() == IrVarDefineWithAssignType) {
                 IrVarDefineWithAssign* var = (IrVarDefineWithAssign*)code;
                 int value = var->getValue();
                 string name = IRNameTran(var->getName());
-                mipsCode->push_back(new MipsGlobalVarDef(name, &value));
+                mipsOutput->push_back(new MipsGlobalVarDef(name, &value));
                 mipsTable->addGlobalTable(var->getName(), 4);
             } else if (code->getCodeType() == IrVarDefineWithOutAssignType) {
                 IrVarDefineWithOutAssign* var = (IrVarDefineWithOutAssign*)code;
                 string name = IRNameTran(var->getName());
-                mipsCode->push_back(new MipsGlobalVarDef(name, nullptr));
+                mipsOutput->push_back(new MipsGlobalVarDef(name, nullptr));
                 mipsTable->addGlobalTable(var->getName(), 4);
-            } else
-                ;
-                //cout << line << " " << code->getCodeType() << endl;
-            line = line + 1;
-            if (line >= globalDeclEnd)
-                break;
+            }
         }
-        line = 0;
-        for (auto code: *irList) {
+        for (auto code: irDecl) {
             if (code->getCodeType() == IrNumberAssignType) {
                 IrNumberAssign* var = (IrNumberAssign*)code;
                 string name = IRNameTran(var->getTarget());
@@ -92,55 +130,23 @@ public:
                     mipsTable->addGlobalTable(var->getTarget(), 4);
                 }
             }
-            line = line + 1;
-            if (line >= globalDeclEnd)
-                break;
         }
         mipsOutput -> push_back(new MipsGlobalVarDef("__global_var_all", count, nullptr));
-        for (auto code: *irList) {
+        for (auto code: *origin) {
             if (code->getCodeType() == IrPrintStringType) {
                 IrPrintString* str = (IrPrintString*)code;
-                mipsTable->putString(str->getStr());
+                mipsTable -> putString(str->getStr());
             }
         }
         mipsTable->setDataAlign();
     }
 
     void init_text() {
-        mipsCode -> push_back(new MipsSegment("text"));
-        for (int i = 0; i < (*irList).size(); ++ i) {
-            IrCode* code = (*irList)[i];
-            //cout << i << " " << code->getCodeType() << " " << IrFunDefineType << endl;
-            if (i < globalDeclEnd) {
-                if (code->getCodeType() == IrArrayDefineWithAssignType ||
-                code->getCodeType() == IrArrayDefineWithOutAssignType ||
-                code->getCodeType() == IrVarDefineWithAssignType ||
-                code->getCodeType() == IrVarDefineWithOutAssignType)
-                    continue;
-                else
-                    code->toMips();
-            } else {
-                if (code->getCodeType() == IrFunDefineType) {
-                    (*irList)[i+1]->toMips();
-                    code->toMips();
-                    int j = i + 2, spMove = 0;
-                    //cout << "Fun: " << i << endl;
-                    while (j < (*irList).size()) {
-                        IrCode* codeN = (*irList)[j];
-                        if (codeN->getCodeType() == IrFunEndType)
-                            break;
-                        //cout << "hello: " << j << endl;
-                        spMove = spMove + (codeN -> defVar() << 2);
-                        j = j + 1;
-                    }
-                    mipsOutput -> push_back(new MipsAddI("subi", "$sp", "$sp", to_string(spMove)));
-                    mipsTable -> setStack(spMove);
-                    i ++;
-                } else
-                    code->toMips();
-            }
+        mipsOutput -> push_back(new MipsSegment("text"));
+        for (auto c: irFun) {
+            c -> toMips();
         }
     }
 };
 
-#endif //COMPILER_MIPS_H
+#endif //COMPILER_IR_NEW_H

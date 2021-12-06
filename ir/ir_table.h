@@ -10,7 +10,6 @@
 #include <map>
 #include "../ir/ir.h"
 #include "../ir/ir_code.h"
-#include "../ir/ir_table.h"
 
 
 using namespace std;
@@ -95,6 +94,13 @@ public:
         return {};
     }
 
+    string allocTemForSSA(const string& suffix) {
+        addTemNumber();
+        string irName = "%" + to_string(temNumber) + suffix;
+        temRegister.push_back(irName);
+        return irName;
+    }
+
     string allocTem() {
         addTemNumber();
         string irName = (layer == 0 ? "@" : "%") + to_string(temNumber);
@@ -119,7 +125,12 @@ public:
     }
 
     string allocBranch() {
+#ifdef Debug
         string branchName = "_branch__" + to_string(branchNumber) + "_chenjiyuan";
+#else
+        string branchName = "_branch__" + to_string(branchNumber) + "";
+#endif
+        cout << branchName << endl;
         branchNumber += 1;
         return branchName;
     }
@@ -129,7 +140,11 @@ public:
     }
 
     string allocLoop() {
+#ifdef Debug
         string loopName = "_loop__" + to_string(loopNumber) + "_chenjiyuan";
+#else
+        string loopName = "_loop__" + to_string(loopNumber) + "";
+#endif
         loopStack.push_back(loopName);
         loopNumber += 1;
         return loopName;

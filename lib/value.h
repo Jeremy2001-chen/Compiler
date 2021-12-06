@@ -13,6 +13,7 @@
 #include "node.h"
 
 extern IR IR_1;
+extern bool globalVarDecl;
 
 class ConstValue: public Node{
 protected:
@@ -109,8 +110,14 @@ public:
             string var = irTableList_1.allocTem();
             IR_1.add(new IrBinaryOp(var, irName, "+", "%0"));
         } else {
-            offsetTree -> traversal();
-            string last = irTableList_1.getTopTemIrName(), var = irTableList_1.allocTem();
+            string last;
+            if (offsetTree->getClassType() == NumberType) {
+                last = to_string(((Number*)offsetTree)->getValue());
+            } else {
+                offsetTree -> traversal();
+                last = irTableList_1.getTopTemIrName();
+            }
+            string var = irTableList_1.allocTem();
             IR_1.add(new IrArrayGet(var, irName, last));
         }
     }
@@ -184,15 +191,20 @@ public:
                     /*(*value)[0] -> traversal();
                     string tem = irTableList_1.getTopTemIrName();
                     IR_1.add(new IrVarDefineWithAssign(Const, irName, tem));*/
-                    IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
-                    (*value)[0] -> traversal();
-                    string tem = irTableList_1.getTopTemIrName();
-                    IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
+                    if ((*value)[0]->getClassType() == NumberType) {
+                        IR_1.add(new IrVarDefineWithAssign(Const, irName, ((Number*)(*value)[0])->getValue()));
+                    } else {
+                        IR_1.add(new IrVarDefineWithOutAssign(Const, irName));
+                        (*value)[0] -> traversal();
+                        string tem = irTableList_1.getTopTemIrName();
+                        IR_1.add(new IrBinaryOp(irName, tem, "+", "%0"));
+                    }
                 }
             } else {
                 if (!value->empty()) {
                     if (isGlobal) {
                         auto* va = new vector<int>();
+                        /*
                         for (auto i: *value) {
                             if (i -> getConstType()) {
                                 va->push_back(((ConstValue*)i) -> getValue());
@@ -206,6 +218,11 @@ public:
                                 IR_1.add(new IrArrayAssign(irName, to_string(i), irTableList_1.getTopTemIrName()));
                             }
                         }
+                        */
+                        for (auto i: *value) {
+                            va->push_back(((Number*)i) -> getValue());
+                        }
+                        IR_1.add(new IrArrayDefineWithAssign(Const, irName, size, va));
                     } else {
                         IR_1.add(new IrArrayDefineWithOutAssign(Const, irName, to_string(size)));
                         for (int i = 0; i < (*value).size(); ++ i) {

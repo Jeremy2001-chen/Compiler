@@ -26,12 +26,12 @@ public:
 class MipsAdd : public MipsCode {
 public:
     MipsAdd(string _op, string _tar, string _s0, string _s1) {
-        target = std::move(_tar);
-        source[0] = std::move(_s0);
+        target = _tar;
+        source[0] = _s0;
         op = std::move(_op);
         if (op == "add" || op == "sub")
             op += "u";
-        source[1] = std::move(_s1);
+        source[1] = _s1;
         type = MipsAddType;
     }
 
@@ -46,13 +46,13 @@ private:
     string imm;
 public:
     MipsAddI(string _op, string _tar, string _s0, string _imm) {
-        target = std::move(_tar);
-        source[0] = std::move(_s0);
+        target = _tar;
+        source[0] = _s0;
         source[1] = "";
         op = std::move(_op);
         if (op == "addi" || op == "subi")
             op += "u";
-        imm = std::move(_imm);
+        imm = _imm;
         type = MipsAddIType;
     }
 
@@ -67,8 +67,8 @@ public:
     MipsMul(string _op, string _s0, string _s1) {
         target = "";
         op = std::move(_op);
-        source[0] = std::move(_s0);
-        source[1] = std::move(_s1);
+        source[0] = _s0;
+        source[1] = _s1;
         type = MipsMulType;
     }
 
@@ -83,7 +83,7 @@ public:
     MipsMF(string _op, string _s0) {
         op = std::move(_op);
         target = source[1] = "";
-        source[0] = std::move(_s0);
+        source[0] = _s0;
         type = MipsMFType;
     }
 
@@ -99,9 +99,9 @@ private:
 public:
     MipsLoad(string _op, string _tar, int offset, string _sor) {
         op = std::move(_op);
-        target = std::move(_tar);
+        target = _tar;
         label = to_string(offset);
-        source[0] = std::move(_sor);
+        source[0] = _sor;
         source[1] = "";
         type = MipsLoadType;
         labelType = 0;
@@ -109,9 +109,9 @@ public:
 
     MipsLoad(string _op, string _tar, string _label, string _sor) {
         op = std::move(_op);
-        target = std::move(_tar);
-        label = std::move(_label);
-        source[0] = std::move(_sor);
+        target = _tar;
+        label = _label;
+        source[0] = _sor;
         source[1] = "";
         type = MipsLoadType;
         labelType = 1;
@@ -130,8 +130,8 @@ public:
     MipsStore(string _op, string _sor0, int offset, string _sor1) {
         op = std::move(_op);
         label = to_string(offset);
-        source[0] = std::move(_sor0);
-        source[1] = std::move(_sor1);
+        source[0] = _sor0;
+        source[1] = _sor1;
         target = "";
         type = MipsStoreType;
         labelType = 0;
@@ -139,9 +139,9 @@ public:
 
     MipsStore(string _op, string _sor0, string _label, string _sor1) {
         op = std::move(_op);
-        label = std::move(_label);
-        source[0] = std::move(_sor0);
-        source[1] = std::move(_sor1);
+        label = _label;
+        source[0] = _sor0;
+        source[1] = _sor1;
         target = "";
         type = MipsStoreType;
         labelType = 1;
@@ -175,7 +175,7 @@ private:
 public:
     MipsStringDef(string _label, string _str) {
         label = std::move(_label);
-        str = std::move(_str);
+        str = _str;
         target = source[0] = source[1] = "";
         type = MIpsStringDefType;
     }
@@ -195,7 +195,7 @@ public:
     MipsGlobalVarDef(string _name, int* value) {
         target = source[0] = source[1] = "";
         type = MipsGlobalVarDefType;
-        name = std::move(_name);
+        name = _name;
         size = to_string(4);
         if (value == nullptr) {
             assign = false;
@@ -208,7 +208,7 @@ public:
     MipsGlobalVarDef(string _name, int _size, vector<int> *_values) {
         target = source[0] = source[1] = "";
         type = MipsGlobalVarDefType;
-        name = std::move(_name);
+        name = _name;
         size = to_string(4 * _size);
         if (_values == nullptr) {
             assign = false;
@@ -239,10 +239,10 @@ private:
 public:
     MipsBranch(string _op, string _sc0, string _sc1, string _label) {
         op = std::move(_op);
-        source[0] = std::move(_sc0);
-        source[1] = std::move(_sc1);
+        source[0] = _sc0;
+        source[1] = _sc1;
         target = "";
-        label = std::move(_label);
+        label = _label;
         type = MipsBranchType;
     }
 
@@ -278,7 +278,7 @@ public:
         target = source[1] = "";
         type = MipsJRegisterType;
         op = std::move(_op);
-        source[0] = std::move(_sc0);
+        source[0] = _sc0;
     }
 
     string toString() override {
@@ -295,8 +295,8 @@ public:
         target = source[1] = "";
         type = MipsLiType;
         op = std::move(_op);
-        source[0] = std::move(_sc0);
-        imm = std::move(_imm);
+        source[0] = _sc0;
+        imm = _imm;
     }
 
     string toString() override {
@@ -313,8 +313,8 @@ public:
         target = source[1] = "";
         type = MipsLaType;
         op = std::move(_op);
-        source[0] = std::move(_sc0);
-        label = std::move(_label);
+        source[0] = _sc0;
+        label = _label;
     }
 
     string toString() override {
@@ -341,7 +341,7 @@ class MipsNote: public MipsCode {
 private:
     string note;
 public:
-    MipsNote(string _note) {
+    explicit MipsNote(string _note) {
         target = source[0] = source[1] = "";
         type = MipsNoteType;
         note = std::move(_note);
@@ -358,7 +358,7 @@ class MipsSegment: public MipsCode {
 private:
     string label;
 public:
-    MipsSegment(string _label) {
+    explicit MipsSegment(string _label) {
         label = std::move(_label);
         target = source[0] = source[1] = "";
         type = MipsSegmentType;
@@ -368,24 +368,4 @@ public:
         return "." + label;
     }
 };
-
-class MipsReg {
-    int beginAddress = 0x10010000;
-    int sp = 0x7fffeffc;
-public:
-    MipsReg() = default;
-    int getSp() const {
-        return sp;
-    }
-    void moveSp(int x) {
-        sp += x;
-    }
-    int getBeginAdd() const {
-        return beginAddress;
-    }
-    void moveBeginAdd(int x) {
-        beginAddress += x;
-    }
-};
-
 #endif //COMPILER_MIPS_CODE_H

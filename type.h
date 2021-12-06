@@ -62,7 +62,11 @@ enum IrType{
     IrPrintStringType,
     IrNumberAssignType,
     IrFunEndType,
-    IrExitType
+    IrExitType,
+    IrPhiType,
+    IrPhiAssignType,
+    IrMoveType,
+    IrPhiBlockType
 };
 
 enum MipsType{

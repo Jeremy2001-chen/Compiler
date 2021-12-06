@@ -5,13 +5,13 @@
 #ifndef COMPILER_IR_H
 #define COMPILER_IR_H
 
-#include <list>
 #include <cstring>
 #include "ir_code.h"
+#include "../list/mylist.h"
 
 class IR {
 private:
-    vector <IrCode*> irList;
+    vector <IrCode*> irList; //origin IR code
     int globalDeclEnd;
 public:
     IR() = default;
@@ -32,6 +32,10 @@ public:
 
     void setGlobalDeclEnd() {
         globalDeclEnd = (int)irList.size();
+    }
+
+    void setGlobalDeclEnd(int x) {
+        globalDeclEnd = x;
     }
 
     int getGlobalDeclEnd() const {

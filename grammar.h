@@ -17,6 +17,7 @@
 #include "error.h"
 
 extern Output output;
+bool globalVarDecl = false;
 
 class Grammar{
 private:
@@ -51,6 +52,7 @@ private:
 
     CompUnit* checkCompUnit(){
         CompUnit* compUnit = new CompUnit();
+        globalVarDecl = true;
         int startIndex = wordIndex;
         while (startIndex < totalWord) {
             DeclStmt* variableDeclList = checkDecl();
@@ -63,7 +65,7 @@ private:
                 break;
             }
         }
-
+        globalVarDecl = false;
         while (startIndex < totalWord) {
             FunF* funF = checkFuncDef();
             if (funF != nullptr) {
@@ -358,7 +360,10 @@ private:
         Node* addExp = checkExp();
         vector<Node*>* list = new vector<Node*>();
         if (addExp != nullptr) {
-            list->push_back(addExp);
+            if (globalVarDecl)
+                list -> push_back(new Number(((ConstValue*)addExp)->getValue()));
+            else
+                list->push_back(addExp);
             addLine("<InitVal>");
             return list;
         }
@@ -372,8 +377,12 @@ private:
         move();
         vector<Node*>* initValList = checkInitVal();
         if (initValList != nullptr)  {
-            for (auto &val: *initValList)
-                list->push_back(val);
+            for (auto &val: *initValList) {
+                if (globalVarDecl)
+                    list -> push_back(new Number(((ConstValue*)val)->getValue()));
+                else
+                    list->push_back(val);
+            }
             startIndex = wordIndex;
             while (startIndex < totalWord) { //','
                 if (!currentWord.checkType("COMMA")) { //','
@@ -385,8 +394,12 @@ private:
                     setIndex(startIndex);
                     break;
                 }
-                for (auto &val: *initValList)
-                    list->push_back(val);
+                for (auto &val: *initValList) {
+                    if (globalVarDecl)
+                        list -> push_back(new Number(((ConstValue*)val)->getValue()));
+                    else
+                        list->push_back(val);
+                }
                 startIndex = wordIndex;
             }
         }

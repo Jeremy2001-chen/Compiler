@@ -15,6 +15,8 @@
 extern IR IR_1;
 extern IR IR_1;
 extern IrTableList irTableList_1;
+
+bool inMainFun = false;
 class CompUnit: public Node {
 private:
     vector<VariableDecl*> declList;
@@ -40,12 +42,12 @@ public:
         for (auto var: declList)
             var->traversal();
         IR_1.setGlobalDeclEnd();
-        IR_1.add(new IrCallFunction("main", 0));
-        IR_1.add(new IrExit());
+        inMainFun = true;
+        mainFun->traversal();
+        inMainFun = false;
         for (auto fun: funList) {
             fun->traversal();
         }
-        mainFun->traversal();
     }
     Node* optimize() override {
         return this;
