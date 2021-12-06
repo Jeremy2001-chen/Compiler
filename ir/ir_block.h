@@ -16,7 +16,7 @@ private:
     map<string, string>* finalNames;
     map<string, MyList*>* paiList;
 
-    set<string> *def, *use, *in, *out;
+    set<string> *def, *use, *in, *out, *phiUse;
 
     int blockNum;
 public:
@@ -51,6 +51,7 @@ public:
                 names -> insert(target);
             start = start -> getNext();
         }
+        phiUse = new set<string>();
     }
 
     string toString() {
@@ -216,6 +217,7 @@ public:
         else
             change = true;
         while (end != nullptr && end -> getCode() -> getCodeType() == IrPhiAssignType) {
+            cout << "kill : " << end -> getCode() -> toString() << endl;
             ir -> push_back(end -> getCode());
             end = end -> removeToPrev();
         }
@@ -280,6 +282,10 @@ public:
         return out;
     }
 
+    set<string>* getPhiUse() {
+        return phiUse;
+    }
+
     void putVarIntoIn(const string& var) {
         in -> insert(var);
     }
@@ -290,6 +296,10 @@ public:
 
     void putVarIntoUse(const string& var) {
         use -> insert(var);
+    }
+
+    void putVarIntoPhiUse(const string& var) {
+        phiUse -> insert(var);
     }
 
     void setKill(vector<vector<bool> *>* kill) {

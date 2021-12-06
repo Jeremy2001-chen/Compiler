@@ -9,15 +9,20 @@
 #include "../ir/ir_table.h"
 
 extern IrTableList irTableList_1;
+extern map<string, string>* varToRegister;
+
+typedef pair<string, string> pss;
 
 class GraphSSA {
 private:
-    map<string, int> nameMap;
-    vector<string> names;
+    map<string, int> regMap;
+    vector<string> regs;
+    map<pss, pss> regToVar;
     int cnt = 0;
     vector<IrPhiAssign*>* codes;
     vector<int> out;
     vector<int> degree;
+    map<string, string> varToReg;
 public:
     GraphSSA(vector<IrCode*>* list) {
         codes = new vector<IrPhiAssign*>();
@@ -27,19 +32,43 @@ public:
             IrPhiAssign* assign = (IrPhiAssign*)code;
             codes -> push_back(assign);
         }
+        int x = 0;
         for (auto code: *codes) {
-            string name = code->getSource(0);
-            if (nameMap.find(name) == nameMap.end()) {
-                names.push_back(name);
-                cout << "local : " << name << " " << cnt << endl;
-                nameMap[name] = cnt ++;
+            string nameS = code->getSource(0);
+            string regS;
+            if (varToReg.find(nameS) == varToReg.end()) {
+
+                if (varToRegister -> find(nameS) == varToRegister -> end()) {
+                    x ++;
+                    regS = "X" + to_string(x);
+                    varToReg[nameS] = regS;
+                } else {
+                    regS = (*varToRegister)[nameS];
+                    //assert(regToVar.find(reg) == regToVar.end());
+                    varToReg[nameS] = regS;
+                }
+                regs.push_back(regS);
+                cout << "local : " << nameS << " " << regS << endl;
+                regMap[regS] = cnt ++;
             }
-            name = code -> getTarget();
-            if (nameMap.find(name) == nameMap.end()) {
-                names.push_back(name);
-                cout << "local : " << name << " " << cnt << endl;
-                nameMap[name] = cnt ++;
+            string nameT, regT;
+            nameT = code -> getTarget();
+            if (varToReg.find(nameT) == varToReg.end()) {
+//                string reg;
+                if (varToRegister -> find(nameT) == varToRegister -> end()) {
+                    x ++;
+                    regT = "X" + to_string(x);
+                    varToReg[nameT] = regT;
+                } else {
+                    regT = (*varToRegister)[nameT];
+                    //assert(regToVar.find(reg) == regToVar.end());
+                    varToReg[nameT] = regT;
+                }
+                regs.push_back(regT);
+                cout << "local : " << nameT << " " << regT << endl;
+                regMap[regT] = cnt ++;
             }
+            regToVar[make_pair(regS, regT)] = make_pair(nameS, nameT);
         }
         out.resize(cnt);
         for (int i = 0; i < cnt; ++ i)
@@ -47,19 +76,19 @@ public:
         degree.resize(cnt);
         for (auto code: *codes) {
             string source = code -> getSource(0), target = code -> getTarget();
-            link(nameMap[target], nameMap[source]);
+            link(regMap[varToReg[target]], regMap[varToReg[source]]);
         }
     }
 
     void link(int s, int t) {
-        //cout << "ssa link : " << s << " " << t << endl;
+        cout << "ssa link : " << regs[s] << " " << regs[t] << endl;
         out[s] = t;
         degree[t] ++;
     }
 
     vector<IrCode*>* getNewCode() {
         vector<IrCode*>* ret = new vector<IrCode*>();
-        vector<IrCode*>* temp = new vector<IrCode*>();
+        IrMove* temp = nullptr;
         set <int> leftPoint;
         queue <int> Q;
         for (int i = 0; i < cnt; ++ i) {
@@ -74,26 +103,27 @@ public:
                 int to = out[now];
                 if (to == -1)
                     continue;
-                if (names[to].empty())
-                    cout << names[now] << " " << to << endl;
-                ret -> push_back(new IrMove(names[now], names[to], false));
+                pss var = regToVar[make_pair(regs[to], regs[now])];
+                ret -> push_back(new IrMove(var.second, var.first, false));
                 degree[to] --;
                 if (degree[to] == 0)
                     Q.push(to);
             }
+            if (temp != nullptr)
+                ret -> push_back(temp);
             if (leftPoint.empty()) break;
             auto it = leftPoint.begin();
             string tem = irTableList_1.allocTemForSSA("_0");
             int to = out[*it];
             if (to == -1) continue;
-            ret -> push_back(new IrBinaryOp(tem, names[to], "+", "%0"));
-            temp -> push_back(new IrMove(names[*it], tem, false));
+            pss var = regToVar[make_pair(regs[to], regs[*it])];
+            ret -> push_back(new IrBinaryOp(tem, var.first, "+", "%0"));
+            temp = new IrMove(var.second, tem, false);
+            (*varToRegister)[tem] = "$t8";
+            out[*it] = -1;
             degree[to] --;
             if (degree[to] == 0)
                 Q.push(to);
-        }
-        for (auto c: *temp) {
-            ret -> push_back(c);
         }
         return ret;
     }

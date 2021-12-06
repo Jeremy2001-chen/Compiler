@@ -80,7 +80,7 @@ public:
                 labelMp[line->getLabel()] = i;
             }
         }
-        pos.push_back(1);
+//      pos.push_back(1);
         for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if ((*codes)[i]->getCodeType() == IrGotoStmtType) {
                 auto* line = (IrGotoStmt*)(*codes)[i];
@@ -300,6 +300,7 @@ public:
                 for (int j = 0; j < from -> size(); ++ j) {
                     int to = (*blockNum)[j];
                     (*blocks)[to] -> putVarIntoUse((*from)[j]);
+                    (*blocks)[to] -> putVarIntoPhiUse((*from)[j]);
                 }
             }
         }
@@ -364,7 +365,8 @@ public:
             for (auto &c: *use)
                 cout << c << " ";
             cout << endl;
-        }*/
+        }
+        */
         //todo: kill not use code
         for (int i = 0; i < N; ++ i) {
             if (!useful[i])
@@ -392,10 +394,6 @@ public:
         aRegister -> clear();
         varToRegister = new map<string, string>();
         domTree -> setRegister();
-
-        for (const auto& c: *varToRegister) {
-            cout << "hahahah: " << c.first << " " << c.second << endl;
-        }
 
         //cout << toString() << endl;
         //change phi to assign
@@ -453,7 +451,7 @@ public:
                                 useful.push_back(true);
                                 bel = block_cnt;
                                 graph -> setBlockNum(num, i, bel);
-                                cout << num << " " << i << " " << bel << endl;
+//                                cout << num << " " << i << " " << bel << endl;
                                 block_cnt ++;
                             }
                             (*blocks)[bel] -> addIrCodeBack(new IrPhiAssign(code -> getTarget(), (*from)[j]));
@@ -465,9 +463,7 @@ public:
                 start = start -> getNext();
             }
         }
-        for (const auto& c: *varToRegister) {
-            cout << "wass: " << c.first << " " << c.second << endl;
-        }
+
         //Remove Phi assign
         for (int i = 0; i < block_cnt; ++ i) {
             if (!useful[i])
@@ -479,9 +475,6 @@ public:
             for (auto g: *newCodes) {
                 (*blocks)[i] -> addIrCodeBack(g);
             }
-        }
-        for (const auto& c: *varToRegister) {
-            cout << "gass: " << c.first << " " << c.second << endl;
         }
     }
 
@@ -560,10 +553,17 @@ public:
             mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
         }
 
-        for (auto c: *blocks) {
-            MyList* start = c -> getStartCode();
+        MyListBlock* bl = fBlock;
+        while (bl != nullptr) {
+            int i = bl -> getBlock() -> getBlockNum();
+            if (!useful[i]) {
+                bl = bl -> getNext();
+                continue;
+            }
+            MyList* start = (*blocks)[i] -> getStartCode();
             while (start != nullptr) {
                 IrCode* code = start -> getCode();
+//                cout << "now is : " << code -> toString() << endl;
                 code -> toMips();
                 if (code -> getCodeType() == IrReturnStmtType) {
                     off = 0;
@@ -576,6 +576,7 @@ public:
                 }
                 start = start -> getNext();
             }
+            bl = bl -> getNext();
         }
 
         // end function

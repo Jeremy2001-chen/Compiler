@@ -198,7 +198,8 @@ public:
                 mipsOutput -> push_back(new MipsAdd("add", "$t9", add, offset));
                 mipsOutput -> push_back(new MipsLoad("lw", reg, "0","$t9"));
             } else {
-                mipsOutput -> push_back(new MipsLoad("lw", reg, offset, add));
+                int of = (atoi(offset.c_str()) << 2);
+                mipsOutput -> push_back(new MipsLoad("lw", reg, to_string(of), add));
             }
             return reg;
         }
@@ -243,6 +244,7 @@ public:
     }
 
     string getRegFromMem(const string& reg, const string& name) {
+        cout << "help : " << reg << " " << name << endl;
         if (name == "%0") {
             //mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
             return "$0";
@@ -264,7 +266,7 @@ public:
     }
 
     void setRegToMem(const string& reg, const string& name) {
-        cout << "! : " << name << " " << (*varToRegister)[name] << endl;
+//        cout << "! : " << name << " " << (*varToRegister)[name] << endl;
         if (varToRegister -> find(name) != varToRegister -> end()) {
             string var = (*varToRegister)[name];
             if (var == reg) return ;
@@ -290,7 +292,8 @@ public:
                 mipsOutput -> push_back(new MipsAdd("add", "$t9", add, offset));
                 mipsOutput -> push_back(new MipsStore("sw", reg, "0","$t9"));
             } else {
-                mipsOutput -> push_back(new MipsStore("sw", reg, offset, add));
+                int of = (atoi(offset.c_str()) << 2);
+                mipsOutput -> push_back(new MipsStore("sw", reg, to_string(of), add));
             }
             return ;
         }
@@ -352,7 +355,7 @@ public:
                 mipsOutput -> push_back(new MipsAdd("add", reg, add, offset));
             } else {
                 int off = (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsAddI("sw", reg, offset, to_string(off)));
+                mipsOutput -> push_back(new MipsAddI("sw", reg, add, to_string(off)));
             }
             return reg;
         }

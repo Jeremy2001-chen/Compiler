@@ -81,6 +81,7 @@ public:
         MyList* end = irBlock -> getEndCode();
         set<string> hasKill;
         auto* out = irBlock -> getOut();
+        auto* phiUse = irBlock -> getPhiUse();
         while (end != nullptr) {
             vector<bool>* kill = new vector<bool>(IR_SOURCE);
             (*kill)[0] = (*kill)[1] = false;
@@ -90,7 +91,8 @@ public:
                 for (int i = 0; i < IR_SOURCE; ++ i) {
                     string source = code -> getSource(i);
                     if (!source.empty() && source != "%0" && source[0] == '%') {
-                        if (out->find(source) == out -> end() && hasKill.find(source) == hasKill.end()) {
+                        if (out->find(source) == out -> end() && hasKill.find(source) == hasKill.end() &&
+                            phiUse->find(source)==phiUse->end()) {
                             (*kill)[i] = true;
                             hasKill.insert(source);
                         }
@@ -110,6 +112,7 @@ public:
                     string source = code -> getSource(i);
                     if ((*(*tem)[index])[i]) {
                         if (varToRegister -> find(source) != varToRegister -> end()) {
+                            cout << "Release : " << source << " " << (*varToRegister)[source] << endl;
                             aRegister -> release((*varToRegister)[source]);
                         }
                     }
@@ -118,6 +121,10 @@ public:
             string target = code -> getTarget();
             if (!target.empty() && target[0] == '%') {
                 string reg = aRegister -> alloc();
+                if (target == "%23_1") {
+                    cout << reg << endl;
+                    exit(-1);
+                }
                 if (!reg.empty())
                     (*varToRegister)[target] = reg;
             }

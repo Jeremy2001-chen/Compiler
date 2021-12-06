@@ -35,10 +35,10 @@ public:
         return target;
     }
     void setTarget(string _tar) {
-        target = std::move(_tar);
+        target = _tar;
     }
     void setSource(int index, string _so) {
-        source[index] = std::move(_so);
+        source[index] = _so;
     }
     string getSource(int index) {
         return source[index];
@@ -51,10 +51,10 @@ private:
     string sign;
 public:
     IrBinaryOp(string _t, string _sc0, string _sign, string _sc1) {
-        target = std::move(_t);
-        source[0] = std::move(_sc0);
-        source[1] = std::move(_sc1);
-        sign = std::move(_sign);
+        target = _t;
+        source[0] = _sc0;
+        source[1] = _sc1;
+        sign = _sign;
         codeType = IrBinaryOpType;
     }
 
@@ -114,9 +114,9 @@ private:
     string sign;
 public:
     IrUnaryOp(string _te, string _sign, string _sc) {
-        target = std::move(_te);
-        sign = std::move(_sign);
-        source[0] = std::move(_sc);
+        target = _te;
+        sign = _sign;
+        source[0] = _sc;
         codeType = IrUnaryOpType;
     }
 
@@ -131,10 +131,10 @@ public:
         if (sign == "+") {
             mipsTable -> setRegToMem(reg0, target);
         } else if (sign == "-") {
-            mipsOutput -> push_back(new MipsAdd("sub", reg2, "$0", "$t0"));
+            mipsOutput -> push_back(new MipsAdd("sub", reg2, "$0", reg0));
             mipsTable -> setRegToMem(reg2, target);
         } else if (sign == "!") {
-            mipsOutput -> push_back(new MipsAddI("seq", reg2, "$0", "$t0"));
+            mipsOutput -> push_back(new MipsAddI("seq", reg2, "$0", reg0));
             mipsTable -> setRegToMem(reg2, target);
         }
     }
@@ -152,7 +152,7 @@ private:
     string label;
 public:
     explicit IrLabelLine(string _label) {
-        label = std::move(_label);
+        label = _label;
         codeType = IrLabelLineType;
     }
 
@@ -179,9 +179,9 @@ private:
     string type, paraCount, name;
 public:
     IrFunDefine(string _type, string _paraCount, string _name) {
-        type = std::move(_type);
-        name = std::move(_name);
-        paraCount = std::move(_paraCount);
+        type = _type;
+        name = _name;
+        paraCount = _paraCount;
         codeType = IrFunDefineType;
     }
 
@@ -213,8 +213,8 @@ private:
     string type;
 public:
     IrParaDefine(string _type, string _name) {
-        type = std::move(_type);
-        target = std::move(_name);
+        type = _type;
+        target = _name;
         codeType = IrParaDefineType;
     }
 
@@ -228,7 +228,7 @@ public:
         bool isAdd = (type == "arr");
         if (varToRegister -> find(target) != varToRegister -> end()) {
             if (isAdd)
-                mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
+                mipsTable -> getRegFromAddress((*varToRegister)[target], target, to_string(0), false);
             else
                 mipsTable -> getRegFromMemMust((*varToRegister)[target], target, false);
         }
@@ -247,7 +247,7 @@ private:
     string name;
 public:
     explicit IrPushVariable(string _name) {
-        name = std::move(_name);
+        name = _name;
         source[0] = name;
         codeType = IrPushVariableType;
     }
@@ -274,7 +274,7 @@ private:
     string offset;
 public:
     IrPushArray(string _name, string _offset) {
-        source[0] = std::move(_name);
+        source[0] = _name;
         offset = _offset;
         source[1] = offset;
         codeType = IrPushArrayType;
@@ -312,7 +312,7 @@ private:
     int varCnt;
 public:
     explicit IrCallFunction(string _name, int _cnt) {
-        name = std::move(_name);
+        name = _name;
         varCnt = _cnt;
         codeType = IrCallFunctionType;
     }
@@ -345,7 +345,7 @@ public:
     }
 
     IrReturnStmt(string _sc) {
-        source[0] = std::move(_sc);
+        source[0] = _sc;
         codeType = IrReturnStmtType;
     }
 
@@ -374,7 +374,7 @@ private:
     //string target;
 public:
     explicit IrReturnValStmt(string _tar) {
-        target = std::move(_tar);
+        target = _tar;
         codeType = IrReturnValStmtType;
     }
 
@@ -401,15 +401,15 @@ private:
 public:
     IrVarDefineWithAssign(bool _is, string _na, string _va) {
         isConst = _is;
-        name = std::move(_na);
+        name = _na;
         target = name;
-        value = std::move(_va);
+        value = _va;
         codeType = IrVarDefineWithAssignType;
     }
 
     IrVarDefineWithAssign(bool _is, string _na, int _va) {
         isConst = _is;
-        name = std::move(_na);
+        name = _na;
         target = name;
         value = to_string(_va);
         codeType = IrVarDefineWithAssignType;
@@ -449,7 +449,7 @@ private:
 public:
     IrVarDefineWithOutAssign(bool _is, string _na) {
         isConst = _is;
-        name = std::move(_na);
+        name = _na;
         target = name;
         codeType = IrVarDefineWithOutAssignType;
     }
@@ -477,8 +477,8 @@ public:
 class IrCmpStmt: public IrCode {
 public:
     IrCmpStmt(string sc0, string sc1) {
-        source[0] = std::move(sc0);
-        source[1] = std::move(sc1);
+        source[0] = sc0;
+        source[1] = sc1;
         codeType = IrCmpStmtType;
     }
 
@@ -504,10 +504,10 @@ private:
     string type, label;
 public:
     IrBranchStmt(string _type, string s0, string s1, string _label) {
-        type = std::move(_type);
-        source[0] = std::move(s0);
-        source[1] = std::move(s1);
-        label = std::move(_label);
+        type = _type;
+        source[0] = s0;
+        source[1] = s1;
+        label = _label;
         codeType = IrBranchStmtType;
     }
 
@@ -569,8 +569,8 @@ private:
 public:
     IrArrayDefineWithOutAssign(bool _is, string _na, string _off) {
         isConst = _is;
-        target = std::move(_na);
-        offset = std::move(_off);
+        target = _na;
+        offset = _off;
         codeType = IrArrayDefineWithOutAssignType;
     }
 
@@ -589,8 +589,9 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        if (varToRegister -> find(target) != varToRegister -> end())
-            mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
+        if (varToRegister -> find(target) != varToRegister -> end()) {
+            mipsTable -> getRegFromAddress((*varToRegister)[target], target, to_string(0), false);
+        }
     }
 
     int defVar() override {
@@ -608,7 +609,7 @@ private:
 public:
     IrArrayDefineWithAssign(bool _is, string _na, int _size, vector<int>* var) {
         isConst = _is;
-        target = std::move(_na);
+        target = _na;
         values = var;
         size = _size;
         codeType = IrArrayDefineWithAssignType;
@@ -637,7 +638,7 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         if (varToRegister -> find(target) != varToRegister -> end())
-            mipsTable -> getRegFromAddress((*varToRegister)[target], target, 0, false);
+            mipsTable -> getRegFromAddress((*varToRegister)[target], target, to_string(0), false);
         //for temporary array with assign, should not call toMips!!!
         exit(23456);
     }
@@ -654,10 +655,10 @@ private:
     string offset;
 public:
     IrArrayAssign(string _ta, string _off, string _sc) {
-        source[0] = std::move(_ta);
-        offset = std::move(_off);
+        source[0] = _ta;
+        offset = _off;
         source[1] = offset;
-        source[2] = std::move(_sc);
+        source[2] = _sc;
         codeType = IrArrayAssignType;
     }
 
@@ -672,12 +673,11 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
         string reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
         if (source[1][0] >= '0' && source[1][0] <= '9')
             mipsTable -> setRegToMem(reg2, source[0], source[1]);
         else {
-            mipsTable -> getRegFromMem(reg1, source[1]);
+            string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t1", reg1, "2"));
             mipsTable -> setRegToMem(reg2, source[0], "$t1");
         }
@@ -695,9 +695,9 @@ private:
     string offset;
 public:
     IrArrayGet(string _ta, string _sc, string _off) {
-        target = std::move(_ta);
-        source[0] = std::move(_sc);
-        offset = std::move(_off);
+        target = _ta;
+        source[0] = _sc;
+        offset = _off;
         source[1] = offset;
         codeType = IrArrayGetType;
     }
@@ -709,12 +709,11 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (source[1][0] >= '0' && source[1][0] <= '9')
             reg2 = mipsTable -> getRegFromMem(reg2, source[0], source[1]);
         else {
-            reg1 = mipsTable -> getRegFromMem(reg1, source[1]);
+            string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t1", reg1, "2"));
             reg2 = mipsTable -> getRegFromMem(reg2, source[0], "$t1");
         }
@@ -738,7 +737,7 @@ private:
     //string target;
 public:
     explicit IrReadInteger(string _ta) {
-        target = std::move(_ta);
+        target = _ta;
         codeType = IrReadIntegerType;
     }
 
@@ -790,7 +789,7 @@ private:
     string str;
 public:
     explicit IrPrintString(string _str) {
-        str = std::move(_str);
+        str = _str;
         codeType = IrPrintStringType;
     }
 
@@ -821,8 +820,8 @@ private:
     string number;
 public:
     IrNumberAssign(string _ta, string _num) {
-        target = std::move(_ta);
-        number = std::move(_num);
+        target = _ta;
+        number = _num;
         codeType = IrNumberAssignType;
     }
 
@@ -895,7 +894,7 @@ private:
 public:
     IrPhi(string _name) {
         codeType = IrPhiType;
-        target = std::move(_name);
+        target = _name;
         from = new vector<string>();
         blockNum = new vector<int>();
     }
@@ -940,8 +939,8 @@ class IrPhiAssign: public IrCode {
 public:
     IrPhiAssign(string _ta, string _so) {
         codeType = IrPhiAssignType;
-        target = std::move(_ta);
-        source[0] = std::move(_so);
+        target = _ta;
+        source[0] = _so;
     }
 
     string toString() override {
@@ -967,8 +966,8 @@ private:
 public:
     IrMove(string _ta, string _so, bool _def) {
         codeType = IrMoveType;
-        target = std::move(_ta);
-        source[0] = std::move(_so);
+        target = _ta;
+        source[0] = _so;
         type = _def;
     }
 
