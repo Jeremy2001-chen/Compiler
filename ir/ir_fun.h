@@ -540,8 +540,10 @@ public:
             reg.insert(c.second);
         }
 
-        for (const auto& c: reg) {
-            spMove += mipsTable -> funInitStack(c, 1, false);
+        if (name != "main") {
+            for (const auto& c: reg) {
+                spMove += mipsTable -> funInitStack(c, 1, false);
+            }
         }
 
         spMove <<= 2;
@@ -549,8 +551,10 @@ public:
             mipsOutput -> push_back(new MipsAddI("subi", "$sp", "$sp", to_string(spMove)));
 
         int off = 0;
-        for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
-            mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
+        if (name != "main") {
+            for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+                mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
+            }
         }
 
         MyListBlock* bl = fBlock;
@@ -567,8 +571,10 @@ public:
                 code -> toMips();
                 if (code -> getCodeType() == IrReturnStmtType) {
                     off = 0;
-                    for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
-                        mipsOutput -> push_back(new MipsLoad("lw", *it, off, "$sp"));
+                    if (name != "main") {
+                        for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+                            mipsOutput -> push_back(new MipsLoad("lw", *it, off, "$sp"));
+                        }
                     }
                     if (spMove > 0)
                         mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(spMove)));
