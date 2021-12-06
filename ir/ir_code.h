@@ -260,7 +260,12 @@ public:
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
+//        if (off > 4)
+            mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
+//        else {
+//            string reg = "$a" + to_string(off - 1);
+//            mipsOutput -> push_back(new MipsAdd("add", reg, reg0, "$0"));
+//        }
     }
 
     int defVar() override {
@@ -298,7 +303,12 @@ public:
         }
         reg0 = mipsTable -> getRegFromAddress("$t0", source[0], tar, true);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)), "$sp"));
+//        if (off > 4)
+            mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)), "$sp"));
+//        else {
+//            string reg = "$a" + to_string(off - 1);
+//            mipsOutput -> push_back(new MipsAdd("add", reg, reg0, "$0"));
+//        }
     }
 
     int defVar() override {
