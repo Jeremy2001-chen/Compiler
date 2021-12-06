@@ -84,6 +84,7 @@ public:
                 if (pos == -1 || RegisterTime[pos] > RegisterTime[i])
                     pos = i;
             }
+        return "";
         RegisterUsed[pos] = true;
         RegisterTime[pos] = ++ TICK;
         return RegisterName[pos];

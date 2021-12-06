@@ -121,10 +121,6 @@ public:
             string target = code -> getTarget();
             if (!target.empty() && target[0] == '%') {
                 string reg = aRegister -> alloc();
-                if (target == "%23_1") {
-                    cout << reg << endl;
-                    exit(-1);
-                }
                 if (!reg.empty())
                     (*varToRegister)[target] = reg;
             }
