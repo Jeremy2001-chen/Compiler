@@ -181,9 +181,17 @@ inline int getInt(string name) {
 }
 
 inline void setVarToVar(string source, string target) {
+    if (source[0] != '%')
+        return ;
     if (isOtherVar(target))
         (*varToVar)[source] = getOtherVar(target);
     (*varToVar)[source] = target;
+}
+
+inline void setNumber(string source, int number) {
+    if (source[0] != '%')
+        return ;
+    (*varToInt)[source] = number;
 }
 
 void constSpread(IrNew* irNew) {
@@ -227,13 +235,13 @@ void constSpread(IrNew* irNew) {
                         MyList* myList = new MyList(assign);
                         block1 -> replace(start, myList);
                         start = myList;
-                        (*varToInt)[ta] = number;
+                        setNumber(ta, number);
                     } else if (isInt(s0) && getInt(s0) == 0) {
                         if (sign == "+") {
                             setVarToVar(ta, s1);
                         } else if (sign == "*") {
                             IrNumberAssign* assign = new IrNumberAssign(binary -> getTarget(), "0");
-                            (*varToInt)[ta] = 0;
+                            setNumber(ta, 0);
                             MyList* myList = new MyList(assign);
                             block1 -> replace(start, myList);
                             start = myList;
@@ -243,7 +251,7 @@ void constSpread(IrNew* irNew) {
                             setVarToVar(ta, s0);
                         } else if (sign == "*") {
                             IrNumberAssign* assign = new IrNumberAssign(binary -> getTarget(), "0");
-                            (*varToInt)[ta] = 0;
+                            setNumber(ta, 0);
                             MyList* myList = new MyList(assign);
                             block1 -> replace(start, myList);
                             start = myList;
@@ -269,7 +277,7 @@ void constSpread(IrNew* irNew) {
                         MyList* myList = new MyList(assign);
                         block1 -> replace(start, myList);
                         start = myList;
-                        (*varToInt)[ta] = number;
+                        setNumber(ta, number);
                     } else if (sign == "+") {
                         setVarToVar(ta, s0);
                     }
@@ -277,7 +285,7 @@ void constSpread(IrNew* irNew) {
                     IrNumberAssign* assign = (IrNumberAssign*)code;
                     string ta = assign -> getTarget();
                     int number = assign -> getNumber();
-                    (*varToInt)[ta] = number;
+                    setNumber(ta, number);
                 }
                 start = start -> getNext();
             }
