@@ -149,6 +149,10 @@ public:
         else
             return 0;
     }
+
+    string getSign() const {
+        return sign;
+    }
 };
 
 class IrLabelLine: public IrCode {
@@ -846,14 +850,22 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
-        mipsOutput -> push_back(new MipsLi("li", reg2, number));
-        mipsTable -> setRegToMem(reg2, target);
+        if (number == "0")
+            mipsTable -> setRegToMem("$0", target);
+        else {
+            mipsOutput -> push_back(new MipsLi("li", reg2, number));
+            mipsTable -> setRegToMem(reg2, target);
+        }
     }
 
     int defVar() override {
         if (varToRegister -> find(target) == varToRegister -> end())
             return mipsTable -> funInitStack(target, 1, false);
         return 0;
+    }
+
+    int getNumber() const {
+        return atoi(number.c_str());
     }
 };
 

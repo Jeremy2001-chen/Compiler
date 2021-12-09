@@ -15,6 +15,8 @@ ofstream iout("ir.txt");
 ofstream mout("mips.txt");
 ofstream nout("ir_new.txt");
 ofstream kout("ir_new1.txt");
+ofstream gout("ir_new2.txt");
+
 
 
 Output output;
@@ -53,6 +55,8 @@ int main() {
     print(irNew -> toString(), nout);
     removeAddZero(irNew);
     print(irNew -> toString(), kout);
+    constSpread(irNew);
+    print(irNew -> toString(), gout);
     irNew -> toMips();
     //    vector<IrCode*>* temp = irNew -> toIR();
 //    for (auto code: *temp)
