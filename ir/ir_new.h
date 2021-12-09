@@ -286,6 +286,11 @@ void constSpread(IrNew* irNew) {
                     string ta = assign -> getTarget();
                     int number = assign -> getNumber();
                     setNumber(ta, number);
+                } else if (code -> getCodeType() == IrVarDefineWithAssignType) {
+                    IrVarDefineWithAssign* assign = (IrVarDefineWithAssign*)code;
+                    string ta = assign -> getTarget();
+                    int number = assign -> getValue();
+                    setNumber(ta, number);
                 }
                 start = start -> getNext();
             }
