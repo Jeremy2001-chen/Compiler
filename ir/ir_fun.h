@@ -52,6 +52,8 @@ private:
     map<IrBlock*, MyListBlock*> blockToMy;
     vector<IrBlock*>* blocks;
 
+    map<string, string>* funVarRegister;
+
     map<string, int> labelMp;
     vector<int> pos;
     vector<int> belong;
@@ -66,6 +68,8 @@ private:
 
 public:
     explicit IrFun(vector<IrCode*>* _codes) {
+        funVarRegister = new map<string, string>();
+
         codes = _codes;
         fBlock = eBlock = nullptr;
         if ((*codes)[0]->getCodeType() != IrFunDefineType) {
@@ -392,7 +396,8 @@ public:
 
         //todo: set register
         aRegister -> clear();
-        varToRegister = new map<string, string>();
+//        varToRegister = new map<string, string>();
+        varToRegister = funVarRegister;
         domTree -> setRegister();
 
         //cout << toString() << endl;
@@ -520,6 +525,8 @@ public:
     }
 
     void toMips() {
+        varToRegister = funVarRegister;
+
         //def function
         mipsTable -> setLayer(1);
 
@@ -536,7 +543,6 @@ public:
 
         set <string> reg;
         for (const auto& c: *varToRegister) {
-            cout << "gogogo: " << c.first << " " << c.second << endl;
             reg.insert(c.second);
         }
 
@@ -587,6 +593,10 @@ public:
 
         // end function
         mipsTable -> setLayer(-1);
+    }
+
+    MyListBlock* getFirstBlock () {
+        return fBlock;
     }
 };
 #endif //COMPILER_IR_FUN_H

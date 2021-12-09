@@ -49,7 +49,7 @@ public:
 class MipsTable {
 private:
     int layer = 0;
-    int sp = 0x7ffffff0, data = 0x10010000;
+    int sp = 0x7ffffff0, data = 0x10010000, gp = 0x10008000;
     vector<MipsTableItem> table;
     stack<int> paraCnt;
     int pushCnt = 0;

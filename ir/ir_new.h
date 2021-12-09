@@ -26,14 +26,15 @@ public:
         vector<IrCode*> *funCode = nullptr;
         for (int i = 0; i < decl; ++ i)
             irDecl.push_back((*list)[i]);
-        init_data();
-        mipsOutput -> push_back(new MipsSegment("text"));
+//        init_data();
+//        mipsOutput -> push_back(new MipsSegment("text"));
+        varToRegister = new map<string, string>();
         for (int i = decl; i < (*list).size(); ++ i) {
             if (((*list)[i]) -> getCodeType() == IrFunDefineType) {
                 if (funCode != nullptr) {
                     IrFun* fun = new IrFun(funCode);
                     irFun.push_back(fun);
-                    fun -> toMips();
+//                    fun -> toMips();
                     funCode = new vector<IrCode*>();
                 } else
                     funCode = new vector<IrCode*>();
@@ -43,7 +44,7 @@ public:
         if (funCode != nullptr) {
             IrFun* fun = new IrFun(funCode);
             irFun.push_back(fun);
-            fun -> toMips();
+//            fun -> toMips();
         }
     }
 
@@ -70,7 +71,10 @@ public:
 
     void toMips() {
         init_data();
-        init_text();
+        mipsOutput -> push_back(new MipsSegment("text"));
+        for (auto fun: irFun) {
+            fun -> toMips();
+        }
     }
 
     void init_data() {
@@ -147,6 +151,40 @@ public:
             c -> toMips();
         }
     }
+
+    vector<IrFun*>* getIrFun() {
+        return &irFun;
+    }
 };
+
+void removeAddZero(IrNew* irNew) {
+    auto* funList = irNew->getIrFun();
+    for (auto c: *funList) {
+        auto* block = c -> getFirstBlock();
+//        cout << "TTTT: " << endl;
+        while (block != nullptr) {
+            IrBlock* block1 = block -> getBlock();
+            MyList* start = block1 -> getStartCode();
+//            cout << "GGGG: " << endl;
+            while (start != nullptr) {
+                IrCode* code = start -> getCode();
+                if (code -> getCodeType() == IrBinaryOpType) {
+                    IrBinaryOp* binary = (IrBinaryOp*)code;
+                    string sign = binary -> getSign();
+//                    cout << "&&&&&\n" << code -> toString() << endl;
+                    if (binary -> getSource(1) == "%0" && (sign == "+" || sign == "-")) {
+//                        cout << "!!!!!!\n" << code -> toString() << endl;
+                        IrUnaryOp* unaryOp = new IrUnaryOp(binary -> getTarget(), "+", binary -> getSource(0));
+                        MyList* myList = new MyList(unaryOp);
+                        block1 -> replace(start, myList);
+                        start = myList;
+                    }
+                }
+                start = start -> getNext();
+            }
+            block = block -> getNext();
+        }
+    }
+}
 
 #endif //COMPILER_IR_NEW_H

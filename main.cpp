@@ -14,6 +14,8 @@ ofstream eout("error.txt");
 ofstream iout("ir.txt");
 ofstream mout("mips.txt");
 ofstream nout("ir_new.txt");
+ofstream kout("ir_new1.txt");
+
 
 Output output;
 string input;
@@ -48,13 +50,16 @@ int main() {
     mipsOutput = new MipsOutput();
     aRegister = new Register();
     IrNew *irNew = new IrNew(&IR_1);
-    //irNew -> toMips();
-    vector<IrCode*>* temp = irNew -> toIR();
-    for (auto code: *temp)
-        IR_2.add(code);
-    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
-    //print(irNew -> toString(), nout);
-    print(IR_2.toString(), nout);
+    print(irNew -> toString(), nout);
+    removeAddZero(irNew);
+    print(irNew -> toString(), kout);
+    irNew -> toMips();
+    //    vector<IrCode*>* temp = irNew -> toIR();
+//    for (auto code: *temp)
+//        IR_2.add(code);
+//    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
+//    //print(irNew -> toString(), nout);
+//    print(IR_2.toString(), nout);
     //mips = new Mips(IR_2, mipsTable, mipsOutput);
     //print(output.to_string());
     //print(lexical.to_string());*/

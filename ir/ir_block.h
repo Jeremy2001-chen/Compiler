@@ -305,6 +305,15 @@ public:
     void setKill(vector<vector<bool> *>* kill) {
         kills = kill;
     }
+
+    void replace(MyList* Old, MyList* New) {
+        New -> linkPrev(Old -> getPrev());
+        New -> linkNext(Old -> getNext());
+        if (Old == eStmt)
+            eStmt = New;
+        if (Old == fStmt)
+            fStmt = New;
+    }
 };
 
 #endif //COMPILER_IR_BLOCK_H

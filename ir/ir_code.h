@@ -106,6 +106,10 @@ public:
         else
             return 0;
     }
+
+    string getSign() {
+        return sign;
+    }
 };
 
 class IrUnaryOp: public IrCode {
