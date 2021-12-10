@@ -45,6 +45,8 @@ int main() {
     read();
     //Lexical lexical = Lexical(input);
     Grammar grammar = Grammar(input);
+//    print(output.to_string(), eout);
+//    return 0;
     Node* root = grammar.getRoot();
     root -> traversal();
     print(IR_1.toString(), iout);
@@ -65,7 +67,7 @@ int main() {
 //    //print(irNew -> toString(), nout);
 //    print(IR_2.toString(), nout);
     //mips = new Mips(IR_2, mipsTable, mipsOutput);
-    //print(output.to_string());
+    print(output.to_string(), eout);
     //print(lexical.to_string());*/
     print(mipsOutput -> toString(), mout);
     return 0;

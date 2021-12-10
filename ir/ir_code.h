@@ -935,7 +935,7 @@ public:
     }
 
     string toString() override {
-        return "";
+//        return "";
         string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];

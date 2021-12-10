@@ -69,7 +69,14 @@ public:
         return newIR;
     }
 
+    void analysis() {
+        for (auto fun: irFun) {
+            fun -> dataAnalyse();
+        }
+    }
+
     void toMips() {
+        analysis();
         init_data();
         mipsOutput -> push_back(new MipsSegment("text"));
         for (auto fun: irFun) {

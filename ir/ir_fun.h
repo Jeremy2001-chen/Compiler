@@ -283,6 +283,11 @@ public:
         }
 
         domTree -> ssaReName();
+    }
+
+    void dataAnalyse() {
+        int N = blocks -> size();
+        int block_cnt = N;
 
         //Init Def & Use
         for (int i = 0; i < N; ++ i) {
