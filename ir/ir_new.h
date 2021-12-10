@@ -204,93 +204,189 @@ void constSpread(IrNew* irNew) {
             MyList* start = block1 -> getStartCode();
             while (start != nullptr) {
                 IrCode* code = start -> getCode();
-                if (code -> getCodeType() == IrBinaryOpType) {
-                    IrBinaryOp* binary = (IrBinaryOp*)code;
-                    string ta = binary -> getTarget(), sign = binary -> getSign(), s0 = binary -> getSource(0), s1 = binary -> getSource(1);
-                    if (isInt(s0) && isInt(s1)) {
-                        int number = 0;
-                        if (sign == "+")
-                            number = getInt(s0) + getInt(s1);
-                        else if (sign == "-")
-                            number = getInt(s0) - getInt(s1);
-                        else if (sign == "*")
-                            number = getInt(s0) * getInt(s1);
-                        else if (sign == "/")
-                            number = getInt(s0) / getInt(s1);
-                        else if (sign == "%")
-                            number = getInt(s0) % getInt(s1);
-                        else if (sign == "<")
-                            number = (getInt(s0) < getInt(s1));
-                        else if (sign == ">")
-                            number = (getInt(s0) > getInt(s1));
-                        else if (sign == ">=")
-                            number = (getInt(s0) >= getInt(s1));
-                        else if (sign == "<=")
-                            number = (getInt(s0) <= getInt(s1));
-                        else if (sign == "==")
-                            number = (getInt(s0) == getInt(s1));
-                        else if (sign == "!=")
-                            number = (getInt(s0) != getInt(s1));
-                        IrNumberAssign* assign = new IrNumberAssign(binary -> getTarget(), to_string(number));
-                        MyList* myList = new MyList(assign);
-                        block1 -> replace(start, myList);
-                        start = myList;
-                        setNumber(ta, number);
-                    } else if (isInt(s0) && getInt(s0) == 0) {
-                        if (sign == "+") {
-                            setVarToVar(ta, s1);
-                        } else if (sign == "*") {
-                            IrNumberAssign* assign = new IrNumberAssign(binary -> getTarget(), "0");
-                            setNumber(ta, 0);
+                switch (code -> getCodeType()) {
+                    case IrBinaryOpType:
+                    {
+                        IrBinaryOp* binary = (IrBinaryOp*)code;
+                        string ta = binary -> getTarget(), sign = binary -> getSign(), s0 = binary -> getSource(0), s1 = binary -> getSource(1);
+                        if (isInt(s0) && isInt(s1)) {
+                            int number = 0;
+                            if (sign == "+")
+                                number = getInt(s0) + getInt(s1);
+                            else if (sign == "-")
+                                number = getInt(s0) - getInt(s1);
+                            else if (sign == "*")
+                                number = getInt(s0) * getInt(s1);
+                            else if (sign == "/")
+                                number = getInt(s0) / getInt(s1);
+                            else if (sign == "%")
+                                number = getInt(s0) % getInt(s1);
+                            else if (sign == "<")
+                                number = (getInt(s0) < getInt(s1));
+                            else if (sign == ">")
+                                number = (getInt(s0) > getInt(s1));
+                            else if (sign == ">=")
+                                number = (getInt(s0) >= getInt(s1));
+                            else if (sign == "<=")
+                                number = (getInt(s0) <= getInt(s1));
+                            else if (sign == "==")
+                                number = (getInt(s0) == getInt(s1));
+                            else if (sign == "!=")
+                                number = (getInt(s0) != getInt(s1));
+                            IrNumberAssign* assign = new IrNumberAssign(ta, to_string(number));
                             MyList* myList = new MyList(assign);
                             block1 -> replace(start, myList);
                             start = myList;
+                            setNumber(ta, number);
+                        } else if (isInt(s0)) {
+                            int v0 = getInt(s0);
+                            if (v0 == 0) {
+                                if (sign == "+") {
+                                    IrUnaryOp* unaryOp = new IrUnaryOp(ta, "+", s1);
+                                    if (isOtherVar(s1))
+                                        unaryOp -> setSource(0, getOtherVar(s1));
+                                    MyList* myList = new MyList(unaryOp);
+                                    block1 -> replace(start, myList);
+                                    start = myList;
+                                    setVarToVar(ta, s1);
+                                } else if (sign == "*") {
+                                    IrNumberAssign* assign = new IrNumberAssign(ta, "0");
+                                    MyList* myList = new MyList(assign);
+                                    block1 -> replace(start, myList);
+                                    start = myList;
+                                    setNumber(ta, 0);
+                                }
+                            } else if (v0 == 1 && sign == "*") {
+                                IrUnaryOp* unaryOp = new IrUnaryOp(ta, "+", s1);
+                                if (isOtherVar(s1))
+                                    unaryOp -> setSource(0, getOtherVar(s1));
+                                MyList* myList = new MyList(unaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                                setVarToVar(ta, s1);
+                            } else if (v0 == 2 && sign == "*") {
+                                IrBinaryOp* binaryOp = new IrBinaryOp(ta, s1, "+", s1);
+                                if (isOtherVar(s1)) {
+                                    binaryOp -> setSource(0, getOtherVar(s1));
+                                    binaryOp -> setSource(1, getOtherVar(s1));
+                                }
+                                MyList* myList = new MyList(binaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                            } else if (v0 == -1 && sign == "*") {
+                                IrUnaryOp* unaryOp = new IrUnaryOp(ta, "-", s1);
+                                if (isOtherVar(s1))
+                                    unaryOp -> setSource(0, getOtherVar(s1));
+                                MyList* myList = new MyList(unaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                            } else { //todo
+                                if (isOtherVar(s0))
+                                    binary -> setSource(0, getOtherVar(s0));
+                                if (isOtherVar(s1))
+                                    binary -> setSource(1, getOtherVar(s1));
+                            }
+                        } else if (isInt(s1)) {
+                            int v1 = getInt(s1);
+                            if (v1 == 0) {
+                                if (sign == "+") {
+                                    IrUnaryOp* unaryOp = new IrUnaryOp(ta, "+", s0);
+                                    if (isOtherVar(s0))
+                                        unaryOp -> setSource(0, getOtherVar(s0));
+                                    MyList* myList = new MyList(unaryOp);
+                                    block1 -> replace(start, myList);
+                                    start = myList;
+                                    setVarToVar(ta, s0);
+                                } else if (sign == "*") {
+                                    IrNumberAssign* assign = new IrNumberAssign(ta, "0");
+                                    MyList* myList = new MyList(assign);
+                                    block1 -> replace(start, myList);
+                                    start = myList;
+                                    setNumber(ta, 0);
+                                }
+                            } else if (v1 == 1 && (sign == "*" || sign == "/")) {
+                                IrUnaryOp* unaryOp = new IrUnaryOp(ta, "+", s0);
+                                if (isOtherVar(s0))
+                                    unaryOp -> setSource(0, getOtherVar(s0));
+                                MyList* myList = new MyList(unaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                                setVarToVar(ta, s0);
+                            } else if (v1 == 2 && sign == "*") {
+                                IrBinaryOp* binaryOp = new IrBinaryOp(ta, s0, "+", s0);
+                                if (isOtherVar(s1)) {
+                                    binaryOp -> setSource(0, getOtherVar(s0));
+                                    binaryOp -> setSource(1, getOtherVar(s0));
+                                }
+                                MyList* myList = new MyList(binaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                            } else if (v1 == -1 && sign == "*") {
+                                IrUnaryOp* unaryOp = new IrUnaryOp(ta, "-", s0);
+                                if (isOtherVar(s0))
+                                    unaryOp -> setSource(0, getOtherVar(s0));
+                                MyList* myList = new MyList(unaryOp);
+                                block1 -> replace(start, myList);
+                                start = myList;
+                            } else { //todo
+                                if (isOtherVar(s0))
+                                    binary -> setSource(0, getOtherVar(s0));
+                                if (isOtherVar(s1))
+                                    binary -> setSource(1, getOtherVar(s1));
+                            }
+                        } else {
+                            if (isOtherVar(s0))
+                                binary -> setSource(0, getOtherVar(s0));
+                            if (isOtherVar(s1))
+                                binary -> setSource(1, getOtherVar(s1));
                         }
-                    } else if (isInt(s1) && getInt(s1) == 0) {
-                        if (sign == "+" || sign == "-") {
+                        break;
+                    }
+                    case IrUnaryOpType:
+                    {
+                        IrUnaryOp* unaryOp = (IrUnaryOp*)code;
+                        string ta = unaryOp -> getTarget(), sign = unaryOp -> getSign(), s0 = unaryOp -> getSource(0);
+                        if (isInt(s0)) {
+                            int number = 0;
+                            if (sign == "+")
+                                number = getInt(s0);
+                            else if (sign == "-")
+                                number = -getInt(s0);
+                            else if (sign == "!")
+                                number = !getInt(s0);
+                            IrNumberAssign* assign = new IrNumberAssign(ta, to_string(number));
+                            MyList* myList = new MyList(assign);
+                            block1 -> replace(start, myList);
+                            start = myList;
+                            setNumber(ta, number);
+                        } else if (sign == "+") {
+                            if (isOtherVar(s0))
+                                unaryOp -> setSource(0, getOtherVar(s0));
                             setVarToVar(ta, s0);
-                        } else if (sign == "*") {
-                            IrNumberAssign* assign = new IrNumberAssign(binary -> getTarget(), "0");
-                            setNumber(ta, 0);
-                            MyList* myList = new MyList(assign);
-                            block1 -> replace(start, myList);
-                            start = myList;
+                        } else {
+                            if (isOtherVar(s0))
+                                unaryOp -> setSource(0, getOtherVar(s0));
                         }
-                    } else {
-                        if (isOtherVar(s0))
-                            binary -> setSource(0, getOtherVar(s0));
-                        if (isOtherVar(s1))
-                            binary -> setSource(1, getOtherVar(s1));
+                        break;
                     }
-                } else if (code -> getCodeType() == IrUnaryOpType) {
-                    IrUnaryOp* unaryOp = (IrUnaryOp*)code;
-                    string ta = unaryOp -> getTarget(), sign = unaryOp -> getSign(), s0 = unaryOp -> getSource(0);
-                    if (isInt(s0)) {
-                        int number = 0;
-                        if (sign == "+")
-                            number = getInt(s0);
-                        else if (sign == "-")
-                            number = -getInt(s0);
-                        else if (sign == "!")
-                            number = !getInt(s0);
-                        IrNumberAssign* assign = new IrNumberAssign(ta, to_string(number));
-                        MyList* myList = new MyList(assign);
-                        block1 -> replace(start, myList);
-                        start = myList;
+                    case IrNumberAssignType:
+                    {
+                        IrNumberAssign* assign = (IrNumberAssign*)code;
+                        string ta = assign -> getTarget();
+                        int number = assign -> getNumber();
                         setNumber(ta, number);
-                    } else if (sign == "+") {
-                        setVarToVar(ta, s0);
+                        break;
                     }
-                } else if (code -> getCodeType() == IrNumberAssignType) {
-                    IrNumberAssign* assign = (IrNumberAssign*)code;
-                    string ta = assign -> getTarget();
-                    int number = assign -> getNumber();
-                    setNumber(ta, number);
-                } else if (code -> getCodeType() == IrVarDefineWithAssignType) {
-                    IrVarDefineWithAssign* assign = (IrVarDefineWithAssign*)code;
-                    string ta = assign -> getTarget();
-                    int number = assign -> getValue();
-                    setNumber(ta, number);
+                    case IrVarDefineWithAssignType:
+                    {
+                        IrVarDefineWithAssign* assign = (IrVarDefineWithAssign*)code;
+                        string ta = assign -> getTarget();
+                        int number = assign -> getValue();
+                        setNumber(ta, number);
+                        break;
+                    }
+                    default:
+                        break;
                 }
                 start = start -> getNext();
             }
@@ -333,3 +429,6 @@ void removeAddZero(IrNew* irNew) {
 }
 
 #endif //COMPILER_IR_NEW_H
+
+//todo
+// now is wrong for the def & use is not true!!!!
