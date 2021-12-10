@@ -76,7 +76,6 @@ public:
     }
 
     void toMips() {
-        analysis();
         init_data();
         mipsOutput -> push_back(new MipsSegment("text"));
         for (auto fun: irFun) {
