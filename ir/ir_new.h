@@ -192,7 +192,8 @@ inline void setVarToVar(string source, string target) {
         return ;
     if (isOtherVar(target))
         (*varToVar)[source] = getOtherVar(target);
-    (*varToVar)[source] = target;
+    else
+        (*varToVar)[source] = target;
 }
 
 inline void setNumber(string source, int number) {
@@ -392,8 +393,21 @@ void constSpread(IrNew* irNew) {
                         setNumber(ta, number);
                         break;
                     }
-                    default:
+                    case IrBranchStmtType:
+                    {
                         break;
+                    }
+                    default:
+                    {
+                        for (int i = 0; i < 3; ++ i) {
+                            string source = code -> getSource(i);
+                            if (isInt(source))
+                                code -> setSource(i, to_string(getInt(source)));
+                            else if (isOtherVar(source))
+                                code -> setSource(i, getOtherVar(source));
+                        }
+                        break;
+                    }
                 }
                 start = start -> getNext();
             }

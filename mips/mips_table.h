@@ -179,7 +179,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        //cout << "get var: " << name << endl;
+        cout << "get var1: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -253,7 +253,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        //cout << "get var: " << name << endl;
+        cout << "get var2: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -355,7 +355,7 @@ public:
                 mipsOutput -> push_back(new MipsAdd("add", reg, add, offset));
             } else {
                 int off = (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsAddI("sw", reg, add, to_string(off)));
+                mipsOutput -> push_back(new MipsAddI("addi", reg, add, to_string(off)));
             }
             return reg;
         }

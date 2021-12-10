@@ -20,6 +20,10 @@ extern MipsTable* mipsTable;
 extern string IRNameTran(const string& str);
 extern map<string, string>* varToRegister;
 
+bool isNumber(string var) {
+    return var[0] == '-' || var[0] >= '0' && var[0] <= '9';
+}
+
 class IrCode {
 protected:
     IrType codeType;
@@ -266,7 +270,17 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg0;
+        if (isNumber(source[0])) {
+            int number = atoi(source[0].c_str());
+            if (number == 0)
+                reg0 = "$0";
+            else {
+                reg0 = "$t0";
+                mipsOutput -> push_back(new MipsLi("li", reg0, source[0]));
+            }
+        } else
+            reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
         int off = mipsTable -> getPushCnt();
 //        if (off > 4)
             mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
@@ -300,10 +314,10 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
-        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg1;
         string tar;
-        if (source[1][0] >= '0' && source[1][0] <= '9')
-            tar = source[0];
+        if (isNumber(source[1]))
+            tar = source[1];
         else {
             reg1 = mipsTable -> getRegFromMem("$t0", source[1]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t0", reg1, "2"));
@@ -375,8 +389,16 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        if (!source[0].empty())
-            mipsTable -> getRegFromMemMust("$v0", source[0], true);
+        if (!source[0].empty()) {
+            if (isNumber(source[0])) {
+                int number = atoi(source[0].c_str());
+                if (number == 0)
+                    mipsOutput -> push_back(new MipsAdd("add", "$v0", "$0", "$0"));
+                else
+                    mipsOutput -> push_back(new MipsLi("li", "$v0", source[0]));
+            } else
+                mipsTable -> getRegFromMemMust("$v0", source[0], true);
+        }
 //        int cnt = mipsTable -> getTopParaCnt();
 //        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt)));
         //mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
@@ -691,8 +713,18 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
-        if (source[1][0] >= '0' && source[1][0] <= '9')
+        string reg2;
+        if (isNumber(source[2])) {
+            int number = atoi(source[2].c_str());
+            if (number == 0)
+                reg2 = "$0";
+            else {
+                reg2 = "$t0";
+                mipsOutput -> push_back(new MipsLi("li", "$t0", source[2]));
+            }
+        } else
+            reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
+        if (isNumber(source[1]))
             mipsTable -> setRegToMem(reg2, source[0], source[1]);
         else {
             string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
@@ -728,7 +760,7 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
-        if (source[1][0] >= '0' && source[1][0] <= '9')
+        if (isNumber(source[1]))
             reg2 = mipsTable -> getRegFromMem(reg2, source[0], source[1]);
         else {
             string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
@@ -792,7 +824,14 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMemMust("$a0", source[0], true);
+        if (isNumber(source[0])) {
+            int number = atoi(source[0].c_str());
+            if (number == 0)
+                mipsOutput -> push_back(new MipsAdd("add", "$a0", "$0", "0"));
+            else
+                mipsOutput -> push_back(new MipsLi("li", "$a0", source[0]));
+        } else
+            mipsTable -> getRegFromMemMust("$a0", source[0], true);
         mipsOutput -> push_back(new MipsLi("li", "$v0", "1"));
         mipsOutput -> push_back(new MipsSyscall());
     }

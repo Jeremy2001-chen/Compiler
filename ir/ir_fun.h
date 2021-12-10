@@ -578,7 +578,7 @@ public:
             MyList* start = (*blocks)[i] -> getStartCode();
             while (start != nullptr) {
                 IrCode* code = start -> getCode();
-//                cout << "now is : " << code -> toString() << endl;
+                cout << "now is : " << code -> toString() << endl;
                 code -> toMips();
                 if (code -> getCodeType() == IrReturnStmtType) {
                     off = 0;
