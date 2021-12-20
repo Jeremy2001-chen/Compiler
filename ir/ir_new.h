@@ -287,6 +287,11 @@ void constSpread(IrNew* irNew) {
                                 MyList* myList = new MyList(unaryOp);
                                 block1 -> replace(start, myList);
                                 start = myList;
+                            } else if (sign == "+") {
+                                binary -> setSource(0, s1);
+                                binary -> setSource(1, to_string(v0));
+                                if (isOtherVar(s1))
+                                    binary -> setSource(0, getOtherVar(s1));
                             } else { //todo
                                 if (isOtherVar(s0))
                                     binary -> setSource(0, getOtherVar(s0));
@@ -335,6 +340,10 @@ void constSpread(IrNew* irNew) {
                                 MyList* myList = new MyList(unaryOp);
                                 block1 -> replace(start, myList);
                                 start = myList;
+                            } else if (sign == "+" || sign == "-") {
+                                if (isOtherVar(s0))
+                                    binary -> setSource(0, getOtherVar(s0));
+                                binary -> setSource(1, to_string(v1));
                             } else { //todo
                                 if (isOtherVar(s0))
                                     binary -> setSource(0, getOtherVar(s0));

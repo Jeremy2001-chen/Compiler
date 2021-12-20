@@ -69,6 +69,16 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        if (isNumber(source[1])) {
+            // addi $s0 $s0 100
+            string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+            if (sign == "+")
+                mipsOutput -> push_back(new MipsAddI("addi", reg2, reg0, source[1]));
+            else if (sign == "-")
+                mipsOutput -> push_back(new MipsAddI("subi", reg2, reg0, source[1]));
+            mipsTable -> setRegToMem(reg2, target);
+            return ;
+        }
         string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (sign == "+")
