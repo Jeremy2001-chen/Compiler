@@ -501,9 +501,9 @@ public:
 
     string toString() {
         string ret;
-        ret += "now in a new fun: " + name + "\n";
+        //ret += "now in a new fun: " + name + "\n";
         for (int i = 0; i < (*blocks).size(); ++ i) {
-            ret += "in a new block: " + to_string(i) + "\n";
+            //ret += "in a new block: " + to_string(i) + "\n";
             ret += (*blocks)[i]->toString() + "\n";
         }
         return ret;

@@ -12,6 +12,7 @@ ifstream fin("testfile.txt");
 ofstream fout("output.txt");
 ofstream eout("error.txt");
 ofstream iout("ir.txt");
+ofstream bout("before_mips.txt");
 ofstream mout("mips.txt");
 ofstream nout("ir_new.txt");
 ofstream kout("ir_new1.txt");
@@ -55,6 +56,9 @@ int main() {
     mipsOutput = new MipsOutput();
     aRegister = new Register();
     IrNew *irNew = new IrNew(&IR_1);
+//    irNew -> toMips();
+//    print(mipsOutput -> toString(), bout);
+//    return 0;
     print(irNew -> toString(), nout);
     removeAddZero(irNew);
     print(irNew -> toString(), kout);
@@ -70,7 +74,7 @@ int main() {
 //    //print(irNew -> toString(), nout);
 //    print(IR_2.toString(), nout);
     //mips = new Mips(IR_2, mipsTable, mipsOutput);
-    print(output.to_string(), eout);
+//    print(output.to_string(), eout);
     //print(lexical.to_string());*/
     print(mipsOutput -> toString(), mout);
     return 0;
