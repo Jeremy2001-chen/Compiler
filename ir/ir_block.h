@@ -15,6 +15,7 @@ private:
     MyList* fStmt, *eStmt;
     map<string, string>* finalNames;
     map<string, MyList*>* paiList;
+    vector<pair<MyList*, MyList*> > replaceList;
 
     set<string> *def, *use, *in, *out, *phiUse;
 
@@ -217,7 +218,7 @@ public:
         else
             change = true;
         while (end != nullptr && end -> getCode() -> getCodeType() == IrPhiAssignType) {
-            cout << "kill : " << end -> getCode() -> toString() << endl;
+//            cout << "kill : " << end -> getCode() -> toString() << endl;
             ir -> push_back(end -> getCode());
             end = end -> removeToPrev();
         }
@@ -304,6 +305,10 @@ public:
 
     void setKill(vector<vector<bool> *>* kill) {
         kills = kill;
+    }
+
+    void addReplace(MyList* Old, MyList* New) {
+        replaceList.push_back(make_pair(Old, New));
     }
 
     void replace(MyList* Old, MyList* New) {

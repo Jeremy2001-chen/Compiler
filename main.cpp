@@ -63,6 +63,11 @@ int main() {
     removeAddZero(irNew);
     print(irNew -> toString(), kout);
     constSpread(irNew);
+//    vector<IrCode*>* temp = irNew -> toIR();
+//    for (auto code: *temp)
+//        IR_2.add(code);
+//    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
+//    IrNew *irNew2 = new IrNew(&IR_2);
     print(irNew -> toString(), gout);
     irNew -> analysis();
     print(irNew -> toString(), oout);

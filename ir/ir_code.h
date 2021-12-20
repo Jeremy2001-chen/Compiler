@@ -583,6 +583,10 @@ public:
     void setLabel(string name) {
         label = name;
     }
+
+    string getType() {
+        return type;
+    }
 };
 
 class IrGotoStmt: public IrCode {
@@ -1061,6 +1065,26 @@ public:
     int defVar() override {
         //if (type)
         //    return mipsTable -> funInitStack(target, 1, false);
+        return 0;
+    }
+};
+
+class IrNop: public IrCode {
+public:
+    IrNop() {
+        source[0] = source[1] = "";
+        codeType = IrNopType;
+    }
+
+    string toString() override {
+        return "nop";
+    }
+
+    void toMips() override {
+
+    }
+
+    int defVar() override {
         return 0;
     }
 };
