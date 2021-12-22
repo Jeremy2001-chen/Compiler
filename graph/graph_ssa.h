@@ -28,7 +28,7 @@ public:
         codes = new vector<IrPhiAssign*>();
         for (auto code: *list) {
             assert(code -> getCodeType() == IrPhiAssignType);
-            cout << "before : " << code ->toString() << endl;
+//            cout << "before : " << code ->toString() << endl;
             IrPhiAssign* assign = (IrPhiAssign*)code;
             codes -> push_back(assign);
         }
@@ -48,7 +48,7 @@ public:
                     varToReg[nameS] = regS;
                 }
                 regs.push_back(regS);
-                cout << "local : " << nameS << " " << regS << endl;
+//                cout << "local : " << nameS << " " << regS << endl;
                 regMap[regS] = cnt ++;
             }
             string nameT, regT;
@@ -65,7 +65,7 @@ public:
                     varToReg[nameT] = regT;
                 }
                 regs.push_back(regT);
-                cout << "local : " << nameT << " " << regT << endl;
+//                cout << "local : " << nameT << " " << regT << endl;
                 regMap[regT] = cnt ++;
             }
             regToVar[make_pair(regS, regT)] = make_pair(nameS, nameT);
@@ -81,7 +81,7 @@ public:
     }
 
     void link(int s, int t) {
-        cout << "ssa link : " << regs[s] << " " << regs[t] << endl;
+//        cout << "ssa link : " << regs[s] << " " << regs[t] << endl;
         out[s] = t;
         degree[t] ++;
     }

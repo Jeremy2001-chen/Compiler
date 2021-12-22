@@ -179,7 +179,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        cout << "get var1: " << name << endl;
+//        cout << "get var1: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -244,7 +244,7 @@ public:
     }
 
     string getRegFromMem(const string& reg, const string& name) {
-        cout << "help : " << reg << " " << name << endl;
+//        cout << "help : " << reg << " " << name << endl;
         if (name == "%0") {
             //mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
             return "$0";
@@ -253,7 +253,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        cout << "get var2: " << name << endl;
+//        cout << "get var2: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {

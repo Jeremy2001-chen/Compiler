@@ -50,6 +50,8 @@ public:
 
     string toString() {
         string ret;
+        for (auto a: irDecl)
+            ret += a -> toString() + "\n";
         for (auto a: irFun) {
             ret += a -> toString() + "\n";
         }

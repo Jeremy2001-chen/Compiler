@@ -77,7 +77,7 @@ public:
         }
         IrFunDefine *funDefine = (IrFunDefine*)((*codes)[0]);
         name = funDefine->getName();
-        cout << name << endl;
+//        cout << name << endl;
         for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if ((*codes)[i]->getCodeType() == IrLabelLineType) {
                 auto* line = (IrLabelLine*)(*codes)[i];
@@ -578,7 +578,7 @@ public:
             MyList* start = (*blocks)[i] -> getStartCode();
             while (start != nullptr) {
                 IrCode* code = start -> getCode();
-                cout << "now is : " << code -> toString() << endl;
+//                cout << "now is : " << code -> toString() << endl;
                 code -> toMips();
                 if (code -> getCodeType() == IrReturnStmtType) {
                     off = 0;

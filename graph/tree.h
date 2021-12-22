@@ -112,7 +112,7 @@ public:
                     string source = code -> getSource(i);
                     if ((*(*tem)[index])[i]) {
                         if (varToRegister -> find(source) != varToRegister -> end()) {
-                            cout << "Release : " << source << " " << (*varToRegister)[source] << endl;
+//                            cout << "Release : " << source << " " << (*varToRegister)[source] << endl;
                             aRegister -> release((*varToRegister)[source]);
                         }
                     }

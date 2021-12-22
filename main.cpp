@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define NOT_OPEN
+
 ifstream fin("testfile.txt");
 ofstream fout("output.txt");
 ofstream eout("error.txt");
@@ -56,9 +58,15 @@ int main() {
     mipsOutput = new MipsOutput();
     aRegister = new Register();
     IrNew *irNew = new IrNew(&IR_1);
-//    irNew -> toMips();
-//    print(mipsOutput -> toString(), bout);
-//    return 0;
+
+#ifdef NOT_OPEN
+    irNew -> analysis();
+    print(irNew -> toString(), nout);
+    irNew -> toMips();
+    print(mipsOutput -> toString(), mout);
+    return 0;
+#endif
+
     print(irNew -> toString(), nout);
     removeAddZero(irNew);
     print(irNew -> toString(), kout);

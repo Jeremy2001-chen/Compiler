@@ -315,7 +315,7 @@ public:
     }
     int defVar() override {
         bool isAdd = (type == "arr");
-        cout << "check : " << target << endl;
+//        cout << "check : " << target << endl;
         //if (varToRegister -> find(target) == varToRegister -> end())
             return mipsTable -> funInitStack(target, 1, isAdd);
         //return 0;
@@ -1046,7 +1046,7 @@ public:
     }
 
     string toString() override {
-//        return "";
+        return "";
         string ret = target + " = Phi(";
         if (from -> size() > 0) {
             ret = ret + (*from)[0];
