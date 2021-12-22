@@ -112,7 +112,7 @@ public:
                     string source = code -> getSource(i);
                     if ((*(*tem)[index])[i]) {
                         if (varToRegister -> find(source) != varToRegister -> end()) {
-                            cout << "Release : " << source << " " << (*varToRegister)[source] << endl;
+//                            cout << "Release : " << source << " " << (*varToRegister)[source] << endl;
                             aRegister -> release((*varToRegister)[source]);
                         }
                     }
@@ -120,9 +120,15 @@ public:
             }
             string target = code -> getTarget();
             if (!target.empty() && target[0] == '%') {
-                string reg = aRegister -> alloc();
-                if (!reg.empty())
-                    (*varToRegister)[target] = reg;
+                if (out -> find(target) == out -> end() && hasKill.find(target) == hasKill.end()
+                    && phiUse->find(target)==phiUse->end()) {
+                    if (code -> getCodeType() != IrParaDefineType && code -> getCodeType() != IrReadIntegerType)
+                        irBlock -> remove(start);
+                } else {
+                    string reg = aRegister -> alloc();
+                    if (!reg.empty())
+                        (*varToRegister)[target] = reg;
+                }
             }
             start = start -> getNext();
             index --;

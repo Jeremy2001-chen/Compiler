@@ -5,9 +5,7 @@
 #ifndef COMPILER_IR_H
 #define COMPILER_IR_H
 
-#include <cstring>
 #include "ir_code.h"
-#include "../list/mylist.h"
 
 class IR {
 private:

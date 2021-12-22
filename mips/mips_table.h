@@ -49,7 +49,7 @@ public:
 class MipsTable {
 private:
     int layer = 0;
-    int sp = 0x7ffffff0, data = 0x10010000;
+    int sp = 0x7ffffff0, data = 0x10010000, gp = 0x10008000;
     vector<MipsTableItem> table;
     stack<int> paraCnt;
     int pushCnt = 0;
@@ -179,7 +179,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        //cout << "get var: " << name << endl;
+//        cout << "get var1: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -244,7 +244,7 @@ public:
     }
 
     string getRegFromMem(const string& reg, const string& name) {
-        cout << "help : " << reg << " " << name << endl;
+//        cout << "help : " << reg << " " << name << endl;
         if (name == "%0") {
             //mipsOutput->push_back(new MipsAdd("add", reg, "$0", "$0"));
             return "$0";
@@ -253,7 +253,7 @@ public:
             return (*varToRegister)[name];
         }
         int index = checkTable(name);
-        //cout << "get var: " << name << endl;
+//        cout << "get var2: " << name << endl;
         if (index == -1)
             exit(222);
         if (getTabelItemTem(index)) {
@@ -355,7 +355,7 @@ public:
                 mipsOutput -> push_back(new MipsAdd("add", reg, add, offset));
             } else {
                 int off = (atoi(offset.c_str()) << 2);
-                mipsOutput -> push_back(new MipsAddI("sw", reg, add, to_string(off)));
+                mipsOutput -> push_back(new MipsAddI("addi", reg, add, to_string(off)));
             }
             return reg;
         }

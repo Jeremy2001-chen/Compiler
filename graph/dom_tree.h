@@ -29,7 +29,7 @@ public:
             next = fa->findChild((*tran)[i]);
             fa = next;
         }
-        cout << "Link : " << fa->getId() << " to " << tree->getId() << endl;
+//        cout << "Link : " << fa->getId() << " to " << tree->getId() << endl;
         fa -> insertChild(tree);
     }
 

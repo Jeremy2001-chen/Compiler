@@ -20,6 +20,10 @@ extern MipsTable* mipsTable;
 extern string IRNameTran(const string& str);
 extern map<string, string>* varToRegister;
 
+bool isNumber(string var) {
+    return var[0] == '-' || var[0] >= '0' && var[0] <= '9';
+}
+
 class IrCode {
 protected:
     IrType codeType;
@@ -45,6 +49,19 @@ public:
     }
 };
 
+/* For MUL & DIV */
+int log2(int x) {
+    for (int i = 1; i < 32; ++ i)
+        if (x <= (1ll << i)) {
+            return i;
+        }
+    return 32;
+}
+
+int xSign(int x) {
+    return x >= 0 ? 0 : -1;
+}
+
 class IrBinaryOp: public IrCode {
 private:
     //string target, source[2];
@@ -65,6 +82,61 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        if (isNumber(source[1])) {
+            // addi $s0 $s0 100
+            string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
+            if (sign == "+")
+                mipsOutput -> push_back(new MipsAddI("addi", reg2, reg0, source[1]));
+            else if (sign == "-")
+                mipsOutput -> push_back(new MipsAddI("subi", reg2, reg0, source[1]));
+            else if (sign == "/") {
+                reg2 = "$t9";
+                int N = 32;
+                int d = atoi(source[1].c_str());
+                int d1 = d < 0 ? -d : d;
+                int l = log2(d1);
+                unsigned long long m = 1ull + ((1ull << (N + l - 1)) / d1);
+                int m1 = m - (1ull << N);
+                int d_sign = xSign(d);
+                int sh_post = l - 1;
+                mipsOutput -> push_back(new MipsLi("li", reg2, to_string(m1)));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, reg0));
+                mipsOutput -> push_back(new MipsMF("mfhi", reg2));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, reg0));
+                mipsOutput -> push_back(new MipsAddI("sra", reg2, reg2, to_string(sh_post)));
+                mipsOutput -> push_back(new MipsAdd("slt", "$t1", reg0, "$0"));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAddI("addi", "$t1", "$0", to_string(d_sign)));
+                mipsOutput -> push_back(new MipsAdd("xor", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg2, "$t1"));
+            } else if (sign == "%") {
+                reg2 = "$t9";
+                int N = 32;
+                int d = atoi(source[1].c_str());
+                int d1 = d < 0 ? -d : d;
+                int l = log2(d1);
+                unsigned long long m = 1ull + ((1ull << (N + l - 1)) / d1);
+                int m1 = m - (1ull << N);
+                int d_sign = xSign(d);
+                int sh_post = l - 1;
+                mipsOutput -> push_back(new MipsLi("li", reg2, to_string(m1)));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, reg0));
+                mipsOutput -> push_back(new MipsMF("mfhi", reg2));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, reg0));
+                mipsOutput -> push_back(new MipsAddI("sra", reg2, reg2, to_string(sh_post)));
+                mipsOutput -> push_back(new MipsAdd("slt", "$t1", reg0, "$0"));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAddI("addi", "$t1", "$0", to_string(d_sign)));
+                mipsOutput -> push_back(new MipsAdd("xor", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsLi("li", "$t1", source[1]));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, "$t1"));
+                mipsOutput -> push_back(new MipsMF("mflo", reg2));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg0, reg2));
+            }
+            mipsTable -> setRegToMem(reg2, target);
+            return ;
+        }
         string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
         if (sign == "+")
@@ -106,6 +178,10 @@ public:
         else
             return 0;
     }
+
+    string getSign() {
+        return sign;
+    }
 };
 
 class IrUnaryOp: public IrCode {
@@ -144,6 +220,10 @@ public:
             return mipsTable -> funInitStack(target, 1, false);
         else
             return 0;
+    }
+
+    string getSign() const {
+        return sign;
     }
 };
 
@@ -235,7 +315,7 @@ public:
     }
     int defVar() override {
         bool isAdd = (type == "arr");
-        cout << "check : " << target << endl;
+//        cout << "check : " << target << endl;
         //if (varToRegister -> find(target) == varToRegister -> end())
             return mipsTable -> funInitStack(target, 1, isAdd);
         //return 0;
@@ -258,9 +338,24 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
+        string reg0;
+        if (isNumber(source[0])) {
+            int number = atoi(source[0].c_str());
+            if (number == 0)
+                reg0 = "$0";
+            else {
+                reg0 = "$t0";
+                mipsOutput -> push_back(new MipsLi("li", reg0, source[0]));
+            }
+        } else
+            reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
+//        if (off > 4)
+            mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)) , "$sp"));
+//        else {
+//            string reg = "$a" + to_string(off - 1);
+//            mipsOutput -> push_back(new MipsAdd("add", reg, reg0, "$0"));
+//        }
     }
 
     int defVar() override {
@@ -287,10 +382,10 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg0 = mipsTable -> getRegFromMem("$t0", source[0]);
-        string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
+        string reg1;
         string tar;
-        if (source[1][0] >= '0' && source[1][0] <= '9')
-            tar = source[0];
+        if (isNumber(source[1]))
+            tar = source[1];
         else {
             reg1 = mipsTable -> getRegFromMem("$t0", source[1]);
             mipsOutput -> push_back(new MipsAddI("sll", "$t0", reg1, "2"));
@@ -298,7 +393,12 @@ public:
         }
         reg0 = mipsTable -> getRegFromAddress("$t0", source[0], tar, true);
         int off = mipsTable -> getPushCnt();
-        mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)), "$sp"));
+//        if (off > 4)
+            mipsOutput -> push_back(new MipsStore("sw", reg0, to_string(-(off << 2)), "$sp"));
+//        else {
+//            string reg = "$a" + to_string(off - 1);
+//            mipsOutput -> push_back(new MipsAdd("add", reg, reg0, "$0"));
+//        }
     }
 
     int defVar() override {
@@ -357,8 +457,16 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        if (!source[0].empty())
-            mipsTable -> getRegFromMemMust("$v0", source[0], true);
+        if (!source[0].empty()) {
+            if (isNumber(source[0])) {
+                int number = atoi(source[0].c_str());
+                if (number == 0)
+                    mipsOutput -> push_back(new MipsAdd("add", "$v0", "$0", "$0"));
+                else
+                    mipsOutput -> push_back(new MipsLi("li", "$v0", source[0]));
+            } else
+                mipsTable -> getRegFromMemMust("$v0", source[0], true);
+        }
 //        int cnt = mipsTable -> getTopParaCnt();
 //        mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(cnt)));
         //mipsOutput -> push_back(new MipsJRegister("jr", "$ra"));
@@ -533,6 +641,10 @@ public:
     void setLabel(string name) {
         label = name;
     }
+
+    string getType() {
+        return type;
+    }
 };
 
 class IrGotoStmt: public IrCode {
@@ -673,8 +785,18 @@ public:
     //todo
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        string reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
-        if (source[1][0] >= '0' && source[1][0] <= '9')
+        string reg2;
+        if (isNumber(source[2])) {
+            int number = atoi(source[2].c_str());
+            if (number == 0)
+                reg2 = "$0";
+            else {
+                reg2 = "$t0";
+                mipsOutput -> push_back(new MipsLi("li", "$t0", source[2]));
+            }
+        } else
+            reg2 = mipsTable -> getRegFromMem("$t0", source[2]);
+        if (isNumber(source[1]))
             mipsTable -> setRegToMem(reg2, source[0], source[1]);
         else {
             string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
@@ -710,7 +832,7 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
-        if (source[1][0] >= '0' && source[1][0] <= '9')
+        if (isNumber(source[1]))
             reg2 = mipsTable -> getRegFromMem(reg2, source[0], source[1]);
         else {
             string reg1 = mipsTable -> getRegFromMem("$t1", source[1]);
@@ -774,7 +896,14 @@ public:
 
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
-        mipsTable -> getRegFromMemMust("$a0", source[0], true);
+        if (isNumber(source[0])) {
+            int number = atoi(source[0].c_str());
+            if (number == 0)
+                mipsOutput -> push_back(new MipsAdd("add", "$a0", "$0", "0"));
+            else
+                mipsOutput -> push_back(new MipsLi("li", "$a0", source[0]));
+        } else
+            mipsTable -> getRegFromMemMust("$a0", source[0], true);
         mipsOutput -> push_back(new MipsLi("li", "$v0", "1"));
         mipsOutput -> push_back(new MipsSyscall());
     }
@@ -832,14 +961,22 @@ public:
     void toMips() override {
         mipsOutput -> push_back(new MipsNote(toString()));
         string reg2 = (varToRegister -> find(target) == varToRegister -> end()) ? "$t0" : (*varToRegister)[target];
-        mipsOutput -> push_back(new MipsLi("li", reg2, number));
-        mipsTable -> setRegToMem(reg2, target);
+        if (number == "0")
+            mipsTable -> setRegToMem("$0", target);
+        else {
+            mipsOutput -> push_back(new MipsLi("li", reg2, number));
+            mipsTable -> setRegToMem(reg2, target);
+        }
     }
 
     int defVar() override {
         if (varToRegister -> find(target) == varToRegister -> end())
             return mipsTable -> funInitStack(target, 1, false);
         return 0;
+    }
+
+    int getNumber() const {
+        return atoi(number.c_str());
     }
 };
 
@@ -986,6 +1123,26 @@ public:
     int defVar() override {
         //if (type)
         //    return mipsTable -> funInitStack(target, 1, false);
+        return 0;
+    }
+};
+
+class IrNop: public IrCode {
+public:
+    IrNop() {
+        source[0] = source[1] = "";
+        codeType = IrNopType;
+    }
+
+    string toString() override {
+        return "nop";
+    }
+
+    void toMips() override {
+
+    }
+
+    int defVar() override {
         return 0;
     }
 };

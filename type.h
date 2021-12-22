@@ -66,7 +66,8 @@ enum IrType{
     IrPhiType,
     IrPhiAssignType,
     IrMoveType,
-    IrPhiBlockType
+    IrPhiBlockType,
+    IrNopType
 };
 
 enum MipsType{

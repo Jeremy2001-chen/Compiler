@@ -52,6 +52,8 @@ private:
     map<IrBlock*, MyListBlock*> blockToMy;
     vector<IrBlock*>* blocks;
 
+    map<string, string>* funVarRegister;
+
     map<string, int> labelMp;
     vector<int> pos;
     vector<int> belong;
@@ -66,6 +68,8 @@ private:
 
 public:
     explicit IrFun(vector<IrCode*>* _codes) {
+        funVarRegister = new map<string, string>();
+
         codes = _codes;
         fBlock = eBlock = nullptr;
         if ((*codes)[0]->getCodeType() != IrFunDefineType) {
@@ -73,7 +77,7 @@ public:
         }
         IrFunDefine *funDefine = (IrFunDefine*)((*codes)[0]);
         name = funDefine->getName();
-        cout << name << endl;
+//        cout << name << endl;
         for (int i = 2; i < (*codes).size() - 1; ++ i) {
             if ((*codes)[i]->getCodeType() == IrLabelLineType) {
                 auto* line = (IrLabelLine*)(*codes)[i];
@@ -279,6 +283,11 @@ public:
         }
 
         domTree -> ssaReName();
+    }
+
+    void dataAnalyse() {
+        int N = blocks -> size();
+        int block_cnt = N;
 
         //Init Def & Use
         for (int i = 0; i < N; ++ i) {
@@ -392,7 +401,8 @@ public:
 
         //todo: set register
         aRegister -> clear();
-        varToRegister = new map<string, string>();
+//        varToRegister = new map<string, string>();
+        varToRegister = funVarRegister;
         domTree -> setRegister();
 
         //cout << toString() << endl;
@@ -491,9 +501,9 @@ public:
 
     string toString() {
         string ret;
-        ret += "now in a new fun: " + name + "\n";
+        //ret += "now in a new fun: " + name + "\n";
         for (int i = 0; i < (*blocks).size(); ++ i) {
-            ret += "in a new block: " + to_string(i) + "\n";
+            //ret += "in a new block: " + to_string(i) + "\n";
             ret += (*blocks)[i]->toString() + "\n";
         }
         return ret;
@@ -520,6 +530,8 @@ public:
     }
 
     void toMips() {
+        varToRegister = funVarRegister;
+
         //def function
         mipsTable -> setLayer(1);
 
@@ -536,12 +548,13 @@ public:
 
         set <string> reg;
         for (const auto& c: *varToRegister) {
-            cout << "gogogo: " << c.first << " " << c.second << endl;
             reg.insert(c.second);
         }
 
-        for (const auto& c: reg) {
-            spMove += mipsTable -> funInitStack(c, 1, false);
+        if (name != "main") {
+            for (const auto& c: reg) {
+                spMove += mipsTable -> funInitStack(c, 1, false);
+            }
         }
 
         spMove <<= 2;
@@ -549,8 +562,10 @@ public:
             mipsOutput -> push_back(new MipsAddI("subi", "$sp", "$sp", to_string(spMove)));
 
         int off = 0;
-        for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
-            mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
+        if (name != "main") {
+            for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+                mipsOutput -> push_back(new MipsStore("sw", *it, off, "$sp"));
+            }
         }
 
         MyListBlock* bl = fBlock;
@@ -567,8 +582,10 @@ public:
                 code -> toMips();
                 if (code -> getCodeType() == IrReturnStmtType) {
                     off = 0;
-                    for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
-                        mipsOutput -> push_back(new MipsLoad("lw", *it, off, "$sp"));
+                    if (name != "main") {
+                        for (auto it = reg.rbegin(); it != reg.rend(); ++ it, off+=4) {
+                            mipsOutput -> push_back(new MipsLoad("lw", *it, off, "$sp"));
+                        }
                     }
                     if (spMove > 0)
                         mipsOutput -> push_back(new MipsAddI("addi", "$sp", "$sp", to_string(spMove)));
@@ -581,6 +598,10 @@ public:
 
         // end function
         mipsTable -> setLayer(-1);
+    }
+
+    MyListBlock* getFirstBlock () {
+        return fBlock;
     }
 };
 #endif //COMPILER_IR_FUN_H

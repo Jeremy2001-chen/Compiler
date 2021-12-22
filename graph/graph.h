@@ -79,7 +79,7 @@ public:
     }
 
     void link(int s, int t) {
-        cout << "link : " << s << " " << t << endl;
+//        cout << "link : " << s << " " << t << endl;
         edges[s] -> push_back(t);
         backEdges[t] ->push_back(s);
     }
@@ -150,7 +150,7 @@ public:
             bfs(i);
         for (int i = 0; i < point; ++ i)
             getDF(i);
-        debug();
+//        debug();
     }
 
     vector<bool>* getReach() {

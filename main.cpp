@@ -8,12 +8,20 @@
 
 using namespace std;
 
+#define NOT_OPEN
+
 ifstream fin("testfile.txt");
 ofstream fout("output.txt");
 ofstream eout("error.txt");
 ofstream iout("ir.txt");
+ofstream bout("before_mips.txt");
 ofstream mout("mips.txt");
 ofstream nout("ir_new.txt");
+ofstream kout("ir_new1.txt");
+ofstream gout("ir_new2.txt");
+ofstream oout("ir_new3.txt");
+
+
 
 Output output;
 string input;
@@ -41,6 +49,8 @@ int main() {
     read();
     //Lexical lexical = Lexical(input);
     Grammar grammar = Grammar(input);
+//    print(output.to_string(), eout);
+//    return 0;
     Node* root = grammar.getRoot();
     root -> traversal();
     print(IR_1.toString(), iout);
@@ -48,15 +58,36 @@ int main() {
     mipsOutput = new MipsOutput();
     aRegister = new Register();
     IrNew *irNew = new IrNew(&IR_1);
-    //irNew -> toMips();
-    vector<IrCode*>* temp = irNew -> toIR();
-    for (auto code: *temp)
-        IR_2.add(code);
-    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
-    //print(irNew -> toString(), nout);
-    print(IR_2.toString(), nout);
+
+#ifdef NOT_OPEN
+    irNew -> analysis();
+    print(irNew -> toString(), nout);
+    irNew -> toMips();
+    print(mipsOutput -> toString(), mout);
+    return 0;
+#endif
+
+    print(irNew -> toString(), nout);
+    removeAddZero(irNew);
+    print(irNew -> toString(), kout);
+    constSpread(irNew);
+//    vector<IrCode*>* temp = irNew -> toIR();
+//    for (auto code: *temp)
+//        IR_2.add(code);
+//    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
+//    IrNew *irNew2 = new IrNew(&IR_2);
+    print(irNew -> toString(), gout);
+    irNew -> analysis();
+    print(irNew -> toString(), oout);
+    irNew -> toMips();
+    //    vector<IrCode*>* temp = irNew -> toIR();
+//    for (auto code: *temp)
+//        IR_2.add(code);
+//    IR_2.setGlobalDeclEnd(IR_1.getGlobalDeclEnd());
+//    //print(irNew -> toString(), nout);
+//    print(IR_2.toString(), nout);
     //mips = new Mips(IR_2, mipsTable, mipsOutput);
-    //print(output.to_string());
+//    print(output.to_string(), eout);
     //print(lexical.to_string());*/
     print(mipsOutput -> toString(), mout);
     return 0;

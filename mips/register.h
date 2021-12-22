@@ -36,9 +36,9 @@ public:
         RegisterType[RMap["$ra"]] = NOT_CHANGE;
         RegisterType[RMap["$v0"]] = NOT_CHANGE;
         RegisterType[RMap["$a0"]] = NOT_CHANGE;
-        RegisterType[RMap["$a1"]] = NOT_CHANGE;
-        RegisterType[RMap["$a2"]] = NOT_CHANGE;
-        RegisterType[RMap["$a3"]] = NOT_CHANGE;
+//        RegisterType[RMap["$a1"]] = NOT_CHANGE;
+//        RegisterType[RMap["$a2"]] = NOT_CHANGE;
+//        RegisterType[RMap["$a3"]] = NOT_CHANGE;
         RegisterType[RMap["$gp"]] = NOT_CHANGE;
     }
 
