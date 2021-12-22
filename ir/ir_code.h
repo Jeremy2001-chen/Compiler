@@ -49,6 +49,19 @@ public:
     }
 };
 
+/* For MUL & DIV */
+int log2(int x) {
+    for (int i = 1; i < 32; ++ i)
+        if (x <= (1ll << i)) {
+            return i;
+        }
+    return 32;
+}
+
+int xSign(int x) {
+    return x >= 0 ? 0 : -1;
+}
+
 class IrBinaryOp: public IrCode {
 private:
     //string target, source[2];
@@ -76,6 +89,51 @@ public:
                 mipsOutput -> push_back(new MipsAddI("addi", reg2, reg0, source[1]));
             else if (sign == "-")
                 mipsOutput -> push_back(new MipsAddI("subi", reg2, reg0, source[1]));
+            else if (sign == "/") {
+                reg2 = "$t9";
+                int N = 32;
+                int d = atoi(source[1].c_str());
+                int d1 = d < 0 ? -d : d;
+                int l = log2(d1);
+                unsigned long long m = 1ull + ((1ull << (N + l - 1)) / d1);
+                int m1 = m - (1ull << N);
+                int d_sign = xSign(d);
+                int sh_post = l - 1;
+                mipsOutput -> push_back(new MipsLi("li", reg2, to_string(m1)));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, reg0));
+                mipsOutput -> push_back(new MipsMF("mfhi", reg2));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, reg0));
+                mipsOutput -> push_back(new MipsAddI("sra", reg2, reg2, to_string(sh_post)));
+                mipsOutput -> push_back(new MipsAdd("slt", "$t1", reg0, "$0"));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAddI("addi", "$t1", "$0", to_string(d_sign)));
+                mipsOutput -> push_back(new MipsAdd("xor", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg2, "$t1"));
+            } else if (sign == "%") {
+                reg2 = "$t9";
+                int N = 32;
+                int d = atoi(source[1].c_str());
+                int d1 = d < 0 ? -d : d;
+                int l = log2(d1);
+                unsigned long long m = 1ull + ((1ull << (N + l - 1)) / d1);
+                int m1 = m - (1ull << N);
+                int d_sign = xSign(d);
+                int sh_post = l - 1;
+                mipsOutput -> push_back(new MipsLi("li", reg2, to_string(m1)));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, reg0));
+                mipsOutput -> push_back(new MipsMF("mfhi", reg2));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, reg0));
+                mipsOutput -> push_back(new MipsAddI("sra", reg2, reg2, to_string(sh_post)));
+                mipsOutput -> push_back(new MipsAdd("slt", "$t1", reg0, "$0"));
+                mipsOutput -> push_back(new MipsAdd("add", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAddI("addi", "$t1", "$0", to_string(d_sign)));
+                mipsOutput -> push_back(new MipsAdd("xor", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg2, "$t1"));
+                mipsOutput -> push_back(new MipsLi("li", "$t1", source[1]));
+                mipsOutput -> push_back(new MipsMul("mult", reg2, "$t1"));
+                mipsOutput -> push_back(new MipsMF("mflo", reg2));
+                mipsOutput -> push_back(new MipsAdd("sub", reg2, reg0, reg2));
+            }
             mipsTable -> setRegToMem(reg2, target);
             return ;
         }

@@ -344,6 +344,10 @@ void constSpread(IrNew* irNew) {
                                 if (isOtherVar(s0))
                                     binary -> setSource(0, getOtherVar(s0));
                                 binary -> setSource(1, to_string(v1));
+                            } else if (sign == "/" || sign == "%") {
+                                if (isOtherVar(s0))
+                                    binary -> setSource(0, getOtherVar(s0));
+                                binary -> setSource(1, to_string(v1));
                             } else { //todo
                                 if (isOtherVar(s0))
                                     binary -> setSource(0, getOtherVar(s0));
@@ -403,49 +407,49 @@ void constSpread(IrNew* irNew) {
                     }
                     case IrBranchStmtType:
                     {
-                        IrBranchStmt* branch = (IrBranchStmt*)code;
-                        string type = branch -> getType(), label = branch -> getLabel();
-                        string s0 = branch -> getSource(0), s1 = branch -> getSource(1);
-                        if (type == "beq") {
-                            if (isInt(s0) && isInt(s1)) {
-                                int v0 = getInt(s0), v1 = getInt(s1);
-                                if (v0 == v1) {
-                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
-                                    MyList* myList = new MyList(gotoStmt);
-                                    block1 -> addReplace(start, myList);
-                                } else {
-                                    IrNop* nop = new IrNop();
-                                    MyList* myList = new MyList(nop);
-                                    block1 -> addReplace(start, myList);
-                                }
-                            }
-                        } else if (type == "bne") {
-                            if (isInt(s0) && isInt(s1)) {
-                                int v0 = getInt(s0), v1 = getInt(s1);
-                                if (v0 != v1) {
-                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
-                                    MyList* myList = new MyList(gotoStmt);
-                                    block1 -> addReplace(start, myList);
-                                } else {
-                                    IrNop* nop = new IrNop();
-                                    MyList* myList = new MyList(nop);
-                                    block1 -> addReplace(start, myList);
-                                }
-                            }
-                        } else if (type == "bgt") {
-                            if (isInt(s0) && isInt(s1)) {
-                                int v0 = getInt(s0), v1 = getInt(s1);
-                                if (v0 > v1) {
-                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
-                                    MyList* myList = new MyList(gotoStmt);
-                                    block1 -> addReplace(start, myList);
-                                } else {
-                                    IrNop* nop = new IrNop();
-                                    MyList* myList = new MyList(nop);
-                                    block1 -> addReplace(start, myList);
-                                }
-                            }
-                        }
+//                        IrBranchStmt* branch = (IrBranchStmt*)code;
+//                        string type = branch -> getType(), label = branch -> getLabel();
+//                        string s0 = branch -> getSource(0), s1 = branch -> getSource(1);
+//                        if (type == "beq") {
+//                            if (isInt(s0) && isInt(s1)) {
+//                                int v0 = getInt(s0), v1 = getInt(s1);
+//                                if (v0 == v1) {
+//                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
+//                                    MyList* myList = new MyList(gotoStmt);
+//                                    block1 -> addReplace(start, myList);
+//                                } else {
+//                                    IrNop* nop = new IrNop();
+//                                    MyList* myList = new MyList(nop);
+//                                    block1 -> addReplace(start, myList);
+//                                }
+//                            }
+//                        } else if (type == "bne") {
+//                            if (isInt(s0) && isInt(s1)) {
+//                                int v0 = getInt(s0), v1 = getInt(s1);
+//                                if (v0 != v1) {
+//                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
+//                                    MyList* myList = new MyList(gotoStmt);
+//                                    block1 -> addReplace(start, myList);
+//                                } else {
+//                                    IrNop* nop = new IrNop();
+//                                    MyList* myList = new MyList(nop);
+//                                    block1 -> addReplace(start, myList);
+//                                }
+//                            }
+//                        } else if (type == "bgt") {
+//                            if (isInt(s0) && isInt(s1)) {
+//                                int v0 = getInt(s0), v1 = getInt(s1);
+//                                if (v0 > v1) {
+//                                    IrGotoStmt* gotoStmt = new IrGotoStmt(label);
+//                                    MyList* myList = new MyList(gotoStmt);
+//                                    block1 -> addReplace(start, myList);
+//                                } else {
+//                                    IrNop* nop = new IrNop();
+//                                    MyList* myList = new MyList(nop);
+//                                    block1 -> addReplace(start, myList);
+//                                }
+//                            }
+//                        }
                         break;
                     }
                     default:
