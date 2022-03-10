@@ -16,7 +16,7 @@ for i in range(1, num + 1):
     sourceName = "testfile" + suffix
     targetName = "ir" + suffix
     myName = "my" + suffix
-    stdName = "output" + suffix
+    stdName = "output.txt"
     mipsName = "mips" + suffix
     mipsOutputName = "mips_output" + suffix
     shutil.copy(sourceName, "testfile.txt")
