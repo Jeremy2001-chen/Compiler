@@ -49,7 +49,7 @@ for i in range(1, num + 1):
         diff = os.system("diff " + stdName + " " + mipsOutputName)
         # fc_ir = os.system("diff " + myName + " " + stdName)
         # fc_mips = os.system("diff " + myName + " " + mipsOutputName)
-        if fc_mips != 0:
+        if diff != 0:
             print("Wrong Answer at test %d" % i)
             notAccept.append(i)
         else:
