@@ -1,7 +1,7 @@
 name: GitHub Actions Demo
 on: [push]
 jobs:
-  GitHub-Actions:
+  initial:
     runs-on: ubuntu-latest
     steps:
       - name: Start CI/CD
@@ -15,10 +15,14 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+
+  build-target:
+    runs-on: ubuntu-latest
+    steps:
       - name: Make target directory
         run: |
           cd ${{ github.workspace }}
           mkdir target
-      - name: Make target directory
+      - name: Test target directory
         run: |
           ls ${{ github.workspace }}
