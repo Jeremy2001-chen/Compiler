@@ -18,6 +18,7 @@ jobs:
           echo "Welcome to Zergling's Compiler!".
       - name: Compile the project
         run: |
-          echo | ls
+          cd ../
+          ls
           g++ main.cpp -O2 -o main.o
 
