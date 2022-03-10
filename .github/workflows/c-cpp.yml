@@ -29,7 +29,8 @@ jobs:
       - name: Copy the data
         run: |
           cd ../
-          cp ./data/* ./target
+          ls
+          cp -r ./data/* ./target
       - name: Run the executable object
         run: |
           cd target
