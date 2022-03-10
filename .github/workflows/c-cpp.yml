@@ -28,8 +28,8 @@ jobs:
           g++ ../main.cpp -O2 -o main
       - name: Copy the data
         run: |
-          cd ..
-          cp ../data/* ../target/*
+          cd ../
+          cp ./data/* ./target/*
       - name: Run the executable object
         run: |
           cd target
