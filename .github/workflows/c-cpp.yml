@@ -37,3 +37,8 @@ jobs:
           ls
       - name: Test the testcase
         run: |
+          cd target
+          python3 checker.py
+          if [ $1 != "0" ] then
+            exit 1;
+          fi
