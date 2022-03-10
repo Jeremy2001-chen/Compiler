@@ -37,7 +37,8 @@ jobs:
         run: |
           cd target
           ls
-          python3 checker.py
+          python3 checker.py > log.txt
+          cat log.txt
           if [ $? != "0" ] then
             exit 1;
           fi
