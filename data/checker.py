@@ -60,4 +60,3 @@ if accept == num:
 else:
     print("No you Not Accept!\n")
     print(notAccept)
-    exit(1)
