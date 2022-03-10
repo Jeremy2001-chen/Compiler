@@ -39,4 +39,8 @@ jobs:
           ls
           python3 checker.py > log.txt
           cat log.txt
-          exit 1
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ZerglingCompiler
+          path: target/test/compiler
