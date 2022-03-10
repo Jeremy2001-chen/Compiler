@@ -27,7 +27,7 @@ jobs:
           ls
           cp -r ./data/* ./target
           cd target
-          cp -r ./testfiles/* ./target
+          cp -r ./testfiles/* ./
       - name: Compile the compiler
         run: |
           cd target
