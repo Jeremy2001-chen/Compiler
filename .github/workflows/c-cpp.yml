@@ -39,7 +39,3 @@ jobs:
           ls
           python3 checker.py > log.txt
           cat log.txt
-          if [ $? != "0" ] then
-            exit 1;
-          fi
-          exit 0;
