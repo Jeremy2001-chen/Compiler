@@ -15,4 +15,10 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: Make target directory
+        run: |
+          cd ${{ github.workspace }}
+          mkdir target
+      - name: Make target directory
+        run: |
+          ls ${{ github.workspace }}
