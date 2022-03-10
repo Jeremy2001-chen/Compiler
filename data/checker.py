@@ -20,7 +20,7 @@ for i in range(1, num + 1):
     mipsName = "mips" + suffix
     mipsOutputName = "mips_output" + suffix
     shutil.copy(sourceName, "testfile.txt")
-    shutil.copy("mips.txt", mipsName)
+    # shutil.copy("mips.txt", mipsName)
     ret = os.system("compiler.exe")
     if ret != 0:
         exit(ret)
