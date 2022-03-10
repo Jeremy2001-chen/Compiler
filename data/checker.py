@@ -46,13 +46,10 @@ for i in range(1, num + 1):
         print("Execute Error at test %d" % i)
         notAccept.append(i)
     else:
-        fc_ir = os.system("diff " + myName + " " + stdName)
-        fc_mips = os.system("diff " + myName + " " + mipsOutputName)
-        if fc_ir != 0 or fc_mips != 0:
-            if fc_ir != 0:
-                print("Wrong IR at test %d" % i)
-            if fc_mips != 0:
-                print("Wrong mips at test %d" % i)
+        diff = os.system("diff " + stdName + " " + mipsOutputName)
+        # fc_ir = os.system("diff " + myName + " " + stdName)
+        # fc_mips = os.system("diff " + myName + " " + mipsOutputName)
+        if fc_mips != 0:
             print("Wrong Answer at test %d" % i)
             notAccept.append(i)
         else:
