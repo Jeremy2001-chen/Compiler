@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: GitHub Actions
 on: [push]
 jobs:
   github-action:
@@ -35,3 +35,5 @@ jobs:
           cd target
           ./main
           ls
+      - name: Test the testcase
+        run: |
