@@ -22,19 +22,16 @@ jobs:
       - name: Test target directory
         run: |
           ls ${{ github.workspace }}
-      - name: Compile the project
-        run: |
-          cd target
-          g++ ../main.cpp -O2 -o main
       - name: Copy the data
         run: |
           ls
           cp -r ./data/* ./target
-      - name: Run the executable object
+          cd target
+          cp -r ./testfiles/* ./target
+      - name: Compile the compiler
         run: |
           cd target
-          ./main
-          ls
+          g++ ../main.cpp -O2 -o main
       - name: Test the testcase
         run: |
           cd target
