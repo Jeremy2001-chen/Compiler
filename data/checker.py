@@ -7,7 +7,7 @@ if not os.path.exists("test"):
 shutil.move("./main", "./test/compiler")
 os.chdir("./test")
 
-num = 30
+num = 1
 accept = 0
 notAccept = []
 for i in range(1, num + 1):
@@ -16,7 +16,7 @@ for i in range(1, num + 1):
     sourceName = "testfile" + suffix
     targetName = "ir" + suffix
     myName = "my" + suffix
-    stdName = "output.txt"
+    stdName = "output" + suffix
     mipsName = "mips" + suffix
     mipsOutputName = "mips_output" + suffix
     shutil.copy(sourceName, "testfile.txt")
