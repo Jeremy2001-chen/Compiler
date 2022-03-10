@@ -16,3 +16,6 @@ jobs:
           LAST_NAME: Octocat
         run: |
           echo "Welcome to Zergling's Compiler!".
+      - name: Compile the project
+        run: g++ main.cpp -O2 -o main.o
+
