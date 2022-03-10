@@ -7,7 +7,7 @@ if not os.path.exists("test"):
 shutil.move("./main", "./test/compiler")
 os.chdir("./test")
 
-num = 1
+num = 20
 accept = 0
 notAccept = []
 for i in range(1, num + 1):
