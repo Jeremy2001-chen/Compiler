@@ -38,6 +38,6 @@ jobs:
           cd target
           ls
           python3 checker.py
-          if [ $1 != "0" ] then
+          if [ $? != "0" ] then
             exit 1;
           fi

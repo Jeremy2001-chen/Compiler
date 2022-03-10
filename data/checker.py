@@ -21,7 +21,7 @@ for i in range(1, num + 1):
     mipsOutputName = "mips_output" + suffix
     shutil.copy(sourceName, "testfile.txt")
     # shutil.copy("mips.txt", mipsName)
-    ret = os.system("compiler.exe")
+    ret = os.system("compiler")
     if ret != 0:
         exit(ret)
     shutil.copy("ir.txt", targetName)
